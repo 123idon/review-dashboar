@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>후기 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f5f4f0;
+  --card: #ffffff;
+  --border: #e2e0d8;
+  --text: #1a1917;
+  --muted: #7a7870;
+  --accent-a: #2d5a3d;   /* 창억 - 녹색 계열 */
+  --accent-b: #6b3a2a;   /* 명가 - 적갈색 계열 */
+  --danger: #c0392b;
+  --danger-bg: #fdf0ee;
+  --warn: #b8860b;
+  --warn-bg: #fefae8;
+  --positive: #1a6b3a;
+  --positive-bg: #edf7f1;
+  --font: 'Noto Sans KR', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── 헤더 ── */
+.header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  gap: 12px;
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.logo { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.shop-tabs { display: flex; background: var(--bg); border-radius: var(--radius-sm); padding: 3px; gap: 2px; }
+.shop-tab {
+  padding: 5px 14px; border-radius: 6px; border: none;
+  background: transparent; font-size: 13px; font-weight: 500;
+  color: var(--muted); cursor: pointer; transition: all .15s; font-family: var(--font);
+}
+.shop-tab.active-a { background: var(--accent-a); color: #fff; }
+.shop-tab.active-b { background: var(--accent-b); color: #fff; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.last-updated { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.refresh-btn {
+  padding: 6px 14px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--card);
+  font-size: 12px; color: var(--text); cursor: pointer;
+  font-family: var(--font); display: flex; align-items: center; gap: 5px;
+  transition: background .15s;
+}
+.refresh-btn:hover { background: var(--bg); }
+.refresh-btn.loading .spin { animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 레이아웃 ── */
+.main { max-width: 960px; margin: 0 auto; padding: 24px 20px 60px; }
+.section { margin-bottom: 28px; }
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 12px;
+}
+
+/* ── 요약 카드 ── */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.stat-card.danger-card { background: var(--danger-bg); border-color: #f0c4c0; }
+.stat-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.stat-val { font-size: 28px; font-weight: 700; font-family: var(--mono); letter-spacing: -1px; }
+.stat-val.danger { color: var(--danger); }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.stat-accent-a .stat-val { color: var(--accent-a); }
+
+/* ── 2열 그리드 ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+/* ── 카드 공통 ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+}
+.card-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+
+/* ── 별점 분포 ── */
+.dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.dist-label { font-size: 12px; font-family: var(--mono); width: 16px; text-align: right; color: var(--muted); }
+.dist-bar-wrap { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.dist-bar { height: 100%; border-radius: 4px; transition: width .5s ease; }
+.dist-bar.s5 { background: #2d9a5f; }
+.dist-bar.s4 { background: #5db87a; }
+.dist-bar.s3 { background: #e6b84a; }
+.dist-bar.s2 { background: #e07b3a; }
+.dist-bar.s1 { background: var(--danger); }
+.dist-count { font-size: 11px; font-family: var(--mono); color: var(--muted); width: 28px; text-align: right; }
+
+/* ── 플랫폼 비교 ── */
+.platform-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.platform-row:last-child { border: none; }
+.platform-name { font-size: 13px; font-weight: 500; }
+.platform-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700;
+}
+.badge-jasa { background: #e8f0fd; color: #2650a8; }
+.badge-ss { background: #e6f7f0; color: #1a6b3a; }
+.platform-meta { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+/* ── TOP 3 상품 ── */
+.product-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.product-item:last-child { border: none; padding-bottom: 0; }
+.product-rank {
+  font-size: 11px; font-family: var(--mono); font-weight: 700;
+  color: var(--muted); width: 18px; flex-shrink: 0; padding-top: 1px;
+}
+.product-name { font-size: 13px; line-height: 1.4; flex: 1; }
+.product-name small { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+.product-count { font-size: 12px; font-family: var(--mono); font-weight: 500; flex-shrink: 0; }
+.product-count.neg { color: var(--danger); }
+
+/* ── 키워드 ── */
+.keyword-section { margin-bottom: 12px; }
+.keyword-section-title { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-weight: 700; }
+.keyword-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font-size: 12px; padding: 4px 10px; border-radius: 20px;
+  font-weight: 500; display: flex; align-items: center; gap: 4px;
+}
+.chip-pos { background: var(--positive-bg); color: var(--positive); }
+.chip-neg { background: var(--danger-bg); color: var(--danger); }
+.chip-count { font-size: 10px; font-family: var(--mono); opacity: .7; }
+.period-toggle {
+  display: flex; gap: 4px; margin-bottom: 12px;
+}
+.period-btn {
+  font-size: 11px; padding: 3px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; font-family: var(--font);
+}
+.period-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+/* ── 후기 목록 ── */
+.filter-row { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.filter-btn {
+  font-size: 12px; padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--card);
+  color: var(--muted); cursor: pointer; font-family: var(--font);
+  transition: all .15s;
+}
+.filter-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+.review-list { display: flex; flex-direction: column; gap: 10px; }
+.review-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.review-card.low { border-left: 3px solid var(--danger); }
+.review-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 8px; margin-bottom: 8px;
+}
+.stars { display: flex; gap: 2px; }
+.star { font-size: 12px; }
+.star.on { color: #e6b84a; }
+.star.off { color: #d0cfc8; }
+.score-num { font-size: 12px; font-family: var(--mono); font-weight: 500; margin-left: 4px; }
+.score-num.low { color: var(--danger); }
+.review-meta { display: flex; align-items: center; gap: 6px; }
+.rev-badge {
+  font-size: 10px; padding: 2px 7px; border-radius: 6px;
+}
+.rev-badge.jasa { background: #e8f0fd; color: #2650a8; }
+.rev-badge.smartstore { background: #e6f7f0; color: #1a6b3a; }
+.rev-badge.kakao { background: #fff3e0; color: #c67c00; }
+.rev-badge.naver { background: #e6f7f0; color: #1a6b3a; }
+.rev-date { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.review-product { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.review-content { font-size: 13px; line-height: 1.6; color: #3a3836; }
+.review-title { font-size: 13px; font-weight: 500; }
+.low-tag {
+  font-size: 10px; background: var(--danger-bg); color: var(--danger);
+  padding: 2px 7px; border-radius: 6px; font-weight: 700; margin-left: 6px;
+}
+
+/* ── 로딩 / 에러 ── */
+.loading-state {
+  text-align: center; padding: 60px 0;
+  color: var(--muted); font-size: 14px;
+}
+.spinner {
+  width: 28px; height: 28px; border: 2px solid var(--border);
+  border-top-color: var(--text); border-radius: 50%;
+  animation: spin .7s linear infinite; margin: 0 auto 14px;
+}
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--text); color: #fff; padding: 10px 20px;
+  border-radius: var(--radius-sm); font-size: 13px; z-index: 999;
+  opacity: 0; transition: opacity .3s; pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* ── 반응형 ── */
+@media (max-width: 640px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .header { padding: 0 14px; }
+  .last-updated { display: none; }
+  .main { padding: 16px 14px 60px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <span class="logo">후기 대시보드</span>
+    <div class="shop-tabs">
+      <button class="shop-tab active-a" onclick="switchShop('changeok', this)">창억떡</button>
+      <button class="shop-tab" onclick="switchShop('myeongga', this)">명가삼대떡집</button>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated">—</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="triggerCollect()">
+      <span class="spin">↻</span> 새로고침
+    </button>
+  </div>
+</header>
+
+<div class="main" id="mainContent">
+  <div class="loading-state">
+    <div class="spinner"></div>
+    데이터 불러오는 중...
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let allData = null;
+let currentShop = 'changeok';
+let reviewFilter = 'all';
+let keywordPeriod = 'all';
+let productPeriod = 'all';
+
+// ── 데이터 로드 ──
+async function loadData() {
+  try {
+    const res = await fetch('/api/data');
+    if (!res.ok) {
+      const err = await res.json();
+      showError(err.detail || '데이터를 불러올 수 없습니다.');
+      return;
+    }
+    allData = await res.json();
+    updateLastUpdated(allData.last_updated);
+    render();
+  } catch(e) {
+    showError('서버에 연결할 수 없습니다.');
+  }
+}
+
+function updateLastUpdated(iso) {
+  if (!iso) return;
+  const d = new Date(iso);
+  const s = `${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())} 기준`;
+  document.getElementById('lastUpdated').textContent = s;
+}
+
+function p2(n) { return String(n).padStart(2, '0'); }
+
+// ── 수집 트리거 ──
+async function triggerCollect() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  showToast('수집을 시작했습니다. 약 5~10분 후 자동으로 반영돼요.');
+  try {
+    await fetch('/api/collect', { method: 'POST' });
+  } catch(e) {}
+  setTimeout(() => { btn.classList.remove('loading'); btn.disabled = false; }, 3000);
+}
+
+// ── 가게 전환 ──
+function switchShop(shop, el) {
+  currentShop = shop;
+  document.querySelectorAll('.shop-tab').forEach(t => {
+    t.classList.remove('active-a', 'active-b');
+  });
+  el.classList.add(shop === 'changeok' ? 'active-a' : 'active-b');
+  reviewFilter = 'all';
+  render();
+}
+
+// ── 전체 렌더 ──
+function render() {
+  if (!allData) return;
+  const d = allData[currentShop];
+  const mc = document.getElementById('mainContent');
+
+  const accentVar = currentShop === 'changeok' ? 'var(--accent-a)' : 'var(--accent-b)';
+
+  mc.innerHTML = `
+    ${renderStatCards(d, accentVar)}
+    <div class="grid-2 section">
+      <div>${renderScoreDist(d)}</div>
+      <div>${renderPlatformCompare(d)}</div>
+    </div>
+    <div id="trendSection" class="section">
+      ${renderTrend(d)}
+    </div>
+    <div class="grid-2 section">
+      <div>${renderTopProducts(d)}</div>
+      <div>${renderNegativeProducts(d)}</div>
+    </div>
+    <div class="section">${renderKeywords(d)}</div>
+    <div class="section">${renderReviews(d)}</div>
+  `;
+
+  // Chart.js 트렌드 차트
+  renderTrendChart(d);
+}
+
+// ── 요약 카드 ──
+function renderStatCards(d) {
+  const negRate = d.total_count ? Math.round(d.total_negative / d.total_count * 100) : 0;
+  const wNegRate = d.week_count ? Math.round(d.week_negative / d.week_count * 100) : 0;
+  return `
+  <div class="stat-grid section">
+    <div class="stat-card">
+      <div class="stat-label">전체 후기</div>
+      <div class="stat-val">${d.total_count.toLocaleString()}</div>
+      <div class="stat-sub">평균 ★${d.avg_score}</div>
+    </div>
+    <div class="stat-card ${d.total_negative > 0 ? 'danger-card' : ''}">
+      <div class="stat-label">전체 3점 이하</div>
+      <div class="stat-val ${d.total_negative > 0 ? 'danger' : ''}">${d.total_negative.toLocaleString()}</div>
+      <div class="stat-sub">${negRate}% 비율</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">최근 7일 후기</div>
+      <div class="stat-val">${d.week_count.toLocaleString()}</div>
+      <div class="stat-sub">지난 7일간</div>
+    </div>
+    <div class="stat-card ${d.week_negative > 0 ? 'danger-card' : ''}">
+      <div class="stat-label">최근 7일 부정</div>
+      <div class="stat-val ${d.week_negative > 0 ? 'danger' : ''}">${d.week_negative.toLocaleString()}</div>
+      <div class="stat-sub">${wNegRate}% 비율</div>
+    </div>
+  </div>`;
+}
+
+// ── 별점 분포 ──
+function renderScoreDist(d) {
+  const dist = d.score_distribution || {};
+  const total = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
+  const barClasses = { '5':'s5','4':'s4','3':'s3','2':'s2','1':'s1' };
+  let rows = '';
+  for (let s = 5; s >= 1; s--) {
+    const cnt = dist[s] || 0;
+    const pct = Math.round(cnt / total * 100);
+    rows += `
+      <div class="dist-row">
+        <div class="dist-label">${s}</div>
+        <div class="dist-bar-wrap">
+          <div class="dist-bar ${barClasses[s]}" style="width:${pct}%"></div>
+        </div>
+        <div class="dist-count">${cnt}</div>
+      </div>`;
+  }
+  return `<div class="card"><div class="card-title">별점 분포</div>${rows}</div>`;
+}
+
+// ── 플랫폼 비교 ──
+function renderPlatformCompare(d) {
+  const ps = d.platform_stats || {};
+  const platforms = [
+    { key: 'direct', label: '자사몰', badge: 'jasa' },
+    { key: 'kakao',  label: '자사몰 (카카오)', badge: 'jasa' },
+    { key: 'naver',  label: '자사몰 (네이버)', badge: 'jasa' },
+    { key: 'smartstore', label: '스마트스토어', badge: 'smartstore' },
+  ];
+  let rows = '';
+  for (const p of platforms) {
+    const stat = ps[p.key];
+    if (!stat || stat.count === 0) continue;
+    rows += `
+      <div class="platform-row">
+        <div>
+          <span class="platform-badge ${p.badge}">${p.label}</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <span class="platform-meta">★${stat.avg_score} &nbsp; ${stat.count}건</span>
+          ${stat.negative > 0 ? `<span style="font-size:11px;color:var(--danger);font-family:var(--mono)">▼${stat.negative}</span>` : ''}
+        </div>
+      </div>`;
+  }
+  if (!rows) rows = '<div style="font-size:13px;color:var(--muted);padding:8px 0">데이터 없음</div>';
+  return `<div class="card"><div class="card-title">플랫폼 비교</div>${rows}</div>`;
+}
+
+// ── 트렌드 ──
+function renderTrend(d) {
+  return `<div class="card"><div class="card-title">주간 트렌드</div>
+    <canvas id="trendChart" height="120"></canvas></div>`;
+}
+
+function renderTrendChart(d) {
+  const trend = d.weekly_trend || [];
+  if (!trend.length) return;
+  const ctx = document.getElementById('trendChart');
+  if (!ctx) return;
+  if (window._trendChart) window._trendChart.destroy();
+  const accent = currentShop === 'changeok' ? '#2d5a3d' : '#6b3a2a';
+  window._trendChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: trend.map(t => t.week.slice(5)),
+      datasets: [
+        {
+          label: '후기수', data: trend.map(t => t.count),
+          backgroundColor: accent + '30', borderColor: accent,
+          borderWidth: 1.5, borderRadius: 4, yAxisID: 'y',
+        },
+        {
+          label: '부정', data: trend.map(t => t.negative),
+          backgroundColor: '#c0392b25', borderColor: '#c0392b',
+          borderWidth: 1.5, borderRadius: 4, yAxisID: 'y',
+          type: 'bar',
+        },
+        {
+          label: '평균별점', data: trend.map(t => t.avg_score),
+          type: 'line', borderColor: '#e6b84a', borderWidth: 2,
+          pointRadius: 3, tension: 0.3, yAxisID: 'y2',
+        },
+      ]
+    },
+    options: {
+      responsive: true, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { labels: { font: { size: 11 }, boxWidth: 10 } } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#e2e0d820' }, ticks: { font: { size: 11 } } },
+        y2: { position: 'right', min: 0, max: 5, grid: { display: false }, ticks: { font: { size: 11 } } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// ── TOP 3 상품 ──
+function renderTopProducts(d) {
+  const allTop = d.top_products_all || [];
+  const weekTop = d.top_products_week || [];
+
+  let rows = (allTop.length ? allTop : weekTop).map((p, i) => `
+    <div class="product-item">
+      <div class="product-rank">${i+1}</div>
+      <div class="product-name">${p.product || '(상품명 없음)'}
+        <small>평균 ★${p.avg_score} · 전체 ${p.count}건</small>
+      </div>
+      <div class="product-count">${p.count}건</div>
+    </div>`).join('');
+  if (!rows) rows = '<div style="font-size:13px;color:var(--muted)">데이터 없음</div>';
+
+  return `<div class="card">
+    <div class="card-title">후기 많은 상품 TOP 3 <span style="font-size:11px;color:var(--muted);font-weight:400">(전체)</span></div>
+    ${rows}
+  </div>`;
+}
+
+function renderNegativeProducts(d) {
+  const negTop = d.top_negative_products || [];
+  let rows = negTop.map((p, i) => `
+    <div class="product-item">
+      <div class="product-rank">${i+1}</div>
+      <div class="product-name">${p.product || '(상품명 없음)'}
+        <small>전체 ${p.count}건 · 평균 ★${p.avg_score}</small>
+      </div>
+      <div class="product-count neg">${p.negative}건</div>
+    </div>`).join('');
+  if (!rows) rows = '<div style="font-size:13px;color:var(--muted)">부정 후기 없음 👍</div>';
+
+  return `<div class="card">
+    <div class="card-title">부정 후기 많은 상품 TOP 3</div>
+    ${rows}
+  </div>`;
+}
+
+// ── 키워드 ──
+function renderKeywords(d) {
+  const posAll = d.positive_keywords_all || [];
+  const negAll = d.negative_keywords_all || [];
+  const posWeek = d.positive_keywords_week || [];
+  const negWeek = d.negative_keywords_week || [];
+
+  function chips(kws, cls) {
+    if (!kws.length) return '<span style="font-size:12px;color:var(--muted)">데이터 부족</span>';
+    return kws.map(k =>
+      `<span class="chip ${cls}">${k.word} <span class="chip-count">${k.count}</span></span>`
+    ).join('');
+  }
+
+  return `<div class="card">
+    <div class="card-title">키워드 분석</div>
+    <div class="period-toggle">
+      <button class="period-btn active" id="kwPeriodAll" onclick="setKwPeriod('all')">전체</button>
+      <button class="period-btn" id="kwPeriodWeek" onclick="setKwPeriod('week')">최근 7일</button>
+    </div>
+    <div id="kwContent">
+      <div class="keyword-section">
+        <div class="keyword-section-title">✓ 긍정 (4~5점)</div>
+        <div class="keyword-chips" id="posChips">${chips(posAll, 'chip-pos')}</div>
+      </div>
+      <div class="keyword-section" style="margin-top:12px">
+        <div class="keyword-section-title">✗ 부정 (1~3점)</div>
+        <div class="keyword-chips" id="negChips">${chips(negAll, 'chip-neg')}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setKwPeriod(period) {
+  if (!allData) return;
+  keywordPeriod = period;
+  document.getElementById('kwPeriodAll').classList.toggle('active', period === 'all');
+  document.getElementById('kwPeriodWeek').classList.toggle('active', period === 'week');
+  const d = allData[currentShop];
+  const posKws = period === 'all' ? d.positive_keywords_all : d.positive_keywords_week;
+  const negKws = period === 'all' ? d.negative_keywords_all : d.negative_keywords_week;
+  function chips(kws, cls) {
+    if (!kws || !kws.length) return '<span style="font-size:12px;color:var(--muted)">데이터 부족</span>';
+    return kws.map(k => `<span class="chip ${cls}">${k.word} <span class="chip-count">${k.count}</span></span>`).join('');
+  }
+  document.getElementById('posChips').innerHTML = chips(posKws, 'chip-pos');
+  document.getElementById('negChips').innerHTML = chips(negKws, 'chip-neg');
+}
+
+// ── 후기 목록 ──
+function renderReviews(d) {
+  return `<div class="card">
+    <div class="card-title">후기 목록</div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all', this)">전체</button>
+      <button class="filter-btn" onclick="setFilter('low', this)">3점 이하</button>
+      <button class="filter-btn" onclick="setFilter('jasa', this)">자사몰</button>
+      <button class="filter-btn" onclick="setFilter('ss', this)">스마트스토어</button>
+    </div>
+    <div class="review-list" id="reviewList">${buildReviewCards(d.reviews || [])}</div>
+  </div>`;
+}
+
+function setFilter(f, el) {
+  reviewFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const d = allData[currentShop];
+  let reviews = d.reviews || [];
+  if (f === 'low') reviews = reviews.filter(r => r.score <= 3);
+  else if (f === 'jasa') reviews = reviews.filter(r => r.platform !== 'smartstore');
+  else if (f === 'ss') reviews = reviews.filter(r => r.platform === 'smartstore');
+  document.getElementById('reviewList').innerHTML = buildReviewCards(reviews);
+}
+
+function buildReviewCards(reviews) {
+  if (!reviews.length) return '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">해당 후기가 없어요</div>';
+  return reviews.map(r => {
+    const isLow = r.score <= 3;
+    const stars = [1,2,3,4,5].map(i => `<span class="star ${i<=r.score?'on':'off'}">★</span>`).join('');
+    const platformLabel = {
+      direct: '자사몰', kakao: '카카오', naver: '네이버',
+      kakao_store: '카카오', smartstore: '스마트스토어'
+    }[r.platform] || r.platform;
+    const badgeCls = r.platform === 'smartstore' ? 'smartstore' : (r.platform === 'kakao' ? 'kakao' : 'jasa');
+    const content = r.content || r.title || '';
+    return `
+    <div class="review-card ${isLow ? 'low' : ''}">
+      <div class="review-header">
+        <div style="display:flex;align-items:center">
+          <div class="stars">${stars}</div>
+          <span class="score-num ${isLow?'low':''}">${r.score}.0</span>
+          ${isLow ? '<span class="low-tag">주의</span>' : ''}
+        </div>
+        <div class="review-meta">
+          <span class="rev-badge ${badgeCls}">${platformLabel}</span>
+          <span class="rev-date">${r.date}</span>
+        </div>
+      </div>
+      ${r.product ? `<div class="review-product">${r.product}</div>` : ''}
+      <div class="review-content">${content || '<span style="color:var(--muted)">본문 없음</span>'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── 에러 / 토스트 ──
+function showError(msg) {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="loading-state">
+      <div style="font-size:24px;margin-bottom:12px">⚠️</div>
+      <div>${msg}</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted)">잠시 후 다시 시도해주세요.</div>
+    </div>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ── 초기화 ──
+loadData();
+</script>
+</body>
+</html>
