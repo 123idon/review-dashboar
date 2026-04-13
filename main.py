@@ -20,10 +20,10 @@ scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
 async def startup():
     scheduler.add_job(collect_all, "cron", hour=1, minute=0, id="daily_collect")
     # 시작 후 30초 뒤에 첫 수집 (앱 응답 먼저 확보)
-    if not DATA_PATH.exists():
-        scheduler.add_job(collect_all, "date", 
-                         run_date=datetime.now().replace(second=datetime.now().second + 30),
-                         id="first_collect")
+   if not DATA_PATH.exists():
+        from datetime import timedelta
+        run_time = datetime.now() + timedelta(seconds=30)
+        scheduler.add_job(collect_all, "date", run_date=run_time, id="first_collect")
     scheduler.start()
 
 @app.on_event("shutdown")
