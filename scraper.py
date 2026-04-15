@@ -3,7 +3,9 @@ import json
 import asyncio
 from datetime import datetime
 from pathlib import Path
-from playwright.async_api import async_playwright
+
+# ✅ 핵심 수정: playwright import를 파일 상단에서 제거
+# → scrape_site() 함수 안에서만 import (앱 시작 타임아웃 방지)
 
 DATA_PATH = Path("data/reviews.json")
 CONCURRENT = 5
@@ -163,10 +165,18 @@ async def get_review_nos(context, base_url: str, list_path: str, max_pages: int 
 
 
 async def scrape_site(base_url, list_path, article_path, brand, max_pages=9999):
+    # ✅ 핵심 수정: import를 함수 안으로 이동
+    from playwright.async_api import async_playwright
+
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-blink-features=AutomationControlled", "--disable-dev-shm-usage"]
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--disable-blink-features=AutomationControlled",
+            ]
         )
         context = await browser.new_context(
             user_agent=USER_AGENT,

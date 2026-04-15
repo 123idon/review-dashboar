@@ -332,6 +332,37 @@ body {
 </style>
 </head>
 <body>
+<!-- ══ 초기 로딩 화면 ══ -->
+<div id="initLoading" style="
+  position:fixed;inset:0;z-index:10000;
+  background:#f5f4f0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;
+  font-family:'Noto Sans KR',sans-serif;
+  transition:opacity .5s ease;
+">
+  <div style="font-size:22px;font-weight:700;color:#1a1917;letter-spacing:-.3px">후기 대시보드</div>
+  <div style="width:240px;height:3px;background:#e2e0d8;border-radius:4px;overflow:hidden">
+    <div id="initBar" style="height:100%;width:0%;background:#2d5a3d;border-radius:4px;transition:width .45s ease"></div>
+  </div>
+  <div id="initMsg" style="font-size:13px;color:#7a7870">서버 연결 중...</div>
+</div>
+<script>
+(function(){
+  var bar = document.getElementById('initBar');
+  var msg = document.getElementById('initMsg');
+  var steps = [[20,'서버 연결 중...'],[50,'데이터 불러오는 중...'],[80,'대시보드 준비 중...'],[100,'완료!']];
+  var i = 0;
+  function next(){ if(i>=steps.length)return; bar.style.width=steps[i][0]+'%'; msg.textContent=steps[i][1]; i++; if(i<steps.length)setTimeout(next,600); }
+  next();
+  window._hideInitLoading = function(){
+    var el = document.getElementById('initLoading');
+    bar.style.width='100%'; msg.textContent='완료!';
+    setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ el.style.display='none'; },500); },300);
+  };
+})();
+</script>
+
 
 
 <div class="progress-wrap">
@@ -387,7 +418,9 @@ async function loadData() {
     allData = await res.json();
     updateLastUpdated(allData.last_updated);
     render();
+    if(window._hideInitLoading) window._hideInitLoading();
   } catch(e) {
+    if(window._hideInitLoading) window._hideInitLoading();
     showError('서버에 연결할 수 없습니다.');
   }
 }

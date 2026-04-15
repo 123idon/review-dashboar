@@ -21,18 +21,30 @@ scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
 
 MEMO_PATH = Path("data/memo.json")
 
+
 @app.on_event("startup")
 async def startup():
+    # cron 방식이라 앱 시작 시 즉시 실행되지 않음 (매일 0:06에만 실행)
     scheduler.add_job(collect_all, "cron", hour=0, minute=6, id="daily")
     scheduler.start()
+    print("✅ 서버 시작 완료")
+
 
 @app.on_event("shutdown")
 async def shutdown():
     scheduler.shutdown()
 
+
+# ── 헬스체크 (Railway가 여기로 확인) ──
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.get("/")
 async def root():
     return FileResponse("static/index.html")
+
 
 @app.get("/api/data")
 async def get_data():
@@ -48,14 +60,17 @@ async def get_data():
         "myeongga": compute_stats(myeongga),
     }
 
+
 @app.post("/api/collect")
 async def trigger(bg: BackgroundTasks):
     bg.add_task(collect_all)
     return {"message": "수집 시작! 완료되면 자동으로 반영돼요."}
 
+
 @app.get("/api/status")
 async def status():
     return {"data_exists": DATA_PATH.exists()}
+
 
 @app.get("/api/memo")
 async def get_memo():
@@ -63,13 +78,14 @@ async def get_memo():
         return {"memos": []}
     with open(MEMO_PATH, encoding="utf-8") as f:
         data = json.load(f)
-    # 구버전 호환
     if "content" in data:
         return {"memos": []}
     return data
 
+
 class MemoBody(BaseModel):
     content: str
+
 
 @app.post("/api/memo")
 async def save_memo(body: MemoBody):
@@ -90,6 +106,7 @@ async def save_memo(body: MemoBody):
         json.dump({"memos": memos}, f, ensure_ascii=False)
     return {"ok": True}
 
+
 @app.delete("/api/memo/{memo_id}")
 async def delete_memo(memo_id: str):
     if not MEMO_PATH.exists():
@@ -101,9 +118,6 @@ async def delete_memo(memo_id: str):
         json.dump({"memos": memos}, f, ensure_ascii=False)
     return {"ok": True}
 
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
 
 if __name__ == "__main__":
     import uvicorn
