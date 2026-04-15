@@ -226,6 +226,101 @@ body {
 }
 .toast.show { opacity: 1; }
 
+
+/* ── 로딩바 ── */
+.progress-wrap {
+  position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;
+  height: 3px; background: transparent;
+  pointer-events: none;
+}
+.progress-bar {
+  height: 3px; width: 0%; transition: width 0.4s ease;
+}
+.progress-bar.a { background: var(--accent-a); }
+.progress-bar.b { background: var(--accent-b); }
+.collecting-banner {
+  position: fixed; top: 56px; left: 0; width: 100%; z-index: 998;
+  background: #fff8e1; border-bottom: 1px solid #ffe082;
+  padding: 10px 20px; font-size: 13px; color: #7b5c00;
+  display: none; align-items: center; gap: 10px;
+}
+.collecting-banner.show { display: flex; }
+.dot-anim span {
+  animation: blink 1.2s infinite;
+  display: inline-block;
+}
+.dot-anim span:nth-child(2) { animation-delay: 0.2s; }
+.dot-anim span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+
+
+/* ── 메모장 ── */
+.memo-wrap { padding: 0; }
+.memo-area {
+  width: 100%; min-height: 500px; padding: 16px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); font-family: var(--font);
+  font-size: 14px; color: var(--text); line-height: 1.8;
+  resize: vertical; outline: none;
+}
+.memo-area:focus { border-color: var(--accent-a); }
+.memo-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 10px; font-size: 12px; color: var(--muted);
+}
+.memo-save-btn {
+  padding: 8px 24px; border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-a); background: var(--accent-a);
+  color: #fff; font-size: 13px; cursor: pointer;
+  font-family: var(--font); font-weight: 500;
+  transition: opacity .15s;
+}
+.memo-save-btn:hover { opacity: .85; }
+.memo-save-btn:disabled { opacity: .5; cursor: default; }
+.memo-saved { color: var(--positive); font-size: 12px; }
+
+
+/* ── 페이지네이션 ── */
+.pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 4px; margin-top: 16px; flex-wrap: wrap;
+}
+.page-btn {
+  min-width: 32px; height: 32px; padding: 0 8px;
+  border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--card); font-size: 13px; color: var(--muted);
+  cursor: pointer; font-family: var(--font); transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.page-btn:hover { background: var(--bg); color: var(--text); }
+.page-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+.page-btn:disabled { opacity: .4; cursor: default; }
+.page-info { font-size: 12px; color: var(--muted); margin: 0 8px; }
+
+
+.memo-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.memo-item {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.memo-item-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.memo-item-time { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.memo-delete-btn {
+  font-size: 11px; padding: 3px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: transparent;
+  color: var(--danger); cursor: pointer; font-family: var(--font);
+  transition: all .15s;
+}
+.memo-delete-btn:hover { background: var(--danger-bg); }
+.memo-item-content {
+  font-size: 13px; line-height: 1.7; color: var(--text);
+  white-space: pre-wrap; word-break: break-word;
+}
+.memo-empty { text-align: center; padding: 24px 0; color: var(--muted); font-size: 13px; }
+
 /* ── 반응형 ── */
 @media (max-width: 640px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -238,12 +333,22 @@ body {
 </head>
 <body>
 
+
+<div class="progress-wrap">
+  <div class="progress-bar" id="progressBar"></div>
+</div>
+<div class="collecting-banner" id="collectingBanner">
+  <span>후기 수집 중이에요</span>
+  <span class="dot-anim"><span>.</span><span>.</span><span>.</span></span>
+  <span style="font-size:11px;color:#a07800">완료되면 자동으로 표시돼요</span>
+</div>
 <header class="header">
   <div class="header-left">
     <span class="logo">후기 대시보드</span>
     <div class="shop-tabs">
       <button class="shop-tab active-a" onclick="switchShop('changeok', this)">창억떡</button>
       <button class="shop-tab" onclick="switchShop('myeongga', this)">명가삼대떡집</button>
+      <button class="shop-tab" onclick="switchShop('memo', this)">메모장</button>
     </div>
   </div>
   <div class="header-right">
@@ -301,11 +406,69 @@ async function triggerCollect() {
   const btn = document.getElementById('refreshBtn');
   btn.classList.add('loading');
   btn.disabled = true;
-  showToast('수집을 시작했습니다. 약 5~10분 후 자동으로 반영돼요.');
+  showToast('수집을 시작했습니다. 1~2분 후 자동으로 반영돼요.');
   try {
     await fetch('/api/collect', { method: 'POST' });
   } catch(e) {}
-  setTimeout(() => { btn.classList.remove('loading'); btn.disabled = false; }, 3000);
+  startProgressBar();
+  startCollectPolling();
+}
+
+function startProgressBar() {
+  const bar = document.getElementById('progressBar');
+  const accent = currentShop === 'changeok' ? 'a' : 'b';
+  bar.className = 'progress-bar ' + accent;
+  bar.style.width = '0%';
+  document.getElementById('collectingBanner').classList.add('show');
+  
+  // 90초 동안 0→85% 진행
+  let pct = 0;
+  const timer = setInterval(() => {
+    pct = Math.min(pct + (Math.random() * 1.5 + 0.5), 85);
+    bar.style.width = pct + '%';
+    if (pct >= 85) clearInterval(timer);
+  }, 1000);
+  bar._timer = timer;
+}
+
+function finishProgressBar() {
+  const bar = document.getElementById('progressBar');
+  if (bar._timer) clearInterval(bar._timer);
+  bar.style.width = '100%';
+  document.getElementById('collectingBanner').classList.remove('show');
+  setTimeout(() => { bar.style.width = '0%'; }, 600);
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.remove('loading');
+  btn.disabled = false;
+}
+
+let collectPollTimer = null;
+function startCollectPolling() {
+  if (collectPollTimer) clearInterval(collectPollTimer);
+  const startTime = Date.now();
+  collectPollTimer = setInterval(async () => {
+    // 최대 3분 후 강제 종료
+    if (Date.now() - startTime > 180000) {
+      clearInterval(collectPollTimer);
+      finishProgressBar();
+      return;
+    }
+    try {
+      const res = await fetch('/api/data');
+      if (res.ok) {
+        const data = await res.json();
+        // 새 데이터면 갱신
+        if (!allData || data.last_updated !== allData.last_updated) {
+          allData = data;
+          updateLastUpdated(allData.last_updated);
+          render();
+          finishProgressBar();
+          clearInterval(collectPollTimer);
+          showToast('수집 완료! 데이터가 업데이트됐어요.');
+        }
+      }
+    } catch(e) {}
+  }, 8000);
 }
 
 // ── 가게 전환 ──
@@ -314,6 +477,11 @@ function switchShop(shop, el) {
   document.querySelectorAll('.shop-tab').forEach(t => {
     t.classList.remove('active-a', 'active-b');
   });
+  if (shop === 'memo') {
+    el.classList.add('active-a');
+    renderMemo();
+    return;
+  }
   el.classList.add(shop === 'changeok' ? 'active-a' : 'active-b');
   reviewFilter = 'all';
   render();
@@ -346,6 +514,7 @@ function render() {
 
   // Chart.js 트렌드 차트
   renderTrendChart(d);
+  setTimeout(() => renderReviewPage(), 0);
 }
 
 // ── 요약 카드 ──
@@ -563,7 +732,13 @@ function setKwPeriod(period) {
 }
 
 // ── 후기 목록 ──
+let currentPage = 1;
+const PAGE_SIZE = 10;
+let filteredReviews = [];
+
 function renderReviews(d) {
+  filteredReviews = d.reviews || [];
+  currentPage = 1;
   return `<div class="card">
     <div class="card-title">후기 목록</div>
     <div class="filter-row">
@@ -572,12 +747,14 @@ function renderReviews(d) {
       <button class="filter-btn" onclick="setFilter('jasa', this)">자사몰</button>
       <button class="filter-btn" onclick="setFilter('ss', this)">스마트스토어</button>
     </div>
-    <div class="review-list" id="reviewList">${buildReviewCards(d.reviews || [])}</div>
+    <div class="review-list" id="reviewList"></div>
+    <div class="pagination" id="pagination"></div>
   </div>`;
 }
 
 function setFilter(f, el) {
   reviewFilter = f;
+  currentPage = 1;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   const d = allData[currentShop];
@@ -585,7 +762,43 @@ function setFilter(f, el) {
   if (f === 'low') reviews = reviews.filter(r => r.score <= 3);
   else if (f === 'jasa') reviews = reviews.filter(r => r.platform !== 'smartstore');
   else if (f === 'ss') reviews = reviews.filter(r => r.platform === 'smartstore');
-  document.getElementById('reviewList').innerHTML = buildReviewCards(reviews);
+  filteredReviews = reviews;
+  renderReviewPage();
+}
+
+function renderReviewPage() {
+  const total = filteredReviews.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  currentPage = Math.min(currentPage, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageReviews = filteredReviews.slice(start, start + PAGE_SIZE);
+
+  const listEl = document.getElementById('reviewList');
+  const pagEl = document.getElementById('pagination');
+  if (!listEl) return;
+
+  listEl.innerHTML = buildReviewCards(pageReviews);
+
+  // 페이지 버튼
+  let btns = '';
+  btns += `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>◀</button>`;
+
+  let start_p = Math.max(1, currentPage - 2);
+  let end_p = Math.min(totalPages, start_p + 4);
+  if (end_p - start_p < 4) start_p = Math.max(1, end_p - 4);
+
+  for (let i = start_p; i <= end_p; i++) {
+    btns += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  btns += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>▶</button>`;
+  btns += `<span class="page-info">${total}건 중 ${start+1}~${Math.min(start+PAGE_SIZE, total)}</span>`;
+  pagEl.innerHTML = btns;
+}
+
+function goPage(p) {
+  currentPage = p;
+  renderReviewPage();
+  document.getElementById('reviewList').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function buildReviewCards(reviews) {
@@ -633,6 +846,107 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+
+// ── 메모장 ──
+let memoList = [];
+
+async function renderMemo() {
+  const mc = document.getElementById('mainContent');
+  mc.innerHTML = `
+    <div class="memo-wrap section">
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">새 메모 작성</div>
+        <textarea class="memo-area" id="memoArea" placeholder="여기에 메모를 입력하세요..."></textarea>
+        <div class="memo-footer">
+          <span class="memo-saved" id="memoSaved"></span>
+          <button class="memo-save-btn" id="memoSaveBtn" onclick="saveMemo()">저장</button>
+        </div>
+      </div>
+      <div id="memoListWrap"></div>
+    </div>`;
+  await loadMemos();
+}
+
+async function loadMemos() {
+  try {
+    const res = await fetch('/api/memo');
+    if (res.ok) {
+      const data = await res.json();
+      memoList = data.memos || [];
+      renderMemoList();
+    }
+  } catch(e) {}
+}
+
+function renderMemoList() {
+  const wrap = document.getElementById('memoListWrap');
+  if (!wrap) return;
+  if (!memoList.length) {
+    wrap.innerHTML = '<div class="memo-empty">저장된 메모가 없어요</div>';
+    return;
+  }
+  wrap.innerHTML = `
+    <div class="card">
+      <div class="card-title">저장된 메모 (${memoList.length}개)</div>
+      <div class="memo-list">
+        ${memoList.map(m => `
+          <div class="memo-item" id="memo-${CSS.escape(m.id)}">
+            <div class="memo-item-header">
+              <span class="memo-item-time">${m.saved_at}</span>
+              <button class="memo-delete-btn" onclick="deleteMemo('${m.id}')">삭제</button>
+            </div>
+            <div class="memo-item-content">${m.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+async function saveMemo() {
+  const btn = document.getElementById('memoSaveBtn');
+  const saved = document.getElementById('memoSaved');
+  const area = document.getElementById('memoArea');
+  if (!area || !area.value.trim()) {
+    saved.textContent = '내용을 입력해주세요';
+    saved.style.color = 'var(--danger)';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+  saved.textContent = '';
+  try {
+    const res = await fetch('/api/memo', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({content: area.value})
+    });
+    if (res.ok) {
+      area.value = '';
+      saved.textContent = '✓ 저장됐어요!';
+      saved.style.color = 'var(--positive)';
+      setTimeout(() => { saved.textContent = ''; }, 3000);
+      await loadMemos();
+    } else {
+      throw new Error('서버 오류');
+    }
+  } catch(e) {
+    saved.textContent = '저장 실패 - 서버 연결 확인';
+    saved.style.color = 'var(--danger)';
+  }
+  btn.disabled = false;
+  btn.textContent = '저장';
+}
+
+async function deleteMemo(id) {
+  if (!confirm('이 메모를 삭제할까요?')) return;
+  try {
+    const res = await fetch('/api/memo/' + encodeURIComponent(id), {method: 'DELETE'});
+    if (res.ok) {
+      memoList = memoList.filter(m => m.id !== id);
+      renderMemoList();
+    }
+  } catch(e) {}
 }
 
 // ── 초기화 ──

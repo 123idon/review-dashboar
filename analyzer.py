@@ -12,6 +12,13 @@ STOPWORDS = {
     "드립니다","드려요","같아요","같습니다","것","거","때","더","수",
     "잘","못","안","다","처음","다음","입니다","이에요","네요","요",
     "부터","까지","만","라도","라고","하여","하면","하지","하니",
+    "조회","삭제","수정","목록","추천","신고","이전글","다음글",
+    "비밀번호","입력하세요","삭제하려면","회원에게만","댓글","작성",
+    "권한","이전","다음","관련","보기","번호","상품명","작성자","작성일",
+    "리뷰","후기","사용","구매후기","평점","등록된","네이버","페이",
+    "구매평","브이리뷰","작성된","입니다","쇼핑","스토어","결제",
+    "창억떡","명가삼대떡집","명가","창억","all","rights","reserved",
+    "copyright","https","www","com","kr",
 }
 
 
@@ -30,6 +37,9 @@ def parse_date(s: str) -> datetime | None:
 def extract_keywords(texts: list[str], top_n: int = 5) -> list[dict]:
     counter: Counter = Counter()
     for text in texts:
+        # 네이버페이 구매평 패턴 제거
+        text = re.sub(r"\d{4}-\d{2}-\d{2}[^\n]*등록된[^\n]*구매평[^\n]*", "", text)
+        text = re.sub(r"\(브이리뷰[^)]*\)", "", text)
         words = re.findall(r"[가-힣]{2,6}", text)
         for w in words:
             if w not in STOPWORDS:
@@ -38,7 +48,6 @@ def extract_keywords(texts: list[str], top_n: int = 5) -> list[dict]:
 
 
 def compute_stats(reviews: list[dict]) -> dict:
-    """하나의 가게 리뷰 목록으로 대시보드용 통계 계산"""
     now = datetime.now()
     yesterday_end = datetime(now.year, now.month, now.day) - timedelta(seconds=1)
     week_start = yesterday_end - timedelta(days=6)
@@ -52,16 +61,14 @@ def compute_stats(reviews: list[dict]) -> dict:
     def avg_score(lst):
         if not lst:
             return 0
-        return round(sum(r["score"] for r in lst) / len(lst), 1)
+        return round(sum(r["score"] for r in lst if r.get("score", 0) > 0) / max(1, sum(1 for r in lst if r.get("score", 0) > 0)), 1)
 
-    # 별점 분포
     dist = {str(i): 0 for i in range(1, 6)}
     for r in all_reviews:
         s = str(r.get("score", 0))
         if s in dist:
             dist[s] += 1
 
-    # 주간 트렌드 (최근 8주)
     weekly: dict[str, list] = {}
     for r in all_reviews:
         d = parse_date(r["date"])
@@ -74,12 +81,11 @@ def compute_stats(reviews: list[dict]) -> dict:
             "week": k,
             "count": len(v),
             "avg_score": avg_score(v),
-            "negative": sum(1 for r in v if r.get("score", 5) <= 3),
+            "negative": sum(1 for r in v if 0 < r.get("score", 5) <= 3),
         }
         for k, v in weekly.items()
     ], key=lambda x: x["week"])[-8:]
 
-    # 플랫폼별 통계
     platforms: dict[str, list] = {}
     for r in all_reviews:
         p = r.get("platform", "direct")
@@ -88,22 +94,21 @@ def compute_stats(reviews: list[dict]) -> dict:
         p: {
             "count": len(lst),
             "avg_score": avg_score(lst),
-            "negative": sum(1 for r in lst if r.get("score", 5) <= 3),
+            "negative": sum(1 for r in lst if 0 < r.get("score", 5) <= 3),
         }
         for p, lst in platforms.items()
     }
 
-    # 상품별 통계
     products: dict[str, list] = {}
     for r in all_reviews:
         name = r.get("product", "").strip()
-        if name:
+        if name and "rights" not in name.lower() and "reserved" not in name.lower() and len(name) > 4:
             products.setdefault(name, []).append(r)
 
     week_products: dict[str, list] = {}
     for r in week_reviews:
         name = r.get("product", "").strip()
-        if name:
+        if name and "rights" not in name.lower() and len(name) > 4:
             week_products.setdefault(name, []).append(r)
 
     def top_products_by_count(prod_map, top_n=3):
@@ -112,7 +117,7 @@ def compute_stats(reviews: list[dict]) -> dict:
                 "product": name,
                 "count": len(lst),
                 "avg_score": avg_score(lst),
-                "negative": sum(1 for r in lst if r.get("score", 5) <= 3),
+                "negative": sum(1 for r in lst if 0 < r.get("score", 5) <= 3),
             }
             for name, lst in prod_map.items()
         ], key=lambda x: -x["count"])[:top_n]
@@ -123,50 +128,36 @@ def compute_stats(reviews: list[dict]) -> dict:
                 "product": name,
                 "count": len(lst),
                 "avg_score": avg_score(lst),
-                "negative": sum(1 for r in lst if r.get("score", 5) <= 3),
+                "negative": sum(1 for r in lst if 0 < r.get("score", 5) <= 3),
             }
             for name, lst in prod_map.items()
-            if sum(1 for r in lst if r.get("score", 5) <= 3) > 0
+            if sum(1 for r in lst if 0 < r.get("score", 5) <= 3) > 0
         ], key=lambda x: -x["negative"])[:top_n]
 
-    # 키워드 분석 (긍/부정 분리)
-    pos_texts = [
-        (r.get("content") or r.get("title") or "")
-        for r in all_reviews if r.get("score", 0) >= 4
-    ]
-    neg_texts = [
-        (r.get("content") or r.get("title") or "")
-        for r in all_reviews if r.get("score", 0) <= 3
-    ]
-    pos_texts_week = [
-        (r.get("content") or r.get("title") or "")
-        for r in week_reviews if r.get("score", 0) >= 4
-    ]
-    neg_texts_week = [
-        (r.get("content") or r.get("title") or "")
-        for r in week_reviews if r.get("score", 0) <= 3
-    ]
+    valid_reviews = [r for r in all_reviews if r.get("score", 0) > 0]
+    pos_texts = [(r.get("content") or "") for r in valid_reviews if r.get("score", 0) >= 4]
+    neg_texts = [(r.get("content") or "") for r in valid_reviews if r.get("score", 0) <= 3]
+    pos_texts_week = [(r.get("content") or "") for r in week_reviews if r.get("score", 0) >= 4]
+    neg_texts_week = [(r.get("content") or "") for r in week_reviews if r.get("score", 0) <= 3]
+
+    total_neg = sum(1 for r in all_reviews if 0 < r.get("score", 5) <= 3)
+    week_neg = sum(1 for r in week_reviews if 0 < r.get("score", 5) <= 3)
 
     return {
-        # 요약 카드
         "total_count": len(all_reviews),
-        "total_negative": sum(1 for r in all_reviews if r.get("score", 5) <= 3),
+        "total_negative": total_neg,
         "week_count": len(week_reviews),
-        "week_negative": sum(1 for r in week_reviews if r.get("score", 5) <= 3),
-        "avg_score": avg_score(all_reviews),
-        # 차트
+        "week_negative": week_neg,
+        "avg_score": avg_score(valid_reviews),
         "score_distribution": dist,
         "weekly_trend": trend,
         "platform_stats": platform_stats,
-        # 상품 분석
         "top_products_all": top_products_by_count(products),
         "top_products_week": top_products_by_count(week_products),
         "top_negative_products": top_products_by_negative(products),
-        # 키워드
         "positive_keywords_all": extract_keywords(pos_texts, 5),
         "negative_keywords_all": extract_keywords(neg_texts, 5),
         "positive_keywords_week": extract_keywords(pos_texts_week, 5),
         "negative_keywords_week": extract_keywords(neg_texts_week, 5),
-        # 리뷰 목록 (최신순, 최대 200건)
-        "reviews": sorted(all_reviews, key=lambda x: x.get("date", ""), reverse=True)[:200],
+        "reviews": sorted(all_reviews, key=lambda x: x.get("date", ""), reverse=True)[:500],
     }
