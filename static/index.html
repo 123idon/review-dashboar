@@ -332,36 +332,19 @@ body {
 </style>
 </head>
 <body>
-<div id="initLoading" style="
-  position:fixed;inset:0;z-index:10000;
-  background:#f5f4f0;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:18px;
-  font-family:'Noto Sans KR',sans-serif;
-  transition:opacity .5s ease;
-">
-  <div style="font-size:22px;font-weight:700;color:#1a1917;letter-spacing:-.3px">후기 대시보드</div>
-  <div style="width:240px;height:3px;background:#e2e0d8;border-radius:4px;overflow:hidden">
-    <div id="initBar" style="height:100%;width:0%;background:#2d5a3d;border-radius:4px;transition:width .45s ease"></div>
-  </div>
+<div id="initLoading" style="position:fixed;inset:0;z-index:10000;background:#f5f4f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:'Noto Sans KR',sans-serif;transition:opacity .5s ease;">
+  <div style="font-size:22px;font-weight:700;color:#1a1917">후기 대시보드</div>
+  <div style="width:240px;height:3px;background:#e2e0d8;border-radius:4px;overflow:hidden"><div id="initBar" style="height:100%;width:0%;background:#2d5a3d;border-radius:4px;transition:width .45s ease"></div></div>
   <div id="initMsg" style="font-size:13px;color:#7a7870">서버 연결 중...</div>
 </div>
 <script>
 (function(){
-  var bar = document.getElementById('initBar');
-  var msg = document.getElementById('initMsg');
-  var steps = [[20,'서버 연결 중...'],[50,'데이터 확인 중...'],[80,'대시보드 준비 중...'],[100,'완료!']];
-  var i = 0;
-  function next(){ if(i>=steps.length)return; bar.style.width=steps[i][0]+'%'; msg.textContent=steps[i][1]; i++; if(i<steps.length)setTimeout(next,600); }
+  var bar=document.getElementById('initBar'),msg=document.getElementById('initMsg');
+  var steps=[[20,'서버 연결 중...'],[50,'데이터 확인 중...'],[80,'준비 중...'],[100,'완료!']],i=0;
+  function next(){if(i>=steps.length)return;bar.style.width=steps[i][0]+'%';msg.textContent=steps[i][1];i++;if(i<steps.length)setTimeout(next,600);}
   next();
-  window._hideInitLoading = function(){
-    var el = document.getElementById('initLoading');
-    if(!el || el.style.display==='none') return;
-    bar.style.width='100%'; msg.textContent='완료!';
-    setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ el.style.display='none'; },500); },300);
-  };
-  // 5초 후 무조건 숨김 (안전장치)
-  setTimeout(function(){ if(window._hideInitLoading) window._hideInitLoading(); }, 5000);
+  window._hideInitLoading=function(){var el=document.getElementById('initLoading');if(!el||el.style.display==='none')return;bar.style.width='100%';setTimeout(function(){el.style.opacity='0';setTimeout(function(){el.style.display='none';},500);},200);};
+  setTimeout(function(){if(window._hideInitLoading)window._hideInitLoading();},6000);
 })();
 </script>
 
@@ -411,38 +394,30 @@ let productPeriod = 'all';
 // ── 데이터 로드 ──
 async function loadData() {
   try {
-    // 먼저 상태 확인
     const statusRes = await fetch('/api/status');
-    const statusData = await statusRes.json();
+    const st = await statusRes.json();
 
-    if (!statusData.data_exists) {
-      // 데이터 없음 → 수집 중이면 폴링, 아니면 수집 시작
+    if (st.data_exists) {
+      // 데이터 있음 → 바로 표시
+      const res = await fetch('/api/data');
+      if (res.ok) {
+        allData = await res.json();
+        updateLastUpdated(allData.last_updated);
+        render();
+        if(window._hideInitLoading) window._hideInitLoading();
+        if(st.collecting) { startProgressBar(); startCollectPolling(); }
+      }
+    } else {
+      // 데이터 없음 → 수집 화면 표시
       if(window._hideInitLoading) window._hideInitLoading();
-      if(!statusData.collecting) {
+      document.getElementById('mainContent').innerHTML =
+        '<div class="loading-state"><div class="spinner"></div>후기 수집 중... 약 1~3분 소요됩니다.</div>';
+      if(!st.collecting) {
         await fetch('/api/collect', { method: 'POST' });
       }
       startProgressBar();
       startCollectPolling();
-      return;
     }
-
-    if(statusData.collecting) {
-      // 수집 중 → 폴링 시작하면서 기존 데이터 표시
-      startProgressBar();
-      startCollectPolling();
-    }
-
-    const res = await fetch('/api/data');
-    if (!res.ok) {
-      if(window._hideInitLoading) window._hideInitLoading();
-      const err = await res.json();
-      showError(err.detail || '데이터를 불러올 수 없습니다.');
-      return;
-    }
-    allData = await res.json();
-    updateLastUpdated(allData.last_updated);
-    if(currentShop === 'memo') renderMemo(); else render();
-    if(window._hideInitLoading) window._hideInitLoading();
   } catch(e) {
     if(window._hideInitLoading) window._hideInitLoading();
     showError('서버에 연결할 수 없습니다.');
@@ -486,15 +461,11 @@ function startProgressBar() {
     if (pct >= 85) clearInterval(timer);
   }, 1000);
   bar._timer = timer;
-
-  // 카운트다운 타이머 (3분 기준)
   let remaining = 180;
   const timerEl = document.getElementById('collectTimer');
-  if(timerEl) timerEl.textContent = remaining + '초';
-  bar._secTimer = setInterval(() => {
-    remaining = Math.max(0, remaining - 1);
-    if(timerEl) timerEl.textContent = remaining > 0 ? remaining + '초' : '거의 완료...';
-  }, 1000);
+  function fmtTime(s){ return s > 0 ? Math.floor(s/60)+'분 '+(s%60)+'초' : '거의 완료...'; }
+  if(timerEl) timerEl.textContent = fmtTime(remaining);
+  bar._secTimer = setInterval(() => { remaining = Math.max(0, remaining-1); if(timerEl) timerEl.textContent = fmtTime(remaining); }, 1000);
 }
 
 function finishProgressBar() {
@@ -529,6 +500,7 @@ function startCollectPolling() {
           allData = data;
           updateLastUpdated(allData.last_updated);
           render();
+          if(window._hideInitLoading) window._hideInitLoading();
           finishProgressBar();
           clearInterval(collectPollTimer);
           showToast('수집 완료! 데이터가 업데이트됐어요.');
