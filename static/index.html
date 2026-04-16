@@ -334,7 +334,9 @@ body {
 <body>
 <div id="initLoading" style="position:fixed;inset:0;z-index:10000;background:#f5f4f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:'Noto Sans KR',sans-serif;transition:opacity .5s ease;">
   <div style="font-size:22px;font-weight:700;color:#1a1917">후기 대시보드</div>
-  <div style="width:240px;height:3px;background:#e2e0d8;border-radius:4px;overflow:hidden"><div id="initBar" style="height:100%;width:0%;background:#2d5a3d;border-radius:4px;transition:width .45s ease"></div></div>
+  <div style="width:240px;height:3px;background:#e2e0d8;border-radius:4px;overflow:hidden">
+    <div id="initBar" style="height:100%;width:0%;background:#2d5a3d;border-radius:4px;transition:width .45s ease"></div>
+  </div>
   <div id="initMsg" style="font-size:13px;color:#7a7870">서버 연결 중...</div>
 </div>
 <script>
@@ -346,10 +348,10 @@ body {
   window._hideInit=function(){
     var el=document.getElementById('initLoading');
     if(!el||el.style.display==='none')return;
-    bar.style.width='100%';
-    setTimeout(function(){el.style.opacity='0';setTimeout(function(){el.style.display='none';},500);},200);
+    el.style.opacity='0';
+    setTimeout(function(){el.style.display='none';},500);
   };
-  setTimeout(function(){if(window._hideInit)window._hideInit();},7000);
+  setTimeout(function(){if(window._hideInit)window._hideInit();},8000);
 })();
 </script>
 
@@ -370,6 +372,7 @@ body {
       <button class="shop-tab active-a" onclick="switchShop('changeok', this)">창억떡</button>
       <button class="shop-tab" onclick="switchShop('myeongga', this)">명가삼대떡집</button>
       <button class="shop-tab" onclick="switchShop('memo', this)">메모장</button>
+      <button class="shop-tab" onclick="switchShop('log', this)">수집로그</button>
     </div>
   </div>
   <div class="header-right">
@@ -396,32 +399,48 @@ let reviewFilter = 'all';
 let keywordPeriod = 'all';
 let productPeriod = 'all';
 
+// ── 분:초 포맷 ──
+function fmtTime(s){ return s>0 ? Math.floor(s/60)+'분 '+(s%60)+'초' : '거의 완료...'; }
+
 // ── 데이터 로드 ──
 async function loadData() {
   try {
     const res = await fetch('/api/data');
     if (res.ok) {
-      // 데이터 있음 → 바로 표시
-      allData = await res.json();
+      const data = await res.json();
+      allData = data;
       updateLastUpdated(allData.last_updated);
-      render();
+      if (currentShop !== 'memo' && currentShop !== 'log') render();
       if(window._hideInit) window._hideInit();
+      // 수집 중이면 폴링 시작
+      if (data.collecting && !collectPollTimer) {
+        startProgressBar();
+        startCollectPolling();
+      }
     } else {
-      // 데이터 없음 → 자동 수집 시작
+      // 데이터 없음
+      let errMsg = '수집 중입니다...';
+      try {
+        const errData = await res.json();
+        if (errData.detail && errData.detail.error) {
+          errMsg = '오류: ' + errData.detail.error;
+        }
+      } catch(e2) {}
       if(window._hideInit) window._hideInit();
       document.getElementById('mainContent').innerHTML =
         '<div class="loading-state"><div class="spinner"></div>' +
-        '<div>후기 수집 중이에요</div>' +
-        '<div style="font-size:12px;color:var(--muted);margin-top:6px">처음 실행 시 1~3분 소요됩니다</div></div>';
-      try { await fetch('/api/collect', { method: 'POST' }); } catch(e2) {}
+        '<div style="font-size:14px">후기를 수집하고 있어요</div>' +
+        '<div style="font-size:12px;color:var(--muted);margin-top:6px">처음 실행 시 1~3분 소요됩니다</div>' +
+        '<div style="font-size:11px;color:var(--danger);margin-top:4px" id="errHint">' + errMsg + '</div></div>';
+      try { await fetch('/api/collect', { method: 'POST' }); } catch(e3) {}
       startProgressBar();
       startCollectPolling();
     }
   } catch(e) {
     if(window._hideInit) window._hideInit();
     document.getElementById('mainContent').innerHTML =
-      '<div class="loading-state"><div style="font-size:13px;color:var(--muted)">서버 연결 중...</div></div>';
-    setTimeout(loadData, 3000);
+      '<div class="loading-state"><div style="font-size:13px;color:var(--muted)">서버 연결 중... 자동 재시도합니다.</div></div>';
+    setTimeout(loadData, 4000);
   }
 }
 
@@ -462,11 +481,14 @@ function startProgressBar() {
     if (pct >= 85) clearInterval(timer);
   }, 1000);
   bar._timer = timer;
+  // 남은시간 카운트다운
   let _rem = 180;
   const _tel = document.getElementById('collectTimer');
-  const _fmt = s => s > 0 ? Math.floor(s/60)+'분 '+(s%60)+'초' : '거의 완료...';
-  if(_tel) _tel.textContent = _fmt(_rem);
-  bar._secTimer = setInterval(()=>{ _rem=Math.max(0,_rem-1); if(_tel)_tel.textContent=_fmt(_rem); },1000);
+  if(_tel) _tel.textContent = fmtTime(_rem);
+  bar._secTimer = setInterval(()=>{
+    _rem = Math.max(0, _rem-1);
+    if(_tel) _tel.textContent = fmtTime(_rem);
+  }, 1000);
 }
 
 function finishProgressBar() {
@@ -517,16 +539,16 @@ function switchShop(shop, el) {
   document.querySelectorAll('.shop-tab').forEach(t => {
     t.classList.remove('active-a', 'active-b');
   });
-  if (shop === 'memo') {
-    el.classList.add('active-a');
-    renderMemo();
-    return;
-  }
+  if (shop === 'memo') { el.classList.add('active-a'); renderMemo(); return; }
+  if (shop === 'log')  { el.classList.add('active-a'); renderLog();  return; }
   el.classList.add(shop === 'changeok' ? 'active-a' : 'active-b');
   reviewFilter = 'all';
   if (!allData) {
+    // 데이터 아직 없음 → 수집중 화면 유지
     document.getElementById('mainContent').innerHTML =
-      '<div class="loading-state"><div class="spinner"></div>데이터 불러오는 중...</div>';
+      '<div class="loading-state"><div class="spinner"></div>' +
+      '<div style="font-size:14px">후기를 수집하고 있어요</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:6px">잠시만 기다려주세요.</div></div>';
     return;
   }
   render();
@@ -536,6 +558,7 @@ function switchShop(shop, el) {
 function render() {
   if (!allData) return;
   if (currentShop === 'memo') { renderMemo(); return; }
+  if (currentShop === 'log')  { renderLog();  return; }
   const d = allData[currentShop];
   if (!d) return;
   const mc = document.getElementById('mainContent');
@@ -985,6 +1008,53 @@ async function saveMemo() {
   btn.textContent = '저장';
 }
 
+
+// ── 수집 로그 ──
+async function renderLog() {
+  const mc = document.getElementById('mainContent');
+  mc.innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+  try {
+    const [statusRes, logRes] = await Promise.all([
+      fetch('/api/status'),
+      fetch('/api/logs')
+    ]);
+    const st = await statusRes.json();
+    const logData = await logRes.json();
+    const logs = logData.logs || [];
+
+    let statusHtml = '';
+    if (st.collecting) {
+      statusHtml = '<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#7b5c00">🔄 현재 수집 중입니다...</div>';
+    }
+    if (st.last_error) {
+      statusHtml += '<div style="background:var(--danger-bg);border:1px solid #f0c4c0;border-radius:8px;padding:12px 16px;margin-bottom:16px;">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:6px">❌ 마지막 수집 오류</div>' +
+        '<div style="font-size:12px;color:var(--danger);font-family:var(--mono);white-space:pre-wrap;word-break:break-all">' + (st.last_error||'') + '</div>' +
+        (st.error_detail ? '<details style="margin-top:8px"><summary style="font-size:11px;color:var(--muted);cursor:pointer">상세 보기</summary><pre style="font-size:11px;color:var(--muted);margin-top:6px;white-space:pre-wrap;word-break:break-all">' + st.error_detail + '</pre></details>' : '') +
+        '</div>';
+    }
+    if (st.last_success) {
+      statusHtml += '<div style="background:var(--positive-bg);border:1px solid #b8dfc8;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:var(--positive)">✅ 마지막 성공: ' + st.last_success.replace('T',' ').slice(0,19) + '</div>';
+    }
+
+    let logRows = logs.map(l =>
+      '<div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start">' +
+      '<span style="font-size:11px;font-family:var(--mono);color:var(--muted);flex-shrink:0">' + l.time + '</span>' +
+      '<span style="font-size:12px;' + (l.success ? 'color:var(--positive)' : 'color:var(--danger)') + '">' +
+      (l.success ? '✅ ' : '❌ ') + l.detail + '</span></div>'
+    ).join('') || '<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px">로그 없음</div>';
+
+    mc.innerHTML = '<div style="max-width:720px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+      '<div style="font-size:15px;font-weight:700">수집 로그</div>' +
+      '<button class="refresh-btn" onclick="renderLog()">새로고침</button></div>' +
+      statusHtml +
+      '<div class="card"><div class="card-title">수집 이력 (최근 50건)</div>' + logRows + '</div></div>';
+  } catch(e) {
+    mc.innerHTML = '<div class="loading-state">로그를 불러올 수 없습니다.</div>';
+  }
+}
+
 async function deleteMemo(id) {
   if (!confirm('이 메모를 삭제할까요?')) return;
   try {
@@ -998,6 +1068,9 @@ async function deleteMemo(id) {
 
 // ── 초기화 ──
 loadData();
+setInterval(loadData, 60*60*1000); // 1시간마다 자동 갱신
+// 1시간마다 자동 새로고침
+setInterval(loadData, 60 * 60 * 1000);
 </script>
 </body>
 </html>
