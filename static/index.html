@@ -463,9 +463,13 @@ function startProgressBar() {
     if (pct >= 85) clearInterval(timer);
   }, 1000);
   bar._timer = timer;
-  let sec = 0;
+  let remaining = 180;
   const timerEl = document.getElementById('collectTimer');
-  bar._secTimer = setInterval(() => { sec++; if(timerEl) timerEl.textContent = sec; }, 1000);
+  if(timerEl) timerEl.textContent = remaining + '초';
+  bar._secTimer = setInterval(() => {
+    remaining = Math.max(0, remaining - 1);
+    if(timerEl) timerEl.textContent = remaining > 0 ? remaining + '초' : '거의 완료...';
+  }, 1000);
 }
 
 function finishProgressBar() {
