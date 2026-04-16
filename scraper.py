@@ -31,9 +31,9 @@ def parse_review(r: dict) -> dict:
 
     return {
         "date":     date_str,
-        "score":    r.get("rating", 0),
-        "product":  (r.get("product") or {}).get("name", "")[:80],
-        "title":    r.get("title", "")[:100],
+        "score":    r.get("rating", 0) or 0,
+        "product":  ((r.get("product") or {}).get("name") or "")[:80],
+        "title":    (r.get("title") or "")[:100],
         "content":  (r.get("text") or "")[:500],
         "platform": platform,
         "author":   "",
