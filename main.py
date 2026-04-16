@@ -21,34 +21,40 @@ scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
 
 MEMO_PATH = Path("data/memo.json")
 
+# 수집 상태 추적
+collect_status = {"running": False, "started_at": None}
 
 @app.on_event("startup")
 async def startup():
-    # cron 방식이라 앱 시작 시 즉시 실행되지 않음 (매일 0:06에만 실행)
     scheduler.add_job(collect_all, "cron", hour=0, minute=6, id="daily")
     scheduler.start()
+
+    # 데이터 없으면 자동 수집 시작
     if not DATA_PATH.exists():
         import asyncio
-        asyncio.create_task(collect_all())
+        asyncio.create_task(_auto_collect())
         print("📦 데이터 없음 → 자동 수집 시작")
     print("✅ 서버 시작 완료")
 
+async def _auto_collect():
+    collect_status["running"] = True
+    collect_status["started_at"] = datetime.now().isoformat()
+    try:
+        await collect_all()
+    finally:
+        collect_status["running"] = False
 
 @app.on_event("shutdown")
 async def shutdown():
     scheduler.shutdown()
 
-
-# ── 헬스체크 (Railway가 여기로 확인) ──
 @app.get("/health")
 async def health():
     return {"status": "ok"}
 
-
 @app.get("/")
 async def root():
     return FileResponse("static/index.html")
-
 
 @app.get("/api/data")
 async def get_data():
@@ -64,17 +70,18 @@ async def get_data():
         "myeongga": compute_stats(myeongga),
     }
 
-
 @app.post("/api/collect")
 async def trigger(bg: BackgroundTasks):
-    bg.add_task(collect_all)
+    bg.add_task(_auto_collect)
     return {"message": "수집 시작! 완료되면 자동으로 반영돼요."}
-
 
 @app.get("/api/status")
 async def status():
-    return {"data_exists": DATA_PATH.exists()}
-
+    return {
+        "data_exists": DATA_PATH.exists(),
+        "collecting": collect_status["running"],
+        "started_at": collect_status["started_at"],
+    }
 
 @app.get("/api/memo")
 async def get_memo():
@@ -86,10 +93,8 @@ async def get_memo():
         return {"memos": []}
     return data
 
-
 class MemoBody(BaseModel):
     content: str
-
 
 @app.post("/api/memo")
 async def save_memo(body: MemoBody):
@@ -110,7 +115,6 @@ async def save_memo(body: MemoBody):
         json.dump({"memos": memos}, f, ensure_ascii=False)
     return {"ok": True}
 
-
 @app.delete("/api/memo/{memo_id}")
 async def delete_memo(memo_id: str):
     if not MEMO_PATH.exists():
@@ -121,7 +125,6 @@ async def delete_memo(memo_id: str):
     with open(MEMO_PATH, "w", encoding="utf-8") as f:
         json.dump({"memos": memos}, f, ensure_ascii=False)
     return {"ok": True}
-
 
 if __name__ == "__main__":
     import uvicorn
