@@ -134,7 +134,7 @@ async def fetch_review_pw(context, url: str, brand: str, semaphore):
             await page.close()
 
 
-async def get_review_nos(context, base_url: str, list_path: str, max_pages: int = 9999):
+async def get_review_nos(context, base_url: str, list_path: str, max_pages: int = 9999, progress_cb=None):
     review_nos = []
     page = await context.new_page()
     try:
@@ -153,6 +153,7 @@ async def get_review_nos(context, base_url: str, list_path: str, max_pages: int 
                     break
                 review_nos.extend(nos)
                 print(f"  목록 {p}페이지 → {len(nos)}건")
+                if progress_cb: progress_cb({"phase": "listing", "page": p, "total_so_far": len(review_nos), "brand": brand})
             except Exception as e:
                 print(f"  목록 {p}페이지 실패: {e}")
                 break
@@ -161,7 +162,7 @@ async def get_review_nos(context, base_url: str, list_path: str, max_pages: int 
     return review_nos
 
 
-async def scrape_site(base_url, list_path, article_path, brand, max_pages=9999):
+async def scrape_site(base_url, list_path, article_path, brand, max_pages=9999, progress_cb=None):
     from playwright.async_api import async_playwright
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(
@@ -176,7 +177,7 @@ async def scrape_site(base_url, list_path, article_path, brand, max_pages=9999):
         await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
 
         print(f"  [{brand}] 목록 수집 중...")
-        nos = await get_review_nos(context, base_url, list_path, max_pages)
+        nos = await get_review_nos(context, base_url, list_path, max_pages, progress_cb=progress_cb)
         print(f"  [{brand}] 총 {len(nos)}건 → 상세 수집 시작")
 
         if not nos:
@@ -194,6 +195,7 @@ async def scrape_site(base_url, list_path, article_path, brand, max_pages=9999):
             if result:
                 reviews.append(result)
             done += 1
+            if progress_cb: progress_cb({"phase": "detail", "done": done, "total": len(urls), "collected": len(reviews), "brand": brand})
             if done % 50 == 0:
                 print(f"  [{brand}] {done}/{len(urls)} 완료 ({len(reviews)}건)")
 
@@ -202,7 +204,7 @@ async def scrape_site(base_url, list_path, article_path, brand, max_pages=9999):
         return reviews
 
 
-async def collect_all() -> dict:
+async def collect_all(progress_cb=None) -> dict:
     print("=" * 50)
     print(f"후기 수집 시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
@@ -213,6 +215,7 @@ async def collect_all() -> dict:
         article_path="/article/구매후기/4",
         brand="창억",
         max_pages=9999,
+        progress_cb=progress_cb,
     )
 
     print("\n[2/2] 명가삼대떡집 수집...")
@@ -222,6 +225,7 @@ async def collect_all() -> dict:
         article_path="/article/상품-사용후기/4",
         brand="명가삼대떡집",
         max_pages=9999,
+        progress_cb=progress_cb,
     )
 
     result = {

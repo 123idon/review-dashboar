@@ -332,38 +332,23 @@ body {
 </style>
 </head>
 <body>
-<div id="initLoading" style="position:fixed;inset:0;z-index:10000;background:#f5f4f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:'Noto Sans KR',sans-serif;transition:opacity .5s ease;">
-  <div style="font-size:22px;font-weight:700;color:#1a1917">후기 대시보드</div>
-  <div style="width:240px;height:3px;background:#e2e0d8;border-radius:4px;overflow:hidden">
-    <div id="initBar" style="height:100%;width:0%;background:#2d5a3d;border-radius:4px;transition:width .45s ease"></div>
-  </div>
-  <div id="initMsg" style="font-size:13px;color:#7a7870">서버 연결 중...</div>
-</div>
-<script>
-(function(){
-  var bar=document.getElementById('initBar'),msg=document.getElementById('initMsg');
-  var steps=[[20,'서버 연결 중...'],[50,'데이터 확인 중...'],[80,'준비 중...'],[100,'완료!']],i=0;
-  function next(){if(i>=steps.length)return;bar.style.width=steps[i][0]+'%';msg.textContent=steps[i][1];i++;if(i<steps.length)setTimeout(next,600);}
-  next();
-  window._hideInit=function(){
-    var el=document.getElementById('initLoading');
-    if(!el||el.style.display==='none')return;
-    el.style.opacity='0';
-    setTimeout(function(){el.style.display='none';},500);
-  };
-  setTimeout(function(){if(window._hideInit)window._hideInit();},8000);
-})();
-</script>
-
 
 
 <div class="progress-wrap">
   <div class="progress-bar" id="progressBar"></div>
 </div>
 <div class="collecting-banner" id="collectingBanner">
-  <span>후기 수집 중이에요</span>
+  <span>후기 수집 중</span>
   <span class="dot-anim"><span>.</span><span>.</span><span>.</span></span>
-  <span style="font-size:11px;color:#a07800">완료되면 자동으로 표시돼요 &nbsp;|&nbsp; 약 <span id="collectTimer">-</span> 남음</span>
+  <span id="collectStatusMsg" style="font-size:11px;color:#a07800">준비 중...</span>
+  <span style="font-size:11px;color:#c08800;margin-left:4px">|</span>
+  <span style="font-size:11px;color:#a07800">경과 <b id="collectElapsed">0초</b></span>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <span id="collectPct" style="font-size:11px;font-weight:700;color:#7b5c00">0%</span>
+    <div style="width:100px;height:4px;background:#ffe082;border-radius:4px;overflow:hidden">
+      <div id="collectPctBar" style="height:100%;width:0%;background:#b8860b;border-radius:4px;transition:width .5s ease"></div>
+    </div>
+  </div>
 </div>
 <header class="header">
   <div class="header-left">
@@ -393,684 +378,514 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
-let allData = null;
+// ════════════════════════════════════════
+// 상태
+// ════════════════════════════════════════
+let allData     = null;
 let currentShop = 'changeok';
-let reviewFilter = 'all';
+let reviewFilter  = 'all';
 let keywordPeriod = 'all';
-let productPeriod = 'all';
+let collectPollTimer = null;
 
-// ── 분:초 포맷 ──
-function fmtTime(s){ return s>0 ? Math.floor(s/60)+'분 '+(s%60)+'초' : '거의 완료...'; }
+function p2(n){ return String(n).padStart(2,'0'); }
+function fmtSec(s){ return s>=60 ? Math.floor(s/60)+'분 '+(s%60)+'초' : s+'초'; }
 
-// ── 데이터 로드 ──
-async function loadData() {
+// ════════════════════════════════════════
+// 초기 로딩 오버레이
+// ════════════════════════════════════════
+(function(){
+  const overlay = document.createElement('div');
+  overlay.id = 'initOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#f5f4f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:inherit;transition:opacity .5s';
+  overlay.innerHTML =
+    '<div style="font-size:22px;font-weight:700;color:#1a1917">후기 대시보드</div>'+
+    '<div style="width:240px;height:3px;background:#e2e0d8;border-radius:4px;overflow:hidden">'+
+      '<div id="initBar" style="height:100%;width:0%;background:#2d5a3d;border-radius:4px;transition:width .5s ease"></div>'+
+    '</div>'+
+    '<div id="initMsg" style="font-size:13px;color:#7a7870">서버 연결 중...</div>';
+  document.body.prepend(overlay);
+  const bar = document.getElementById('initBar');
+  const msg = document.getElementById('initMsg');
+  const steps = [[20,'서버 연결 중...'],[50,'데이터 확인 중...'],[80,'준비 중...'],[100,'완료!']];
+  let i=0;
+  const t = setInterval(()=>{ if(i>=steps.length){clearInterval(t);return;} bar.style.width=steps[i][0]+'%'; msg.textContent=steps[i][1]; i++; },700);
+  window._hideOverlay = function(){
+    const el=document.getElementById('initOverlay');
+    if(!el||el.style.display==='none')return;
+    el.style.opacity='0';
+    setTimeout(()=>el.style.display='none',500);
+  };
+  setTimeout(window._hideOverlay, 10000);
+})();
+
+// ════════════════════════════════════════
+// 데이터 로드
+// ════════════════════════════════════════
+async function loadData(){
   try {
     const res = await fetch('/api/data');
-    if (res.ok) {
+    if(res.ok){
       const data = await res.json();
       allData = data;
-      updateLastUpdated(allData.last_updated);
-      if (currentShop !== 'memo' && currentShop !== 'log') render();
-      if(window._hideInit) window._hideInit();
-      // 수집 중이면 폴링 시작
-      if (data.collecting && !collectPollTimer) {
-        startProgressBar();
-        startCollectPolling();
-      }
+      updateLastUpdated(data.last_updated);
+      if(currentShop !== 'memo' && currentShop !== 'log') render();
+      window._hideOverlay && window._hideOverlay();
+      // 수집 중이면 배너 표시
+      if(data.collecting) startCollectPolling();
     } else {
-      // 데이터 없음
-      let errMsg = '수집 중입니다...';
-      try {
-        const errData = await res.json();
-        if (errData.detail && errData.detail.error) {
-          errMsg = '오류: ' + errData.detail.error;
-        }
-      } catch(e2) {}
-      if(window._hideInit) window._hideInit();
-      document.getElementById('mainContent').innerHTML =
-        '<div class="loading-state"><div class="spinner"></div>' +
-        '<div style="font-size:14px">후기를 수집하고 있어요</div>' +
-        '<div style="font-size:12px;color:var(--muted);margin-top:6px">처음 실행 시 1~3분 소요됩니다</div>' +
-        '<div style="font-size:11px;color:var(--danger);margin-top:4px" id="errHint">' + errMsg + '</div></div>';
-      try { await fetch('/api/collect', { method: 'POST' }); } catch(e3) {}
-      startProgressBar();
+      // 데이터 없음 → 자동 수집
+      window._hideOverlay && window._hideOverlay();
+      showCollectingScreen();
+      try{ await fetch('/api/collect',{method:'POST'}); }catch(e){}
       startCollectPolling();
     }
-  } catch(e) {
-    if(window._hideInit) window._hideInit();
+  } catch(e){
+    window._hideOverlay && window._hideOverlay();
     document.getElementById('mainContent').innerHTML =
       '<div class="loading-state"><div style="font-size:13px;color:var(--muted)">서버 연결 중... 자동 재시도합니다.</div></div>';
     setTimeout(loadData, 4000);
   }
 }
 
-function updateLastUpdated(iso) {
-  if (!iso) return;
-  const d = new Date(iso);
-  const s = `${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())} 기준`;
-  document.getElementById('lastUpdated').textContent = s;
+function showCollectingScreen(){
+  document.getElementById('mainContent').innerHTML =
+    '<div class="loading-state">'+
+    '<div class="spinner"></div>'+
+    '<div style="font-size:15px;font-weight:500;margin-bottom:6px">후기를 수집하고 있어요</div>'+
+    '<div id="collectDetailMsg" style="font-size:12px;color:var(--muted)">잠시만 기다려주세요...</div>'+
+    '</div>';
 }
 
-function p2(n) { return String(n).padStart(2, '0'); }
+function updateLastUpdated(iso){
+  if(!iso) return;
+  const d = new Date(iso);
+  document.getElementById('lastUpdated').textContent =
+    d.getFullYear()+'.'+p2(d.getMonth()+1)+'.'+p2(d.getDate())+' '+p2(d.getHours())+':'+p2(d.getMinutes())+' 기준';
+}
 
-// ── 수집 트리거 ──
-async function triggerCollect() {
+// ════════════════════════════════════════
+// 수집 트리거
+// ════════════════════════════════════════
+async function triggerCollect(){
   const btn = document.getElementById('refreshBtn');
-  btn.classList.add('loading');
-  btn.disabled = true;
-  showToast('수집을 시작했습니다. 1~2분 후 자동으로 반영돼요.');
-  try {
-    await fetch('/api/collect', { method: 'POST' });
-  } catch(e) {}
-  startProgressBar();
+  btn.classList.add('loading'); btn.disabled = true;
+  showToast('수집을 시작했습니다.');
+  try{ await fetch('/api/collect',{method:'POST'}); }catch(e){}
   startCollectPolling();
 }
 
-function startProgressBar() {
-  const bar = document.getElementById('progressBar');
-  const accent = currentShop === 'changeok' ? 'a' : 'b';
-  bar.className = 'progress-bar ' + accent;
-  bar.style.width = '0%';
+// ════════════════════════════════════════
+// 수집 폴링 (3초마다 상태 확인)
+// ════════════════════════════════════════
+function startCollectPolling(){
+  if(collectPollTimer) clearInterval(collectPollTimer);
   document.getElementById('collectingBanner').classList.add('show');
-  
-  // 90초 동안 0→85% 진행
-  let pct = 0;
-  const timer = setInterval(() => {
-    pct = Math.min(pct + (Math.random() * 1.5 + 0.5), 85);
-    bar.style.width = pct + '%';
-    if (pct >= 85) clearInterval(timer);
-  }, 1000);
-  bar._timer = timer;
-  // 남은시간 카운트다운
-  let _rem = 180;
-  const _tel = document.getElementById('collectTimer');
-  if(_tel) _tel.textContent = fmtTime(_rem);
-  bar._secTimer = setInterval(()=>{
-    _rem = Math.max(0, _rem-1);
-    if(_tel) _tel.textContent = fmtTime(_rem);
-  }, 1000);
-}
-
-function finishProgressBar() {
   const bar = document.getElementById('progressBar');
-  if (bar._timer) clearInterval(bar._timer);
-  if (bar._secTimer) clearInterval(bar._secTimer);
-  bar.style.width = '100%';
-  document.getElementById('collectingBanner').classList.remove('show');
-  setTimeout(() => { bar.style.width = '0%'; }, 600);
-  const btn = document.getElementById('refreshBtn');
-  btn.classList.remove('loading');
-  btn.disabled = false;
-}
+  const accent = currentShop==='changeok' ? 'a' : 'b';
+  bar.className = 'progress-bar '+accent;
+  bar.style.width = '2%';
 
-let collectPollTimer = null;
-function startCollectPolling() {
-  if (collectPollTimer) clearInterval(collectPollTimer);
-  const startTime = Date.now();
-  collectPollTimer = setInterval(async () => {
-    // 최대 3분 후 강제 종료
-    if (Date.now() - startTime > 180000) {
-      clearInterval(collectPollTimer);
-      finishProgressBar();
-      return;
-    }
-    try {
-      const res = await fetch('/api/data');
-      if (res.ok) {
-        const data = await res.json();
-        // 새 데이터면 갱신
-        if (!allData || data.last_updated !== allData.last_updated) {
-          allData = data;
-          updateLastUpdated(allData.last_updated);
-          render();
-          if(window._hideInit) window._hideInit();
+  const started = Date.now();
+
+  collectPollTimer = setInterval(async ()=>{
+    try{
+      // 진행상황 업데이트
+      const stRes = await fetch('/api/status');
+      if(stRes.ok){
+        const st = await stRes.json();
+        const elapsed = Math.floor((Date.now()-started)/1000);
+        // 경과시간
+        const elEl = document.getElementById('collectElapsed');
+        if(elEl) elEl.textContent = fmtSec(elapsed);
+        // 진행 메시지
+        const msgEl = document.getElementById('collectStatusMsg');
+        if(msgEl && st.progress_msg) msgEl.textContent = st.progress_msg;
+        // 퍼센트
+        const pct = st.progress_pct || 0;
+        const pctEl = document.getElementById('collectPct');
+        const pctBar = document.getElementById('collectPctBar');
+        if(pctEl) pctEl.textContent = pct+'%';
+        if(pctBar) pctBar.style.width = Math.max(pct,2)+'%';
+        // 진행바
+        if(bar && pct>0) bar.style.width = Math.max(pct,2)+'%';
+        // 메인 화면 메시지
+        const detailEl = document.getElementById('collectDetailMsg');
+        if(detailEl && st.progress_msg) detailEl.textContent = st.progress_msg;
+        // 오류
+        if(st.last_error && !st.collecting){
+          clearInterval(collectPollTimer); collectPollTimer=null;
           finishProgressBar();
-          clearInterval(collectPollTimer);
-          showToast('수집 완료! 데이터가 업데이트됐어요.');
+          document.getElementById('mainContent').innerHTML =
+            '<div class="loading-state">'+
+            '<div style="font-size:15px;color:var(--danger);margin-bottom:10px">❌ 수집 중 오류 발생</div>'+
+            '<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:12px;border-radius:8px;max-width:480px;text-align:left;word-break:break-all;font-family:var(--mono)">'+st.last_error+'</div>'+
+            (st.error_detail?'<details style="margin-top:10px;max-width:480px;text-align:left"><summary style="font-size:11px;color:var(--muted);cursor:pointer">상세 보기</summary><pre style="font-size:11px;color:var(--muted);white-space:pre-wrap;word-break:break-all;margin-top:6px">'+st.error_detail+'</pre></details>':'')+
+            '<button class="refresh-btn" style="margin-top:16px" onclick="triggerCollect()">↻ 다시 시도</button>'+
+            '</div>';
+          return;
         }
       }
-    } catch(e) {}
-  }, 8000);
+      // 데이터 완료 확인
+      const res = await fetch('/api/data');
+      if(res.ok){
+        const data = await res.json();
+        if(!allData || data.last_updated !== allData.last_updated){
+          allData = data;
+          updateLastUpdated(data.last_updated);
+          if(currentShop!=='memo' && currentShop!=='log') render();
+          clearInterval(collectPollTimer); collectPollTimer=null;
+          finishProgressBar();
+          showToast('✅ 수집 완료! 데이터가 업데이트됐어요.');
+        }
+      }
+    }catch(e){}
+  }, 3000);
 }
 
-// ── 가게 전환 ──
-function switchShop(shop, el) {
+function finishProgressBar(){
+  const bar = document.getElementById('progressBar');
+  if(bar){ bar.style.width='100%'; setTimeout(()=>bar.style.width='0%',800); }
+  document.getElementById('collectingBanner').classList.remove('show');
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.remove('loading'); btn.disabled=false;
+  const pctBar = document.getElementById('collectPctBar');
+  if(pctBar) pctBar.style.width='100%';
+}
+
+// ════════════════════════════════════════
+// 탭 전환
+// ════════════════════════════════════════
+function switchShop(shop, el){
   currentShop = shop;
-  document.querySelectorAll('.shop-tab').forEach(t => {
-    t.classList.remove('active-a', 'active-b');
-  });
-  if (shop === 'memo') { el.classList.add('active-a'); renderMemo(); return; }
-  if (shop === 'log')  { el.classList.add('active-a'); renderLog();  return; }
-  el.classList.add(shop === 'changeok' ? 'active-a' : 'active-b');
+  document.querySelectorAll('.shop-tab').forEach(t=>t.classList.remove('active-a','active-b'));
+  if(shop==='memo'){ el.classList.add('active-a'); renderMemo(); return; }
+  if(shop==='log'){  el.classList.add('active-a'); renderLog();  return; }
+  el.classList.add(shop==='changeok' ? 'active-a' : 'active-b');
   reviewFilter = 'all';
-  if (!allData) {
-    // 데이터 아직 없음 → 수집중 화면 유지
-    document.getElementById('mainContent').innerHTML =
-      '<div class="loading-state"><div class="spinner"></div>' +
-      '<div style="font-size:14px">후기를 수집하고 있어요</div>' +
-      '<div style="font-size:12px;color:var(--muted);margin-top:6px">잠시만 기다려주세요.</div></div>';
+  if(!allData){
+    // 수집 중이면 수집 화면 유지
+    if(collectPollTimer) showCollectingScreen();
+    else document.getElementById('mainContent').innerHTML =
+      '<div class="loading-state"><div class="spinner"></div>데이터 불러오는 중...</div>';
     return;
   }
   render();
 }
 
-// ── 전체 렌더 ──
-function render() {
-  if (!allData) return;
-  if (currentShop === 'memo') { renderMemo(); return; }
-  if (currentShop === 'log')  { renderLog();  return; }
+// ════════════════════════════════════════
+// 전체 렌더
+// ════════════════════════════════════════
+function render(){
+  if(!allData) return;
+  if(currentShop==='memo'){ renderMemo(); return; }
+  if(currentShop==='log'){  renderLog();  return; }
   const d = allData[currentShop];
-  if (!d) return;
+  if(!d) return;
   const mc = document.getElementById('mainContent');
-
-  const accentVar = currentShop === 'changeok' ? 'var(--accent-a)' : 'var(--accent-b)';
-
   mc.innerHTML = `
-    ${renderStatCards(d, accentVar)}
+    ${renderStatCards(d)}
     <div class="grid-2 section">
       <div>${renderScoreDist(d)}</div>
       <div>${renderPlatformCompare(d)}</div>
     </div>
-    <div id="trendSection" class="section">
-      ${renderTrend(d)}
-    </div>
+    <div class="section">${renderTrend(d)}</div>
     <div class="grid-2 section">
       <div>${renderTopProducts(d)}</div>
       <div>${renderNegativeProducts(d)}</div>
     </div>
     <div class="section">${renderKeywords(d)}</div>
-    <div class="section">${renderReviews(d)}</div>
-  `;
-
-  // Chart.js 트렌드 차트
+    <div class="section">${renderReviews(d)}</div>`;
   renderTrendChart(d);
-  setTimeout(() => renderReviewPage(), 0);
+  setTimeout(renderReviewPage, 0);
 }
 
-// ── 요약 카드 ──
-function renderStatCards(d) {
-  const negRate = d.total_count ? Math.round(d.total_negative / d.total_count * 100) : 0;
-  const wNegRate = d.week_count ? Math.round(d.week_negative / d.week_count * 100) : 0;
-  return `
-  <div class="stat-grid section">
-    <div class="stat-card">
-      <div class="stat-label">전체 후기</div>
-      <div class="stat-val">${d.total_count.toLocaleString()}</div>
-      <div class="stat-sub">평균 ★${d.avg_score}</div>
-    </div>
-    <div class="stat-card ${d.total_negative > 0 ? 'danger-card' : ''}">
-      <div class="stat-label">전체 3점 이하</div>
-      <div class="stat-val ${d.total_negative > 0 ? 'danger' : ''}">${d.total_negative.toLocaleString()}</div>
-      <div class="stat-sub">${negRate}% 비율</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">최근 7일 후기</div>
-      <div class="stat-val">${d.week_count.toLocaleString()}</div>
-      <div class="stat-sub">지난 7일간</div>
-    </div>
-    <div class="stat-card ${d.week_negative > 0 ? 'danger-card' : ''}">
-      <div class="stat-label">최근 7일 부정</div>
-      <div class="stat-val ${d.week_negative > 0 ? 'danger' : ''}">${d.week_negative.toLocaleString()}</div>
-      <div class="stat-sub">${wNegRate}% 비율</div>
-    </div>
+// ════════════════════════════════════════
+// 요약 카드
+// ════════════════════════════════════════
+function renderStatCards(d){
+  const negRate  = d.total_count ? Math.round(d.total_negative/d.total_count*100) : 0;
+  const wNegRate = d.week_count  ? Math.round(d.week_negative/d.week_count*100)   : 0;
+  return `<div class="stat-grid section">
+    <div class="stat-card"><div class="stat-label">전체 후기</div><div class="stat-val">${d.total_count.toLocaleString()}</div><div class="stat-sub">평균 ★${d.avg_score}</div></div>
+    <div class="stat-card ${d.total_negative>0?'danger-card':''}"><div class="stat-label">전체 3점 이하</div><div class="stat-val ${d.total_negative>0?'danger':''}">${d.total_negative.toLocaleString()}</div><div class="stat-sub">${negRate}% 비율</div></div>
+    <div class="stat-card"><div class="stat-label">최근 7일 후기</div><div class="stat-val">${d.week_count.toLocaleString()}</div><div class="stat-sub">지난 7일간</div></div>
+    <div class="stat-card ${d.week_negative>0?'danger-card':''}"><div class="stat-label">최근 7일 부정</div><div class="stat-val ${d.week_negative>0?'danger':''}">${d.week_negative.toLocaleString()}</div><div class="stat-sub">${wNegRate}% 비율</div></div>
   </div>`;
 }
 
-// ── 별점 분포 ──
-function renderScoreDist(d) {
-  const dist = d.score_distribution || {};
-  const total = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
-  const barClasses = { '5':'s5','4':'s4','3':'s3','2':'s2','1':'s1' };
-  let rows = '';
-  for (let s = 5; s >= 1; s--) {
-    const cnt = dist[s] || 0;
-    const pct = Math.round(cnt / total * 100);
-    rows += `
-      <div class="dist-row">
-        <div class="dist-label">${s}</div>
-        <div class="dist-bar-wrap">
-          <div class="dist-bar ${barClasses[s]}" style="width:${pct}%"></div>
-        </div>
-        <div class="dist-count">${cnt}</div>
-      </div>`;
+// ════════════════════════════════════════
+// 별점 분포
+// ════════════════════════════════════════
+function renderScoreDist(d){
+  const dist = d.score_distribution||{};
+  const total = Object.values(dist).reduce((a,b)=>a+b,0)||1;
+  const cls = {'5':'s5','4':'s4','3':'s3','2':'s2','1':'s1'};
+  let rows='';
+  for(let s=5;s>=1;s--){
+    const cnt=dist[s]||0, pct=Math.round(cnt/total*100);
+    rows+=`<div class="dist-row"><div class="dist-label">${s}</div><div class="dist-bar-wrap"><div class="dist-bar ${cls[s]}" style="width:${pct}%"></div></div><div class="dist-count">${cnt}</div></div>`;
   }
   return `<div class="card"><div class="card-title">별점 분포</div>${rows}</div>`;
 }
 
-// ── 플랫폼 비교 ──
-function renderPlatformCompare(d) {
-  const ps = d.platform_stats || {};
-  const platforms = [
-    { key: 'direct', label: '자사몰', badge: 'jasa' },
-    { key: 'kakao',  label: '자사몰 (카카오)', badge: 'jasa' },
-    { key: 'naver',  label: '자사몰 (네이버)', badge: 'jasa' },
-    { key: 'smartstore', label: '스마트스토어', badge: 'smartstore' },
-  ];
-  let rows = '';
-  for (const p of platforms) {
-    const stat = ps[p.key];
-    if (!stat || stat.count === 0) continue;
-    rows += `
-      <div class="platform-row">
-        <div>
-          <span class="platform-badge ${p.badge}">${p.label}</span>
-        </div>
-        <div style="display:flex;gap:12px;align-items:center">
-          <span class="platform-meta">★${stat.avg_score} &nbsp; ${stat.count}건</span>
-          ${stat.negative > 0 ? `<span style="font-size:11px;color:var(--danger);font-family:var(--mono)">▼${stat.negative}</span>` : ''}
-        </div>
-      </div>`;
+// ════════════════════════════════════════
+// 플랫폼 비교
+// ════════════════════════════════════════
+function renderPlatformCompare(d){
+  const ps = d.platform_stats||{};
+  const platforms=[{key:'direct',label:'자사몰',badge:'jasa'},{key:'kakao',label:'자사몰(카카오)',badge:'jasa'},{key:'naver',label:'자사몰(네이버)',badge:'jasa'},{key:'smartstore',label:'스마트스토어',badge:'smartstore'}];
+  let rows='';
+  for(const p of platforms){
+    const stat=ps[p.key];
+    if(!stat||stat.count===0)continue;
+    rows+=`<div class="platform-row"><div><span class="platform-badge ${p.badge}">${p.label}</span></div><div style="display:flex;gap:12px;align-items:center"><span class="platform-meta">★${stat.avg_score} &nbsp; ${stat.count}건</span>${stat.negative>0?`<span style="font-size:11px;color:var(--danger);font-family:var(--mono)">▼${stat.negative}</span>`:''}</div></div>`;
   }
-  if (!rows) rows = '<div style="font-size:13px;color:var(--muted);padding:8px 0">데이터 없음</div>';
+  if(!rows) rows='<div style="font-size:13px;color:var(--muted);padding:8px 0">데이터 없음</div>';
   return `<div class="card"><div class="card-title">플랫폼 비교</div>${rows}</div>`;
 }
 
-// ── 트렌드 ──
-function renderTrend(d) {
-  return `<div class="card"><div class="card-title">주간 트렌드</div>
-    <canvas id="trendChart" height="120"></canvas></div>`;
+// ════════════════════════════════════════
+// 트렌드 차트
+// ════════════════════════════════════════
+function renderTrend(d){
+  return `<div class="card"><div class="card-title">주간 트렌드</div><canvas id="trendChart" height="120"></canvas></div>`;
 }
-
-function renderTrendChart(d) {
-  const trend = d.weekly_trend || [];
-  if (!trend.length) return;
-  const ctx = document.getElementById('trendChart');
-  if (!ctx) return;
-  if (window._trendChart) window._trendChart.destroy();
-  const accent = currentShop === 'changeok' ? '#2d5a3d' : '#6b3a2a';
-  window._trendChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: trend.map(t => t.week.slice(5)),
-      datasets: [
-        {
-          label: '후기수', data: trend.map(t => t.count),
-          backgroundColor: accent + '30', borderColor: accent,
-          borderWidth: 1.5, borderRadius: 4, yAxisID: 'y',
-        },
-        {
-          label: '부정', data: trend.map(t => t.negative),
-          backgroundColor: '#c0392b25', borderColor: '#c0392b',
-          borderWidth: 1.5, borderRadius: 4, yAxisID: 'y',
-          type: 'bar',
-        },
-        {
-          label: '평균별점', data: trend.map(t => t.avg_score),
-          type: 'line', borderColor: '#e6b84a', borderWidth: 2,
-          pointRadius: 3, tension: 0.3, yAxisID: 'y2',
-        },
+function renderTrendChart(d){
+  const trend=d.weekly_trend||[];
+  if(!trend.length)return;
+  const ctx=document.getElementById('trendChart');
+  if(!ctx)return;
+  if(window._trendChart)window._trendChart.destroy();
+  const accent=currentShop==='changeok'?'#2d5a3d':'#6b3a2a';
+  window._trendChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:trend.map(t=>t.week.slice(5)),
+      datasets:[
+        {label:'후기수',data:trend.map(t=>t.count),backgroundColor:accent+'30',borderColor:accent,borderWidth:1.5,borderRadius:4,yAxisID:'y'},
+        {label:'부정',data:trend.map(t=>t.negative),backgroundColor:'#c0392b25',borderColor:'#c0392b',borderWidth:1.5,borderRadius:4,yAxisID:'y',type:'bar'},
+        {label:'평균별점',data:trend.map(t=>t.avg_score),type:'line',borderColor:'#e6b84a',borderWidth:2,pointRadius:3,tension:0.3,yAxisID:'y2'},
       ]
     },
-    options: {
-      responsive: true, interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { labels: { font: { size: 11 }, boxWidth: 10 } } },
-      scales: {
-        y: { beginAtZero: true, grid: { color: '#e2e0d820' }, ticks: { font: { size: 11 } } },
-        y2: { position: 'right', min: 0, max: 5, grid: { display: false }, ticks: { font: { size: 11 } } },
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    options:{
+      responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{font:{size:11},boxWidth:10}}},
+      scales:{
+        y:{beginAtZero:true,grid:{color:'#e2e0d820'},ticks:{font:{size:11}}},
+        y2:{position:'right',min:0,max:5,grid:{display:false},ticks:{font:{size:11}}},
+        x:{grid:{display:false},ticks:{font:{size:11}}}
       }
     }
   });
 }
 
-// ── TOP 3 상품 ──
-function renderTopProducts(d) {
-  const allTop = d.top_products_all || [];
-  const weekTop = d.top_products_week || [];
-
-  let rows = (allTop.length ? allTop : weekTop).map((p, i) => `
-    <div class="product-item">
-      <div class="product-rank">${i+1}</div>
-      <div class="product-name">${p.product || '(상품명 없음)'}
-        <small>평균 ★${p.avg_score} · 전체 ${p.count}건</small>
-      </div>
-      <div class="product-count">${p.count}건</div>
-    </div>`).join('');
-  if (!rows) rows = '<div style="font-size:13px;color:var(--muted)">데이터 없음</div>';
-
-  return `<div class="card">
-    <div class="card-title">후기 많은 상품 TOP 3 <span style="font-size:11px;color:var(--muted);font-weight:400">(전체)</span></div>
-    ${rows}
-  </div>`;
+// ════════════════════════════════════════
+// TOP 상품
+// ════════════════════════════════════════
+function renderTopProducts(d){
+  const list=(d.top_products_all||[]);
+  let rows=list.map((p,i)=>`<div class="product-item"><div class="product-rank">${i+1}</div><div class="product-name">${p.product||'(상품명 없음)'}<small>평균 ★${p.avg_score} · 전체 ${p.count}건</small></div><div class="product-count">${p.count}건</div></div>`).join('');
+  if(!rows)rows='<div style="font-size:13px;color:var(--muted)">데이터 없음</div>';
+  return `<div class="card"><div class="card-title">후기 많은 상품 TOP 3 <span style="font-size:11px;color:var(--muted);font-weight:400">(전체)</span></div>${rows}</div>`;
+}
+function renderNegativeProducts(d){
+  const list=(d.top_negative_products||[]);
+  let rows=list.map((p,i)=>`<div class="product-item"><div class="product-rank">${i+1}</div><div class="product-name">${p.product||'(상품명 없음)'}<small>전체 ${p.count}건 · 평균 ★${p.avg_score}</small></div><div class="product-count neg">${p.negative}건</div></div>`).join('');
+  if(!rows)rows='<div style="font-size:13px;color:var(--muted)">부정 후기 없음 👍</div>';
+  return `<div class="card"><div class="card-title">부정 후기 많은 상품 TOP 3</div>${rows}</div>`;
 }
 
-function renderNegativeProducts(d) {
-  const negTop = d.top_negative_products || [];
-  let rows = negTop.map((p, i) => `
-    <div class="product-item">
-      <div class="product-rank">${i+1}</div>
-      <div class="product-name">${p.product || '(상품명 없음)'}
-        <small>전체 ${p.count}건 · 평균 ★${p.avg_score}</small>
-      </div>
-      <div class="product-count neg">${p.negative}건</div>
-    </div>`).join('');
-  if (!rows) rows = '<div style="font-size:13px;color:var(--muted)">부정 후기 없음 👍</div>';
-
-  return `<div class="card">
-    <div class="card-title">부정 후기 많은 상품 TOP 3</div>
-    ${rows}
-  </div>`;
-}
-
-// ── 키워드 ──
-function renderKeywords(d) {
-  const posAll = d.positive_keywords_all || [];
-  const negAll = d.negative_keywords_all || [];
-  const posWeek = d.positive_keywords_week || [];
-  const negWeek = d.negative_keywords_week || [];
-
-  function chips(kws, cls) {
-    if (!kws.length) return '<span style="font-size:12px;color:var(--muted)">데이터 부족</span>';
-    return kws.map(k =>
-      `<span class="chip ${cls}">${k.word} <span class="chip-count">${k.count}</span></span>`
-    ).join('');
-  }
-
-  return `<div class="card">
-    <div class="card-title">키워드 분석</div>
+// ════════════════════════════════════════
+// 키워드
+// ════════════════════════════════════════
+function renderKeywords(d){
+  const posAll=d.positive_keywords_all||[], negAll=d.negative_keywords_all||[];
+  function chips(kws,cls){ return kws.length ? kws.map(k=>`<span class="chip ${cls}">${k.word} <span class="chip-count">${k.count}</span></span>`).join('') : '<span style="font-size:12px;color:var(--muted)">데이터 부족</span>'; }
+  return `<div class="card"><div class="card-title">키워드 분석</div>
     <div class="period-toggle">
       <button class="period-btn active" id="kwPeriodAll" onclick="setKwPeriod('all')">전체</button>
       <button class="period-btn" id="kwPeriodWeek" onclick="setKwPeriod('week')">최근 7일</button>
     </div>
-    <div id="kwContent">
-      <div class="keyword-section">
-        <div class="keyword-section-title">✓ 긍정 (4~5점)</div>
-        <div class="keyword-chips" id="posChips">${chips(posAll, 'chip-pos')}</div>
-      </div>
-      <div class="keyword-section" style="margin-top:12px">
-        <div class="keyword-section-title">✗ 부정 (1~3점)</div>
-        <div class="keyword-chips" id="negChips">${chips(negAll, 'chip-neg')}</div>
-      </div>
-    </div>
+    <div class="keyword-section"><div class="keyword-section-title">✓ 긍정 (4~5점)</div><div class="keyword-chips" id="posChips">${chips(posAll,'chip-pos')}</div></div>
+    <div class="keyword-section" style="margin-top:12px"><div class="keyword-section-title">✗ 부정 (1~3점)</div><div class="keyword-chips" id="negChips">${chips(negAll,'chip-neg')}</div></div>
   </div>`;
 }
-
-function setKwPeriod(period) {
-  if (!allData) return;
-  keywordPeriod = period;
-  document.getElementById('kwPeriodAll').classList.toggle('active', period === 'all');
-  document.getElementById('kwPeriodWeek').classList.toggle('active', period === 'week');
-  const d = allData[currentShop];
-  const posKws = period === 'all' ? d.positive_keywords_all : d.positive_keywords_week;
-  const negKws = period === 'all' ? d.negative_keywords_all : d.negative_keywords_week;
-  function chips(kws, cls) {
-    if (!kws || !kws.length) return '<span style="font-size:12px;color:var(--muted)">데이터 부족</span>';
-    return kws.map(k => `<span class="chip ${cls}">${k.word} <span class="chip-count">${k.count}</span></span>`).join('');
-  }
-  document.getElementById('posChips').innerHTML = chips(posKws, 'chip-pos');
-  document.getElementById('negChips').innerHTML = chips(negKws, 'chip-neg');
+function setKwPeriod(period){
+  if(!allData)return;
+  document.getElementById('kwPeriodAll').classList.toggle('active',period==='all');
+  document.getElementById('kwPeriodWeek').classList.toggle('active',period==='week');
+  const d=allData[currentShop];
+  const pos=period==='all'?d.positive_keywords_all:d.positive_keywords_week;
+  const neg=period==='all'?d.negative_keywords_all:d.negative_keywords_week;
+  function chips(kws,cls){ return kws&&kws.length?kws.map(k=>`<span class="chip ${cls}">${k.word} <span class="chip-count">${k.count}</span></span>`).join(''):'<span style="font-size:12px;color:var(--muted)">데이터 부족</span>'; }
+  document.getElementById('posChips').innerHTML=chips(pos,'chip-pos');
+  document.getElementById('negChips').innerHTML=chips(neg,'chip-neg');
 }
 
-// ── 후기 목록 ──
-let currentPage = 1;
-const PAGE_SIZE = 10;
-let filteredReviews = [];
+// ════════════════════════════════════════
+// 후기 목록
+// ════════════════════════════════════════
+let currentPage=1, filteredReviews=[];
+const PAGE_SIZE=10;
 
-function renderReviews(d) {
-  filteredReviews = d.reviews || [];
-  currentPage = 1;
-  return `<div class="card">
-    <div class="card-title">후기 목록</div>
+function renderReviews(d){
+  filteredReviews=d.reviews||[]; currentPage=1;
+  return `<div class="card"><div class="card-title">후기 목록</div>
     <div class="filter-row">
-      <button class="filter-btn active" onclick="setFilter('all', this)">전체</button>
-      <button class="filter-btn" onclick="setFilter('low', this)">3점 이하</button>
-      <button class="filter-btn" onclick="setFilter('jasa', this)">자사몰</button>
-      <button class="filter-btn" onclick="setFilter('ss', this)">스마트스토어</button>
+      <button class="filter-btn active" onclick="setFilter('all',this)">전체</button>
+      <button class="filter-btn" onclick="setFilter('low',this)">3점 이하</button>
+      <button class="filter-btn" onclick="setFilter('jasa',this)">자사몰</button>
+      <button class="filter-btn" onclick="setFilter('ss',this)">스마트스토어</button>
     </div>
     <div class="review-list" id="reviewList"></div>
     <div class="pagination" id="pagination"></div>
   </div>`;
 }
-
-function setFilter(f, el) {
-  reviewFilter = f;
-  currentPage = 1;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+function setFilter(f,el){
+  reviewFilter=f; currentPage=1;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
-  const d = allData[currentShop];
-  let reviews = d.reviews || [];
-  if (f === 'low') reviews = reviews.filter(r => r.score <= 3);
-  else if (f === 'jasa') reviews = reviews.filter(r => r.platform !== 'smartstore');
-  else if (f === 'ss') reviews = reviews.filter(r => r.platform === 'smartstore');
-  filteredReviews = reviews;
+  const d=allData[currentShop];
+  let reviews=d.reviews||[];
+  if(f==='low')  reviews=reviews.filter(r=>r.score<=3);
+  else if(f==='jasa') reviews=reviews.filter(r=>r.platform!=='smartstore');
+  else if(f==='ss')   reviews=reviews.filter(r=>r.platform==='smartstore');
+  filteredReviews=reviews;
   renderReviewPage();
 }
-
-function renderReviewPage() {
-  const total = filteredReviews.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  currentPage = Math.min(currentPage, totalPages);
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const pageReviews = filteredReviews.slice(start, start + PAGE_SIZE);
-
-  const listEl = document.getElementById('reviewList');
-  const pagEl = document.getElementById('pagination');
-  if (!listEl) return;
-
-  listEl.innerHTML = buildReviewCards(pageReviews);
-
-  // 페이지 버튼
-  let btns = '';
-  btns += `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>◀</button>`;
-
-  let start_p = Math.max(1, currentPage - 2);
-  let end_p = Math.min(totalPages, start_p + 4);
-  if (end_p - start_p < 4) start_p = Math.max(1, end_p - 4);
-
-  for (let i = start_p; i <= end_p; i++) {
-    btns += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
-  }
-  btns += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>▶</button>`;
-  btns += `<span class="page-info">${total}건 중 ${start+1}~${Math.min(start+PAGE_SIZE, total)}</span>`;
-  pagEl.innerHTML = btns;
+function renderReviewPage(){
+  const total=filteredReviews.length, totalPages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+  currentPage=Math.min(currentPage,totalPages);
+  const start=(currentPage-1)*PAGE_SIZE;
+  const listEl=document.getElementById('reviewList'), pagEl=document.getElementById('pagination');
+  if(!listEl)return;
+  listEl.innerHTML=buildReviewCards(filteredReviews.slice(start,start+PAGE_SIZE));
+  let btns=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>◀</button>`;
+  let sp=Math.max(1,currentPage-2), ep=Math.min(totalPages,sp+4);
+  if(ep-sp<4)sp=Math.max(1,ep-4);
+  for(let i=sp;i<=ep;i++) btns+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  btns+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>▶</button>`;
+  btns+=`<span class="page-info">${total}건 중 ${start+1}~${Math.min(start+PAGE_SIZE,total)}</span>`;
+  pagEl.innerHTML=btns;
 }
-
-function goPage(p) {
-  currentPage = p;
-  renderReviewPage();
-  document.getElementById('reviewList').scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-function buildReviewCards(reviews) {
-  if (!reviews.length) return '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">해당 후기가 없어요</div>';
-  return reviews.map(r => {
-    const isLow = r.score <= 3;
-    const stars = [1,2,3,4,5].map(i => `<span class="star ${i<=r.score?'on':'off'}">★</span>`).join('');
-    const platformLabel = {
-      direct: '자사몰', kakao: '카카오', naver: '네이버',
-      kakao_store: '카카오', smartstore: '스마트스토어'
-    }[r.platform] || r.platform;
-    const badgeCls = r.platform === 'smartstore' ? 'smartstore' : (r.platform === 'kakao' ? 'kakao' : 'jasa');
-    const content = r.content || r.title || '';
-    return `
-    <div class="review-card ${isLow ? 'low' : ''}">
+function goPage(p){ currentPage=p; renderReviewPage(); document.getElementById('reviewList').scrollIntoView({behavior:'smooth',block:'start'}); }
+function buildReviewCards(reviews){
+  if(!reviews.length)return'<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">해당 후기가 없어요</div>';
+  return reviews.map(r=>{
+    const isLow=r.score<=3;
+    const stars=[1,2,3,4,5].map(i=>`<span class="star ${i<=r.score?'on':'off'}">★</span>`).join('');
+    const platLabel={direct:'자사몰',kakao:'카카오',naver:'네이버',smartstore:'스마트스토어'}[r.platform]||r.platform;
+    const badgeCls=r.platform==='smartstore'?'smartstore':r.platform==='kakao'?'kakao':'jasa';
+    return `<div class="review-card ${isLow?'low':''}">
       <div class="review-header">
-        <div style="display:flex;align-items:center">
-          <div class="stars">${stars}</div>
-          <span class="score-num ${isLow?'low':''}">${r.score}.0</span>
-          ${isLow ? '<span class="low-tag">주의</span>' : ''}
-        </div>
-        <div class="review-meta">
-          <span class="rev-badge ${badgeCls}">${platformLabel}</span>
-          <span class="rev-date">${r.date}</span>
-        </div>
+        <div style="display:flex;align-items:center"><div class="stars">${stars}</div><span class="score-num ${isLow?'low':''}">${r.score}.0</span>${isLow?'<span class="low-tag">주의</span>':''}</div>
+        <div class="review-meta"><span class="rev-badge ${badgeCls}">${platLabel}</span><span class="rev-date">${r.date}</span></div>
       </div>
-      ${r.product ? `<div class="review-product">${r.product}</div>` : ''}
-      <div class="review-content">${content || '<span style="color:var(--muted)">본문 없음</span>'}</div>
+      ${r.product?`<div class="review-product">${r.product}</div>`:''}
+      <div class="review-content">${r.content||r.title||'<span style="color:var(--muted)">본문 없음</span>'}</div>
     </div>`;
   }).join('');
 }
 
-// ── 에러 / 토스트 ──
-function showError(msg) {
-  document.getElementById('mainContent').innerHTML = `
-    <div class="loading-state">
-      <div style="font-size:24px;margin-bottom:12px">⚠️</div>
-      <div>${msg}</div>
-      <div style="margin-top:8px;font-size:12px;color:var(--muted)">잠시 후 다시 시도해주세요.</div>
-    </div>`;
+// ════════════════════════════════════════
+// 에러 / 토스트
+// ════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),4000);
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 4000);
-}
-
-
-// ── 메모장 ──
-let memoList = [];
-
-async function renderMemo() {
-  const mc = document.getElementById('mainContent');
-  mc.innerHTML = `
-    <div class="memo-wrap section">
-      <div class="card" style="margin-bottom:12px">
-        <div class="card-title">새 메모 작성</div>
-        <textarea class="memo-area" id="memoArea" placeholder="여기에 메모를 입력하세요..."></textarea>
-        <div class="memo-footer">
-          <span class="memo-saved" id="memoSaved"></span>
-          <button class="memo-save-btn" id="memoSaveBtn" onclick="saveMemo()">저장</button>
-        </div>
-      </div>
-      <div id="memoListWrap"></div>
-    </div>`;
+// ════════════════════════════════════════
+// 메모장
+// ════════════════════════════════════════
+let memoList=[];
+async function renderMemo(){
+  const mc=document.getElementById('mainContent');
+  mc.innerHTML=`<div class="memo-wrap section">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">새 메모 작성</div>
+      <textarea class="memo-area" id="memoArea" placeholder="여기에 메모를 입력하세요..."></textarea>
+      <div class="memo-footer"><span class="memo-saved" id="memoSaved"></span><button class="memo-save-btn" id="memoSaveBtn" onclick="saveMemo()">저장</button></div>
+    </div>
+    <div id="memoListWrap"></div>
+  </div>`;
   await loadMemos();
 }
-
-async function loadMemos() {
-  try {
-    const res = await fetch('/api/memo');
-    if (res.ok) {
-      const data = await res.json();
-      memoList = data.memos || [];
-      renderMemoList();
-    }
-  } catch(e) {}
+async function loadMemos(){
+  try{ const res=await fetch('/api/memo'); if(res.ok){ const d=await res.json(); memoList=d.memos||[]; renderMemoList(); } }catch(e){}
+}
+function renderMemoList(){
+  const wrap=document.getElementById('memoListWrap'); if(!wrap)return;
+  if(!memoList.length){ wrap.innerHTML='<div class="memo-empty">저장된 메모가 없어요</div>'; return; }
+  wrap.innerHTML=`<div class="card"><div class="card-title">저장된 메모 (${memoList.length}개)</div><div class="memo-list">${
+    memoList.map(m=>`<div class="memo-item" id="memo-${CSS.escape(m.id)}">
+      <div class="memo-item-header"><span class="memo-item-time">${m.saved_at}</span><button class="memo-delete-btn" onclick="deleteMemo('${m.id}')">삭제</button></div>
+      <div class="memo-item-content">${m.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`).join('')
+  }</div></div>`;
+}
+async function saveMemo(){
+  const btn=document.getElementById('memoSaveBtn'), saved=document.getElementById('memoSaved'), area=document.getElementById('memoArea');
+  if(!area||!area.value.trim()){ saved.textContent='내용을 입력해주세요'; saved.style.color='var(--danger)'; return; }
+  btn.disabled=true; btn.textContent='저장 중...'; saved.textContent='';
+  try{
+    const res=await fetch('/api/memo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:area.value})});
+    if(res.ok){ area.value=''; saved.textContent='✓ 저장됐어요!'; saved.style.color='var(--positive)'; setTimeout(()=>saved.textContent='',3000); await loadMemos(); }
+    else throw new Error();
+  }catch(e){ saved.textContent='저장 실패'; saved.style.color='var(--danger)'; }
+  btn.disabled=false; btn.textContent='저장';
+}
+async function deleteMemo(id){
+  if(!confirm('이 메모를 삭제할까요?'))return;
+  try{ const res=await fetch('/api/memo/'+encodeURIComponent(id),{method:'DELETE'}); if(res.ok){ memoList=memoList.filter(m=>m.id!==id); renderMemoList(); } }catch(e){}
 }
 
-function renderMemoList() {
-  const wrap = document.getElementById('memoListWrap');
-  if (!wrap) return;
-  if (!memoList.length) {
-    wrap.innerHTML = '<div class="memo-empty">저장된 메모가 없어요</div>';
-    return;
-  }
-  wrap.innerHTML = `
-    <div class="card">
-      <div class="card-title">저장된 메모 (${memoList.length}개)</div>
-      <div class="memo-list">
-        ${memoList.map(m => `
-          <div class="memo-item" id="memo-${CSS.escape(m.id)}">
-            <div class="memo-item-header">
-              <span class="memo-item-time">${m.saved_at}</span>
-              <button class="memo-delete-btn" onclick="deleteMemo('${m.id}')">삭제</button>
-            </div>
-            <div class="memo-item-content">${m.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-          </div>`).join('')}
+// ════════════════════════════════════════
+// 수집 로그 탭
+// ════════════════════════════════════════
+async function renderLog(){
+  const mc=document.getElementById('mainContent');
+  mc.innerHTML='<div class="loading-state"><div class="spinner"></div></div>';
+  try{
+    const [stRes,logRes]=await Promise.all([fetch('/api/status'),fetch('/api/logs')]);
+    const st=await stRes.json(), logs=(await logRes.json()).logs||[];
+    let statusHtml='';
+    if(st.collecting){
+      statusHtml+=`<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#7b5c00">
+        🔄 수집 중... &nbsp; ${st.progress_msg||''} &nbsp; <b>${st.progress_pct||0}%</b>
+      </div>`;
+    }
+    if(st.last_error){
+      statusHtml+=`<div style="background:var(--danger-bg);border:1px solid #f0c4c0;border-radius:8px;padding:12px 16px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:6px">❌ 마지막 오류</div>
+        <div style="font-size:12px;color:var(--danger);font-family:var(--mono);word-break:break-all">${st.last_error}</div>
+        ${st.error_detail?`<details style="margin-top:8px"><summary style="font-size:11px;color:var(--muted);cursor:pointer">상세 보기</summary><pre style="font-size:11px;color:var(--muted);white-space:pre-wrap;word-break:break-all;margin-top:6px">${st.error_detail}</pre></details>`:''}
+      </div>`;
+    }
+    if(st.last_success){
+      statusHtml+=`<div style="background:var(--positive-bg);border:1px solid #b8dfc8;border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:12px;color:var(--positive)">✅ 마지막 성공: ${st.last_success.replace('T',' ').slice(0,19)}</div>`;
+    }
+    const logRows=logs.map(l=>`<div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-family:var(--mono);color:var(--muted);flex-shrink:0;white-space:nowrap">${l.time}</span>
+      <span style="font-size:12px;${l.success?'color:var(--positive)':'color:var(--danger)'}">${l.success?'✅':'❌'} ${l.detail}</span>
+    </div>`).join('')||'<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px">로그 없음</div>';
+    mc.innerHTML=`<div style="max-width:720px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:15px;font-weight:700">수집 로그</div>
+        <button class="refresh-btn" onclick="renderLog()">새로고침</button>
       </div>
+      ${statusHtml}
+      <div class="card"><div class="card-title">수집 이력 (최근 50건)</div>${logRows}</div>
     </div>`;
+  }catch(e){ mc.innerHTML='<div class="loading-state">로그를 불러올 수 없습니다.</div>'; }
 }
 
-async function saveMemo() {
-  const btn = document.getElementById('memoSaveBtn');
-  const saved = document.getElementById('memoSaved');
-  const area = document.getElementById('memoArea');
-  if (!area || !area.value.trim()) {
-    saved.textContent = '내용을 입력해주세요';
-    saved.style.color = 'var(--danger)';
-    return;
-  }
-  btn.disabled = true;
-  btn.textContent = '저장 중...';
-  saved.textContent = '';
-  try {
-    const res = await fetch('/api/memo', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({content: area.value})
-    });
-    if (res.ok) {
-      area.value = '';
-      saved.textContent = '✓ 저장됐어요!';
-      saved.style.color = 'var(--positive)';
-      setTimeout(() => { saved.textContent = ''; }, 3000);
-      await loadMemos();
-    } else {
-      throw new Error('서버 오류');
-    }
-  } catch(e) {
-    saved.textContent = '저장 실패 - 서버 연결 확인';
-    saved.style.color = 'var(--danger)';
-  }
-  btn.disabled = false;
-  btn.textContent = '저장';
-}
-
-
-// ── 수집 로그 ──
-async function renderLog() {
-  const mc = document.getElementById('mainContent');
-  mc.innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
-  try {
-    const [statusRes, logRes] = await Promise.all([
-      fetch('/api/status'),
-      fetch('/api/logs')
-    ]);
-    const st = await statusRes.json();
-    const logData = await logRes.json();
-    const logs = logData.logs || [];
-
-    let statusHtml = '';
-    if (st.collecting) {
-      statusHtml = '<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#7b5c00">🔄 현재 수집 중입니다...</div>';
-    }
-    if (st.last_error) {
-      statusHtml += '<div style="background:var(--danger-bg);border:1px solid #f0c4c0;border-radius:8px;padding:12px 16px;margin-bottom:16px;">' +
-        '<div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:6px">❌ 마지막 수집 오류</div>' +
-        '<div style="font-size:12px;color:var(--danger);font-family:var(--mono);white-space:pre-wrap;word-break:break-all">' + (st.last_error||'') + '</div>' +
-        (st.error_detail ? '<details style="margin-top:8px"><summary style="font-size:11px;color:var(--muted);cursor:pointer">상세 보기</summary><pre style="font-size:11px;color:var(--muted);margin-top:6px;white-space:pre-wrap;word-break:break-all">' + st.error_detail + '</pre></details>' : '') +
-        '</div>';
-    }
-    if (st.last_success) {
-      statusHtml += '<div style="background:var(--positive-bg);border:1px solid #b8dfc8;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:var(--positive)">✅ 마지막 성공: ' + st.last_success.replace('T',' ').slice(0,19) + '</div>';
-    }
-
-    let logRows = logs.map(l =>
-      '<div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start">' +
-      '<span style="font-size:11px;font-family:var(--mono);color:var(--muted);flex-shrink:0">' + l.time + '</span>' +
-      '<span style="font-size:12px;' + (l.success ? 'color:var(--positive)' : 'color:var(--danger)') + '">' +
-      (l.success ? '✅ ' : '❌ ') + l.detail + '</span></div>'
-    ).join('') || '<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px">로그 없음</div>';
-
-    mc.innerHTML = '<div style="max-width:720px">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
-      '<div style="font-size:15px;font-weight:700">수집 로그</div>' +
-      '<button class="refresh-btn" onclick="renderLog()">새로고침</button></div>' +
-      statusHtml +
-      '<div class="card"><div class="card-title">수집 이력 (최근 50건)</div>' + logRows + '</div></div>';
-  } catch(e) {
-    mc.innerHTML = '<div class="loading-state">로그를 불러올 수 없습니다.</div>';
-  }
-}
-
-async function deleteMemo(id) {
-  if (!confirm('이 메모를 삭제할까요?')) return;
-  try {
-    const res = await fetch('/api/memo/' + encodeURIComponent(id), {method: 'DELETE'});
-    if (res.ok) {
-      memoList = memoList.filter(m => m.id !== id);
-      renderMemoList();
-    }
-  } catch(e) {}
-}
-
-// ── 초기화 ──
+// ════════════════════════════════════════
+// 초기화
+// ════════════════════════════════════════
 loadData();
 setInterval(loadData, 60*60*1000); // 1시간마다 자동 갱신
-// 1시간마다 자동 새로고침
-setInterval(loadData, 60 * 60 * 1000);
 </script>
 </body>
 </html>
