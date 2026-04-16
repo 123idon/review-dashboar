@@ -355,6 +355,7 @@ body {
   var i = 0;
   function next(){ if(i>=steps.length)return; bar.style.width=steps[i][0]+'%'; msg.textContent=steps[i][1]; i++; if(i<steps.length)setTimeout(next,600); }
   next();
+  setTimeout(function(){ if(window._hideInitLoading) window._hideInitLoading(); }, 3000);
   window._hideInitLoading = function(){
     var el = document.getElementById('initLoading');
     bar.style.width='100%'; msg.textContent='완료!';
