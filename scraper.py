@@ -1,28 +1,42 @@
 import re
 import json
 import asyncio
+import httpx
 from datetime import datetime
 from pathlib import Path
+from bs4 import BeautifulSoup
 
 DATA_PATH = Path("data/reviews.json")
-CONCURRENT = 8  # 동시 요청 수 (5→8로 증가, 속도 개선)
 
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/120.0.0.0 Safari/537.36"
-)
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+}
 
 
 def parse_date(s: str):
+    if not s:
+        return None
     s = s.strip()
     for fmt in ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%Y.%m.%d", "%y.%m.%d"]:
         try:
-            d = datetime.strptime(s[:19] if len(s) >= 19 else s[:10], fmt)
+            d = datetime.strptime(s[:len(fmt.replace("%y","-").replace("%Y","----").replace("%m","--").replace("%d","--").replace("%H","--").replace("%M","--").replace("%S","--"))], fmt)
             if d.year < 2000:
                 d = d.replace(year=d.year + 2000)
             return d
         except ValueError:
+            continue
+    # 간단 파싱
+    for fmt in ["%y.%m.%d", "%Y.%m.%d", "%Y-%m-%d"]:
+        try:
+            d = datetime.strptime(s[:8] if len(s) >= 8 else s, fmt)
+            if d.year < 2000:
+                d = d.replace(year=d.year + 2000)
+            return d
+        except:
             continue
     return None
 
@@ -30,9 +44,10 @@ def parse_date(s: str):
 def detect_platform(author: str) -> str:
     if not author:
         return "direct"
-    if "카" in author[:2]:
+    a = author.strip()
+    if a.startswith("카"):
         return "kakao"
-    if "네" in author[:2]:
+    if a.startswith("네"):
         return "naver"
     return "direct"
 
@@ -43,209 +58,149 @@ def clean_content(text: str) -> str:
     return text.strip()
 
 
-def parse_review_text(text: str, brand: str = "") -> dict:
-    lines = [l.strip() for l in text.split("\n") if l.strip()]
-
-    product = ""
-    for i, line in enumerate(lines):
-        if re.match(r"[\d,]+원", line) and i > 0:
-            candidate = lines[i - 1]
-            if (len(candidate) > 4
-                    and "rights" not in candidate.lower()
-                    and "reserved" not in candidate.lower()
-                    and not re.match(r"\d", candidate)):
-                product = candidate.strip()
-            break
-
-    score = 0
-    for line in lines[:20]:
-        if line == "불만족":
-            score = 1
-            break
-        if line == "보통":
-            score = 3
-            break
-        if line == "만족":
-            score = 5
-            break
-    if score == 0:
-        m = re.search(r"(\d)점", text[:400])
-        if m:
-            score = int(m.group(1))
-
-    author = ""
-    m = re.search(r"([가-힣a-zA-Z]\*+)\s*(?:\(ip|\d{4}-)", text)
-    if m:
-        author = m.group(1)
-
-    date_obj = None
-    author_line_m = re.search(r"[가-힣a-zA-Z]\*+\s*(\d{4}-\d{2}-\d{2}\s*\d{2}:\d{2}:\d{2})", text)
-    if author_line_m:
-        date_obj = parse_date(author_line_m.group(1))
-    if not date_obj:
-        m = re.search(r"\((\d{4}-\d{2}-\d{2})[^)]*등록된", text)
-        if m:
-            date_obj = parse_date(m.group(1))
-    if not date_obj:
-        m = re.search(r"(\d{4}-\d{2}-\d{2})", text)
-        if m:
-            date_obj = parse_date(m.group(1))
-
-    author_passed = False
-    content_lines = []
-    for line in lines:
-        if re.match(r"[가-힣a-zA-Z]\*+\s*\d{4}-", line) or re.match(r"[가-힣a-zA-Z]\*+\s*\(ip", line):
-            author_passed = True
-            continue
-        if author_passed:
-            if re.match(r"삭제|수정|목록|추천|신고|이전글|다음글|관련|번호|상품명|작성자|회원에게|copyright|All rights", line, re.IGNORECASE):
-                break
-            if re.match(r"\d{5,}", line):
-                break
-            line = clean_content(line)
-            if len(line) > 2:
-                content_lines.append(line)
-        if len(content_lines) >= 5:
-            break
-    content = clean_content(" ".join(content_lines))[:500]
-
-    return {
-        "date": date_obj.strftime("%Y-%m-%d") if date_obj else datetime.now().strftime("%Y-%m-%d"),
-        "score": score,
-        "product": product,
-        "title": "",
-        "content": content,
-        "platform": detect_platform(author),
-        "author": author,
-    }
-
-
-async def fetch_review_pw(context, url: str, brand: str, semaphore):
-    async with semaphore:
-        page = await context.new_page()
-        try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=20000)
-            await page.wait_for_timeout(300)  # 500→300ms로 단축
-            text = await page.evaluate("() => document.body.innerText")
-            return parse_review_text(text, brand)
-        except Exception:
-            return None
-        finally:
-            await page.close()
-
-
-async def get_review_nos(context, base_url: str, list_path: str, brand: str, max_pages: int = 9999, progress_cb=None):
-    # ✅ 핵심 수정: brand 파라미터 추가 (기존엔 없어서 NameError 발생)
-    review_nos = []
-    page = await context.new_page()
+def parse_list_item(item) -> dict | None:
+    """목록 페이지 li 태그에서 후기 파싱 (상세 페이지 불필요)"""
     try:
-        for p in range(1, max_pages + 1):
-            url = f"{base_url}{list_path}&page={p}"
+        # ── 별점 ──
+        score = 0
+        rate_el = item.select_one("[data-rate]")
+        if rate_el:
             try:
-                await page.goto(url, wait_until="domcontentloaded", timeout=20000)
-                await page.wait_for_timeout(1500)  # 2000→1500ms로 단축
-                nos = await page.evaluate("""
-                    () => Array.from(document.querySelectorAll('li[data-review-no]'))
-                              .map(i => i.getAttribute('data-review-no'))
-                              .filter(Boolean)
-                """)
-                if not nos:
-                    print(f"  목록 {p}페이지 종료 (총 {len(review_nos)}건)")
-                    break
-                review_nos.extend(nos)
-                print(f"  목록 {p}페이지 → {len(nos)}건")
-                # ✅ brand 이제 파라미터에서 가져옴
-                if progress_cb:
-                    progress_cb({"phase": "listing", "page": p, "total_so_far": len(review_nos), "brand": brand})
+                score = int(rate_el["data-rate"])
+            except:
+                pass
+        if score == 0:
+            # class="rate rateN" 에서 추출
+            rate_wrap = item.select_one(".rate")
+            if rate_wrap:
+                m = re.search(r"rate(\d)", " ".join(rate_wrap.get("class", [])))
+                if m:
+                    score = int(m.group(1))
+        # subject에서도 추출
+        if score == 0:
+            subj = item.select_one(".subject")
+            if subj:
+                txt = subj.get_text(strip=True)
+                if "불만족" in txt:
+                    score = 1
+                elif "보통" in txt:
+                    score = 3
+                elif "만족" in txt:
+                    score = 5
+
+        # ── 내용 ──
+        cont_el = item.select_one(".cont")
+        content = clean_content(cont_el.get_text(separator=" ", strip=True)) if cont_el else ""
+        # 네이버 페이 구매평 패턴 정리
+        content = re.sub(r"\(\d{4}-\d{2}-\d{2}[^)]*네이버[^)]*\)", "", content).strip()
+        content = content[:500]
+
+        # ── 날짜 ──
+        date_obj = None
+        date_el = item.select_one(".date span")
+        if date_el:
+            date_text = date_el.get_text(strip=True)
+            date_obj = parse_date(date_text)
+        # 내용에서도 날짜 추출 시도
+        if not date_obj:
+            m = re.search(r"(\d{4}-\d{2}-\d{2})", content)
+            if m:
+                date_obj = parse_date(m.group(1))
+
+        # ── 상품명 ──
+        product = ""
+        prod_el = item.select_one(".prod_name .name a")
+        if prod_el:
+            product = prod_el.get_text(strip=True)
+        # 대괄호 등 정리
+        if len(product) > 80:
+            product = product[:80]
+
+        # ── 작성자 / 플랫폼 ──
+        member_el = item.select_one(".member")
+        author = member_el.get_text(strip=True) if member_el else ""
+
+        return {
+            "date": date_obj.strftime("%Y-%m-%d") if date_obj else datetime.now().strftime("%Y-%m-%d"),
+            "score": score,
+            "product": product,
+            "title": "",
+            "content": content,
+            "platform": detect_platform(author),
+            "author": author,
+        }
+    except Exception as e:
+        print(f"  parse_list_item 오류: {e}")
+        return None
+
+
+async def scrape_list_pages(base_url: str, list_path: str, brand: str,
+                             progress_cb=None) -> list:
+    """목록 페이지만 긁어서 파싱 (상세 페이지 불필요 — 15배 빠름)"""
+    reviews = []
+    page = 1
+
+    async with httpx.AsyncClient(
+        headers=HEADERS,
+        follow_redirects=True,
+        timeout=30.0,
+    ) as client:
+        while True:
+            url = f"{base_url}{list_path}&page={page}"
+            try:
+                resp = await client.get(url)
+                resp.raise_for_status()
             except Exception as e:
-                print(f"  목록 {p}페이지 실패: {e}")
+                print(f"  [{brand}] 페이지 {page} 요청 실패: {e}")
                 break
-    finally:
-        await page.close()
-    return review_nos
 
+            soup = BeautifulSoup(resp.text, "html.parser")
+            items = soup.select("li[data-review-no]")
 
-async def scrape_site(base_url, list_path, article_path, brand, max_pages=9999, progress_cb=None):
-    # ✅ playwright import를 함수 안에서만 (앱 시작 타임아웃 방지)
-    from playwright.async_api import async_playwright
+            if not items:
+                print(f"  [{brand}] {page}페이지 종료 (총 {len(reviews)}건)")
+                break
 
-    async with async_playwright() as pw:
-        browser = await pw.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-                "--disable-blink-features=AutomationControlled",
-            ]
-        )
-        context = await browser.new_context(
-            user_agent=USER_AGENT,
-            locale="ko-KR",
-            extra_http_headers={"Accept-Language": "ko-KR,ko;q=0.9"},
-        )
-        await context.add_init_script(
-            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined});"
-        )
+            for item in items:
+                parsed = parse_list_item(item)
+                if parsed:
+                    reviews.append(parsed)
 
-        print(f"  [{brand}] 목록 수집 중...")
-        # ✅ brand 파라미터 전달
-        nos = await get_review_nos(context, base_url, list_path, brand, max_pages, progress_cb=progress_cb)
-        print(f"  [{brand}] 총 {len(nos)}건 → 상세 수집 시작")
+            print(f"  [{brand}] {page}페이지 → {len(items)}건 (누적 {len(reviews)}건)")
 
-        if not nos:
-            await browser.close()
-            return []
-
-        semaphore = asyncio.Semaphore(CONCURRENT)
-        urls = [f"{base_url}{article_path}/{no}/" for no in nos]
-        tasks = [fetch_review_pw(context, url, brand, semaphore) for url in urls]
-
-        reviews = []
-        done = 0
-        for coro in asyncio.as_completed(tasks):
-            result = await coro
-            if result:
-                reviews.append(result)
-            done += 1
-            # ✅ 10건마다만 콜백 (매건마다 하면 오버헤드)
-            if progress_cb and done % 10 == 0:
+            if progress_cb:
                 progress_cb({
-                    "phase": "detail",
-                    "done": done,
-                    "total": len(urls),
-                    "collected": len(reviews),
+                    "phase": "listing",
+                    "page": page,
+                    "total_so_far": len(reviews),
                     "brand": brand,
                 })
-            if done % 100 == 0:
-                print(f"  [{brand}] {done}/{len(urls)} 완료 ({len(reviews)}건)")
 
-        await browser.close()
-        print(f"  [{brand}] 최종 {len(reviews)}건 완료")
-        return reviews
+            page += 1
+            await asyncio.sleep(0.8)   # 서버 부하 방지
+
+    print(f"  [{brand}] 최종 {len(reviews)}건 완료")
+    return reviews
 
 
 async def collect_all(progress_cb=None) -> dict:
     print("=" * 50)
     print(f"후기 수집 시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("※ 목록 페이지 직접 파싱 방식 (빠름)")
 
     print("\n[1/2] 창억떡 수집...")
-    changeok_jasa = await scrape_site(
+    changeok_jasa = await scrape_list_pages(
         base_url="https://m.changeok.co.kr",
         list_path="/board/product/list.html?board_no=4",
-        article_path="/article/구매후기/4",
         brand="창억",
-        max_pages=9999,
         progress_cb=progress_cb,
     )
 
     print("\n[2/2] 명가삼대떡집 수집...")
-    myeongga_jasa = await scrape_site(
+    myeongga_jasa = await scrape_list_pages(
         base_url="https://myeonggashop.com",
         list_path="/board/review/list.html?board_no=4",
-        article_path="/article/상품-사용후기/4",
         brand="명가삼대떡집",
-        max_pages=9999,
         progress_cb=progress_cb,
     )
 
