@@ -524,6 +524,11 @@ function switchShop(shop, el) {
   }
   el.classList.add(shop === 'changeok' ? 'active-a' : 'active-b');
   reviewFilter = 'all';
+  if (!allData) {
+    document.getElementById('mainContent').innerHTML =
+      '<div class="loading-state"><div class="spinner"></div>데이터 불러오는 중...</div>';
+    return;
+  }
   render();
 }
 
