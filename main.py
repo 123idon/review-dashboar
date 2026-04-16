@@ -27,6 +27,10 @@ async def startup():
     # cron 방식이라 앱 시작 시 즉시 실행되지 않음 (매일 0:06에만 실행)
     scheduler.add_job(collect_all, "cron", hour=0, minute=6, id="daily")
     scheduler.start()
+    if not DATA_PATH.exists():
+        import asyncio
+        asyncio.create_task(collect_all())
+        print("📦 데이터 없음 → 자동 수집 시작")
     print("✅ 서버 시작 완료")
 
 

@@ -372,7 +372,7 @@ body {
 <div class="collecting-banner" id="collectingBanner">
   <span>후기 수집 중이에요</span>
   <span class="dot-anim"><span>.</span><span>.</span><span>.</span></span>
-  <span style="font-size:11px;color:#a07800">완료되면 자동으로 표시돼요</span>
+  <span style="font-size:11px;color:#a07800">완료되면 자동으로 표시돼요 &nbsp;|&nbsp; 경과: <span id="collectTimer">0</span>초</span>
 </div>
 <header class="header">
   <div class="header-left">
@@ -463,11 +463,15 @@ function startProgressBar() {
     if (pct >= 85) clearInterval(timer);
   }, 1000);
   bar._timer = timer;
+  let sec = 0;
+  const timerEl = document.getElementById('collectTimer');
+  bar._secTimer = setInterval(() => { sec++; if(timerEl) timerEl.textContent = sec; }, 1000);
 }
 
 function finishProgressBar() {
   const bar = document.getElementById('progressBar');
   if (bar._timer) clearInterval(bar._timer);
+  if (bar._secTimer) clearInterval(bar._secTimer);
   bar.style.width = '100%';
   document.getElementById('collectingBanner').classList.remove('show');
   setTimeout(() => { bar.style.width = '0%'; }, 600);
