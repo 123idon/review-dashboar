@@ -276,6 +276,7 @@ async function loadData() {
     const res = await fetch('/api/data');
     if (!res.ok) {
       const err = await res.json();
+      if(window._hideInitLoading) window._hideInitLoading();
       showError(err.detail || '데이터를 불러올 수 없습니다.');
       return;
     }
