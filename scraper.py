@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 DATA_PATH = Path("data/reviews.json")
-CONCURRENT = 5
+CONCURRENT = 8  # 동시 요청 수 (5→8로 증가, 속도 개선)
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -125,7 +125,7 @@ async def fetch_review_pw(context, url: str, brand: str, semaphore):
         page = await context.new_page()
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=20000)
-            await page.wait_for_timeout(500)
+            await page.wait_for_timeout(300)  # 500→300ms로 단축
             text = await page.evaluate("() => document.body.innerText")
             return parse_review_text(text, brand)
         except Exception:
@@ -134,7 +134,8 @@ async def fetch_review_pw(context, url: str, brand: str, semaphore):
             await page.close()
 
 
-async def get_review_nos(context, base_url: str, list_path: str, max_pages: int = 9999, progress_cb=None):
+async def get_review_nos(context, base_url: str, list_path: str, brand: str, max_pages: int = 9999, progress_cb=None):
+    # ✅ 핵심 수정: brand 파라미터 추가 (기존엔 없어서 NameError 발생)
     review_nos = []
     page = await context.new_page()
     try:
@@ -142,7 +143,7 @@ async def get_review_nos(context, base_url: str, list_path: str, max_pages: int 
             url = f"{base_url}{list_path}&page={p}"
             try:
                 await page.goto(url, wait_until="domcontentloaded", timeout=20000)
-                await page.wait_for_timeout(2000)
+                await page.wait_for_timeout(1500)  # 2000→1500ms로 단축
                 nos = await page.evaluate("""
                     () => Array.from(document.querySelectorAll('li[data-review-no]'))
                               .map(i => i.getAttribute('data-review-no'))
@@ -153,7 +154,9 @@ async def get_review_nos(context, base_url: str, list_path: str, max_pages: int 
                     break
                 review_nos.extend(nos)
                 print(f"  목록 {p}페이지 → {len(nos)}건")
-                if progress_cb: progress_cb({"phase": "listing", "page": p, "total_so_far": len(review_nos), "brand": brand})
+                # ✅ brand 이제 파라미터에서 가져옴
+                if progress_cb:
+                    progress_cb({"phase": "listing", "page": p, "total_so_far": len(review_nos), "brand": brand})
             except Exception as e:
                 print(f"  목록 {p}페이지 실패: {e}")
                 break
@@ -163,21 +166,31 @@ async def get_review_nos(context, base_url: str, list_path: str, max_pages: int 
 
 
 async def scrape_site(base_url, list_path, article_path, brand, max_pages=9999, progress_cb=None):
+    # ✅ playwright import를 함수 안에서만 (앱 시작 타임아웃 방지)
     from playwright.async_api import async_playwright
+
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-blink-features=AutomationControlled", "--disable-dev-shm-usage"]
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--disable-blink-features=AutomationControlled",
+            ]
         )
         context = await browser.new_context(
             user_agent=USER_AGENT,
             locale="ko-KR",
             extra_http_headers={"Accept-Language": "ko-KR,ko;q=0.9"},
         )
-        await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
+        await context.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined});"
+        )
 
         print(f"  [{brand}] 목록 수집 중...")
-        nos = await get_review_nos(context, base_url, list_path, max_pages, progress_cb=progress_cb)
+        # ✅ brand 파라미터 전달
+        nos = await get_review_nos(context, base_url, list_path, brand, max_pages, progress_cb=progress_cb)
         print(f"  [{brand}] 총 {len(nos)}건 → 상세 수집 시작")
 
         if not nos:
@@ -195,8 +208,16 @@ async def scrape_site(base_url, list_path, article_path, brand, max_pages=9999, 
             if result:
                 reviews.append(result)
             done += 1
-            if progress_cb: progress_cb({"phase": "detail", "done": done, "total": len(urls), "collected": len(reviews), "brand": brand})
-            if done % 50 == 0:
+            # ✅ 10건마다만 콜백 (매건마다 하면 오버헤드)
+            if progress_cb and done % 10 == 0:
+                progress_cb({
+                    "phase": "detail",
+                    "done": done,
+                    "total": len(urls),
+                    "collected": len(reviews),
+                    "brand": brand,
+                })
+            if done % 100 == 0:
                 print(f"  [{brand}] {done}/{len(urls)} 완료 ({len(reviews)}건)")
 
         await browser.close()
