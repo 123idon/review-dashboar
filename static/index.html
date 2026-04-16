@@ -523,8 +523,10 @@ function switchShop(shop, el) {
 
 // ── 전체 렌더 ──
 function render() {
-  if (!allData) return;
+    if (!allData) return;
+  if (currentShop === 'memo') { renderMemo(); return; }
   const d = allData[currentShop];
+  if (!d) return;
   const mc = document.getElementById('mainContent');
 
   const accentVar = currentShop === 'changeok' ? 'var(--accent-a)' : 'var(--accent-b)';
