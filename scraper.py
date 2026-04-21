@@ -13,7 +13,7 @@ API_BASE   = f"https://one.vreview.tv/api/embed/v2/{VREVIEW_ID}/reviews/"
 LIMIT      = 100
 CONCURRENT = 20
 
-# ── 파파공방 Crema JSONP ──────────────────────────────────────────────────────
+# ── 파파공방 ──────────────────────────────────────────────────────────────────
 PAPA_BASE     = "https://www.papaes.com"
 CREMA_BASE    = "https://review6.cre.ma"
 CREMA_MID     = "papaes.com"
@@ -22,6 +22,7 @@ PAPA_HEADERS  = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Referer": "https://www.papaes.com/",
 }
+CREMA_TIMEOUT = 8   # Crema API - 빠르게 실패하도록 짧게
 
 
 # ─────────────────────────── 명가 ────────────────────────────────────────────
@@ -85,45 +86,33 @@ async def scrape_myeongga(progress_cb=None):
     return all_reviews
 
 
-# ─────────────────────────── 파파공방 Crema ───────────────────────────────────
-def parse_jsonp(text: str) -> dict:
-    """JSONP 응답 cb({...}) → dict"""
+# ─────────────────────────── 파파공방 ─────────────────────────────────────────
+def parse_jsonp(text: str):
     s = text.strip()
     s = re.sub(r'^[^(]+\(', '', s).rstrip(');')
     return json.loads(s)
 
 
 def parse_crema_review(r: dict, product_name: str) -> dict:
-    """Crema 리뷰 객체 → 내부 포맷"""
-    # 날짜
     raw = r.get("created_at") or r.get("date") or ""
     try:
-        d = datetime.fromisoformat(raw[:19].replace("T", " ").replace(" ", "T"))
+        d = datetime.fromisoformat(raw[:19])
         date_str = d.strftime("%Y-%m-%d")
     except Exception:
         date_str = datetime.now().strftime("%Y-%m-%d")
-
     score = float(r.get("rating") or r.get("score") or 0)
     content = re.sub(r'\s+', ' ', (r.get("body") or r.get("content") or "").strip())[:500]
-    author = (r.get("member") or {}).get("name") or r.get("name") or ""
-
-    # 상품명: Crema는 product 객체 또는 product_name 필드
-    prod = (r.get("product") or {})
+    author = str((r.get("member") or {}).get("name") or r.get("name") or "")[:20]
+    prod = r.get("product") or {}
     pname = prod.get("name") or r.get("product_name") or product_name
-
     return {
-        "date": date_str,
-        "score": score,
-        "product": str(pname)[:80],
-        "title": (r.get("title") or "")[:100],
-        "content": content,
-        "platform": "direct",
-        "author": str(author)[:20],
+        "date": date_str, "score": score, "product": str(pname)[:80],
+        "title": (r.get("title") or "")[:100], "content": content,
+        "platform": "direct", "author": author,
     }
 
 
 def parse_jsonld_review(r: dict, product_name: str) -> dict:
-    """JSON-LD 리뷰 (fallback)"""
     try:
         d = datetime.fromisoformat(r.get("datePublished","")[:19])
         date_str = d.strftime("%Y-%m-%d")
@@ -136,92 +125,53 @@ def parse_jsonld_review(r: dict, product_name: str) -> dict:
             "title":"","content":content,"platform":"direct","author":author}
 
 
-async def fetch_crema_product(client: httpx.AsyncClient, prod_code: int) -> list:
-    """Crema JSONP API로 상품 전체 리뷰 수집, fallback → JSON-LD"""
-
-    # 1) 총 리뷰 수 확인
+async def try_crema_api(client: httpx.AsyncClient, prod_code: int, product_name: str) -> list:
+    """Crema JSONP API 시도 - 실패시 빈 리스트 반환 (hang 방지)"""
     try:
+        # 총 리뷰 수 확인 (타임아웃 짧게)
         r = await client.get(
             f"{CREMA_BASE}/{CREMA_MID}/api/v1/products/reviews_count"
             f"?product_codes[]={prod_code}&callback=cb&app=0",
-            timeout=15
+            timeout=CREMA_TIMEOUT
         )
+        if r.status_code != 200 or not r.text.strip():
+            return []
         total = parse_jsonp(r.text).get(str(prod_code), 0)
-        print(f"  idx={prod_code} Crema 총 리뷰: {total}건")
-    except Exception as e:
-        print(f"  idx={prod_code} 총 리뷰 수 확인 실패: {e} → JSON-LD fallback")
-        return await fetch_jsonld_product(client, prod_code)
+        if total == 0:
+            return []
+        print(f"  idx={prod_code} Crema 총 {total}건 확인 → 수집 시작")
 
-    if total == 0:
-        return []
+        PER = 100
+        pages = (total // PER) + (1 if total % PER else 0)
+        all_reviews = []
 
-    # 2) 페이지별 수집
-    PER = 100
-    pages = (total // PER) + (1 if total % PER else 0)
-    all_reviews = []
-
-    # 상품명 먼저 파악
-    try:
-        r_name = await client.get(
-            f"{CREMA_BASE}/{CREMA_MID}/api/v1/products/reviews_score"
-            f"?product_codes[]={prod_code}&callback=cb&app=0",
-            timeout=10
-        )
-        # reviews_score는 score만 있고 name은 없음 - JSON-LD에서 가져옴
-        product_name = await get_product_name(client, prod_code)
-    except Exception:
-        product_name = f"상품{prod_code}"
-
-    for page in range(1, pages + 1):
-        try:
-            r = await client.get(
+        for page in range(1, pages + 1):
+            r2 = await client.get(
                 f"{CREMA_BASE}/{CREMA_MID}/api/v1/reviews"
                 f"?product_code={prod_code}&page={page}&per={PER}&callback=cb&app=0",
-                timeout=20
+                timeout=CREMA_TIMEOUT
             )
-            data = parse_jsonp(r.text)
-            reviews_raw = data.get("reviews") or data.get("data") or []
+            if r2.status_code != 200 or not r2.text.strip():
+                print(f"  idx={prod_code} p{page} 응답 없음")
+                break
+            data = parse_jsonp(r2.text)
+            reviews_raw = data.get("reviews") or (data if isinstance(data, list) else [])
             if not reviews_raw:
-                # 다른 키 구조 시도
-                if isinstance(data, list):
-                    reviews_raw = data
-                else:
-                    print(f"  idx={prod_code} p{page} 빈 응답: {list(data.keys())}")
-                    break
+                break
             for rv in reviews_raw:
                 all_reviews.append(parse_crema_review(rv, product_name))
             print(f"  idx={prod_code} p{page}/{pages} → 누적 {len(all_reviews)}건")
             await asyncio.sleep(0.3)
-        except Exception as e:
-            print(f"  idx={prod_code} p{page} 실패: {e}")
-            await asyncio.sleep(1)
 
-    if not all_reviews:
-        print(f"  idx={prod_code} Crema 0건 → JSON-LD fallback")
-        return await fetch_jsonld_product(client, prod_code)
+        return all_reviews
 
-    return all_reviews
-
-
-async def get_product_name(client: httpx.AsyncClient, idx: int) -> str:
-    """JSON-LD에서 상품명만 추출"""
-    try:
-        r = await client.get(f"{PAPA_BASE}/shop_view/?idx={idx}", timeout=15)
-        ld = re.findall(r'application/ld\+json[^>]*>(.*?)</script>', r.text, re.DOTALL)
-        for b in ld:
-            try:
-                d = json.loads(b.strip())
-                if d.get("@type") == "Product":
-                    return d.get("name", f"상품{idx}")
-            except Exception:
-                continue
-    except Exception:
-        pass
-    return f"상품{idx}"
+    except Exception as e:
+        print(f"  idx={prod_code} Crema API 실패: {type(e).__name__} - {e}")
+        return []
 
 
 async def fetch_jsonld_product(client: httpx.AsyncClient, idx: int) -> list:
-    """JSON-LD fallback - 최근 5건"""
+    """JSON-LD - 최근 5건 (안정적 fallback)"""
     for attempt in range(4):
         try:
             if attempt > 0:
@@ -241,22 +191,53 @@ async def fetch_jsonld_product(client: httpx.AsyncClient, idx: int) -> list:
                         reviews.append(parse_jsonld_review(rv, pname))
                 except Exception:
                     continue
-            print(f"  idx={idx} JSON-LD fallback → {len(reviews)}건")
+            print(f"  idx={idx} JSON-LD → {len(reviews)}건")
             return reviews
         except Exception as e:
             print(f"  idx={idx} fallback 시도{attempt+1} 실패: {e}")
     return []
 
 
+async def fetch_papa_product(client: httpx.AsyncClient, idx: int) -> list:
+    """Crema 시도 → 실패시 JSON-LD fallback"""
+    # 1) 상품명 먼저 (JSON-LD에서)
+    pname = f"상품{idx}"
+    try:
+        r = await client.get(f"{PAPA_BASE}/shop_view/?idx={idx}", timeout=15)
+        ld = re.findall(r'application/ld\+json[^>]*>(.*?)</script>', r.text, re.DOTALL)
+        jsonld_reviews = []
+        for b in ld:
+            try:
+                d = json.loads(b.strip())
+                if d.get("@type") == "Product":
+                    pname = d.get("name", pname)
+                    jsonld_reviews = [parse_jsonld_review(rv, pname) for rv in d.get("review", [])]
+            except Exception:
+                continue
+    except Exception:
+        jsonld_reviews = []
+
+    # 2) Crema API 시도 (빠른 타임아웃)
+    crema_reviews = await try_crema_api(client, idx, pname)
+
+    if crema_reviews:
+        print(f"  idx={idx} [{pname}] Crema {len(crema_reviews)}건 ✅")
+        return crema_reviews
+    else:
+        result = jsonld_reviews if jsonld_reviews else await fetch_jsonld_product(client, idx)
+        print(f"  idx={idx} [{pname}] JSON-LD fallback {len(result)}건")
+        return result
+
+
 async def scrape_papa(progress_cb=None) -> list:
-    print("  [파파공방] Crema API 수집 시작")
+    print("  [파파공방] 수집 시작 (Crema API → JSON-LD fallback)")
     all_reviews = []
     total_products = len(PAPA_PRODUCTS)
 
     async with httpx.AsyncClient(timeout=20, headers=PAPA_HEADERS,
                                   follow_redirects=True) as client:
         for i, prod_code in enumerate(PAPA_PRODUCTS):
-            reviews = await fetch_crema_product(client, prod_code)
+            reviews = await fetch_papa_product(client, prod_code)
             all_reviews.extend(reviews)
             pct = int((i + 1) / total_products * 100)
             if progress_cb:
