@@ -65,7 +65,10 @@ def compute_stats(reviews: list[dict]) -> dict:
 
     dist = {str(i): 0 for i in range(1, 6)}
     for r in all_reviews:
-        s = str(r.get("score", 0))
+        try:
+            s = str(int(float(r.get("score", 0))))
+        except (ValueError, TypeError):
+            s = "0"
         if s in dist:
             dist[s] += 1
 

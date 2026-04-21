@@ -16,6 +16,7 @@
   --muted: #7a7870;
   --accent-a: #2d5a3d;   /* 창억 - 녹색 계열 */
   --accent-b: #6b3a2a;   /* 명가 - 적갈색 계열 */
+  --accent-c: #1a4a7a;   /* 파파공방 - 남색 계열 */
   --danger: #c0392b;
   --danger-bg: #fdf0ee;
   --warn: #b8860b;
@@ -59,6 +60,7 @@ body {
 }
 .shop-tab.active-a { background: var(--accent-a); color: #fff; }
 .shop-tab.active-b { background: var(--accent-b); color: #fff; }
+.shop-tab.active-c { background: var(--accent-c); color: #fff; }
 .header-right { display: flex; align-items: center; gap: 10px; }
 .last-updated { font-size: 11px; color: var(--muted); font-family: var(--mono); }
 .refresh-btn {
@@ -244,6 +246,7 @@ body {
     <div class="shop-tabs">
       <button class="shop-tab active-a" onclick="switchShop('changeok', this)">창억떡</button>
       <button class="shop-tab" onclick="switchShop('myeongga', this)">명가삼대떡집</button>
+      <button class="shop-tab" onclick="switchShop('papa', this)">파파공방</button>
     </div>
   </div>
   <div class="header-right">
@@ -316,9 +319,9 @@ async function triggerCollect() {
 function switchShop(shop, el) {
   currentShop = shop;
   document.querySelectorAll('.shop-tab').forEach(t => {
-    t.classList.remove('active-a', 'active-b');
+    t.classList.remove('active-a', 'active-b', 'active-c');
   });
-  el.classList.add(shop === 'changeok' ? 'active-a' : 'active-b');
+  el.classList.add(shop === 'changeok' ? 'active-a' : shop === 'myeongga' ? 'active-b' : 'active-c');
   reviewFilter = 'all';
   render();
 }
@@ -329,7 +332,7 @@ function render() {
   const d = allData[currentShop];
   const mc = document.getElementById('mainContent');
 
-  const accentVar = currentShop === 'changeok' ? 'var(--accent-a)' : 'var(--accent-b)';
+  const accentVar = currentShop === 'changeok' ? 'var(--accent-a)' : currentShop === 'myeongga' ? 'var(--accent-b)' : 'var(--accent-c)';
 
   mc.innerHTML = `
     ${renderStatCards(d, accentVar)}
@@ -442,7 +445,7 @@ function renderTrendChart(d) {
   const ctx = document.getElementById('trendChart');
   if (!ctx) return;
   if (window._trendChart) window._trendChart.destroy();
-  const accent = currentShop === 'changeok' ? '#2d5a3d' : '#6b3a2a';
+  const accent = currentShop === 'changeok' ? '#2d5a3d' : currentShop === 'myeongga' ? '#6b3a2a' : '#1a4a7a';
   window._trendChart = new Chart(ctx, {
     type: 'bar',
     data: {
