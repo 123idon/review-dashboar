@@ -8,43 +8,54 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pydantic import BaseModel
-
+ 
 from scraper import collect_all, DATA_PATH
 from analyzer import compute_stats
-
+ 
 app = FastAPI()
-
+ 
 Path("static").mkdir(exist_ok=True)
 Path("data").mkdir(exist_ok=True)
-
+ 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
-
+ 
 MEMO_PATH = Path("data/memo.json")
 LOG_PATH  = Path("data/collect_log.json")
-
+ 
 # ── 수집 상태 (실시간 진행상황 포함) ──
 collect_state = {
     "running": False,
     "last_success": None,
     "last_error": None,
     "error_detail": None,
-    # 진행상황
-    "phase": None,        # "listing" | "detail"
-    "brand": None,        # "창억" | "명가삼대떡집"
-    "page": 0,            # 목록 수집 페이지
-    "total_so_far": 0,    # 목록에서 찾은 총 건수
-    "done": 0,            # 상세 수집 완료 건수
-    "total": 0,           # 상세 수집 전체 건수
-    "collected": 0,       # 실제 파싱 성공 건수
+    "phase": None,
+    "brand": None,
+    "page": 0,
+    "total_so_far": 0,
+    "done": 0,
+    "total": 0,
+    "collected": 0,
     "started_at": None,
+    "live_logs": [],      # 실시간 로그 버퍼 (최근 200줄)
 }
-
-
+ 
+ 
 def progress_cb(info: dict):
     collect_state.update(info)
-
-
+    # 진행 메시지를 실시간 로그에도 추가
+    msg = info.get("progress_msg", "")
+    if msg:
+        _append_live_log(msg)
+ 
+ 
+def _append_live_log(msg: str):
+    ts = datetime.now().strftime("%H:%M:%S")
+    collect_state["live_logs"].append(f"[{ts}] {msg}")
+    if len(collect_state["live_logs"]) > 200:
+        collect_state["live_logs"] = collect_state["live_logs"][-200:]
+ 
+ 
 def write_log(success: bool, detail: str = ""):
     logs = []
     if LOG_PATH.exists():
@@ -58,8 +69,8 @@ def write_log(success: bool, detail: str = ""):
         "detail": detail,
     })
     LOG_PATH.write_text(json.dumps(logs[:50], ensure_ascii=False), encoding="utf-8")
-
-
+ 
+ 
 async def run_collect():
     if collect_state["running"]:
         return
@@ -75,29 +86,33 @@ async def run_collect():
         "total": 0,
         "collected": 0,
         "started_at": datetime.now().isoformat(),
+        "live_logs": [],
     })
+    _append_live_log("수집 시작")
     print(f"🔄 수집 시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     try:
         await collect_all(progress_cb=progress_cb)
         collect_state["last_success"] = datetime.now().isoformat()
         write_log(True, f"수집 완료 (총 {collect_state['collected']}건)")
+        _append_live_log(f"✅ 수집 완료 (총 {collect_state['collected']}건)")
         print("✅ 수집 완료")
     except Exception as e:
         err = traceback.format_exc()
         collect_state["last_error"] = str(e)
         collect_state["error_detail"] = err
         write_log(False, str(e))
+        _append_live_log(f"❌ 오류: {e}")
         print(f"❌ 수집 실패: {e}\n{err}")
     finally:
         collect_state["running"] = False
-
-
+ 
+ 
 @app.on_event("startup")
 async def startup():
     import asyncio
     scheduler.add_job(run_collect, "cron", hour=0, minute=6, id="daily")
     scheduler.start()
-
+ 
     need_collect = False
     if not DATA_PATH.exists():
         print("📦 데이터 없음 → 자동 수집 시작")
@@ -112,28 +127,28 @@ async def startup():
                 need_collect = True
         except Exception:
             need_collect = True
-
+ 
     if need_collect:
         asyncio.create_task(run_collect())
-
+ 
     print("✅ 서버 시작 완료")
-
-
+ 
+ 
 @app.on_event("shutdown")
 async def shutdown():
     scheduler.shutdown()
-
-
+ 
+ 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
-
-
+ 
+ 
 @app.get("/")
 async def root():
     return FileResponse("static/index.html")
-
-
+ 
+ 
 @app.get("/api/data")
 async def get_data():
     if not DATA_PATH.exists():
@@ -146,7 +161,7 @@ async def get_data():
         raw = json.loads(DATA_PATH.read_text(encoding="utf-8"))
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": f"파일 오류: {e}"})
-
+ 
     changeok = raw["changeok"]["jasa"] + raw["changeok"]["smartstore"]
     myeongga = raw["myeongga"]["jasa"] + raw["myeongga"]["smartstore"]
     papa     = raw.get("papa", {}).get("jasa", []) + raw.get("papa", {}).get("smartstore", [])
@@ -159,25 +174,25 @@ async def get_data():
         "papa":     compute_stats(papa),
         "jasaol":   compute_stats(jasaol),
     }
-
-
+ 
+ 
 @app.get("/api/status")
 async def get_status():
     s = collect_state.copy()
-
+ 
     # 진행률 계산
     pct = 0
     msg = ""
     elapsed = 0
     if s["started_at"]:
         elapsed = int((datetime.now() - datetime.fromisoformat(s["started_at"])).total_seconds())
-
+ 
     if s["running"]:
         brand = s.get("brand", "")
         done = s.get("done", 0)
         total = s.get("total", 1) or 1
         phase_pct = int(done / total * 100)
-
+ 
         # 브랜드별 전체 진행률 구간 (역행 방지)
         if brand == "명가삼대떡집":
             pct = int(phase_pct * 0.4)           # 0~40%
@@ -200,7 +215,7 @@ async def get_status():
         msg = f"오류: {s['last_error']}"
     elif s["last_success"]:
         msg = "수집 완료"
-
+ 
     return {
         "data_exists": DATA_PATH.exists(),
         "collecting": s["running"],
@@ -215,16 +230,16 @@ async def get_status():
         "done": s["done"],
         "total": s["total"],
     }
-
-
+ 
+ 
 @app.post("/api/collect")
 async def trigger(bg: BackgroundTasks):
     if collect_state["running"]:
         return {"message": "이미 수집 중이에요."}
     bg.add_task(run_collect)
     return {"message": "수집 시작!"}
-
-
+ 
+ 
 @app.get("/api/logs")
 async def get_logs():
     if not LOG_PATH.exists():
@@ -233,8 +248,19 @@ async def get_logs():
         return {"logs": json.loads(LOG_PATH.read_text(encoding="utf-8"))}
     except Exception:
         return {"logs": []}
-
-
+ 
+ 
+@app.get("/api/live-logs")
+async def get_live_logs():
+    """실시간 수집 로그 (수집 중에만 유효)"""
+    return {
+        "running": collect_state["running"],
+        "logs": collect_state["live_logs"],
+        "progress_msg": collect_state.get("progress_msg", ""),
+        "progress_pct": collect_state.get("progress_pct", 0),
+    }
+ 
+ 
 @app.get("/api/memo")
 async def get_memo():
     if not MEMO_PATH.exists():
@@ -244,12 +270,12 @@ async def get_memo():
         return {"memos": []} if "content" in data else data
     except Exception:
         return {"memos": []}
-
-
+ 
+ 
 class MemoBody(BaseModel):
     content: str
-
-
+ 
+ 
 @app.post("/api/memo")
 async def save_memo(body: MemoBody):
     if not body.content.strip():
@@ -269,8 +295,8 @@ async def save_memo(body: MemoBody):
     })
     MEMO_PATH.write_text(json.dumps({"memos": memos}, ensure_ascii=False), encoding="utf-8")
     return {"ok": True}
-
-
+ 
+ 
 @app.delete("/api/memo/{memo_id}")
 async def delete_memo(memo_id: str):
     if not MEMO_PATH.exists():
@@ -282,8 +308,8 @@ async def delete_memo(memo_id: str):
     except Exception:
         pass
     return {"ok": True}
-
-
+ 
+ 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
