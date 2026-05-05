@@ -3,7 +3,7 @@ import traceback
 from datetime import datetime
 import os
 from pathlib import Path
-from fastapi import FastAPI, BackgroundTasks, HTTPException, UploadFile, File
+from fastapi import FastAPI, BackgroundTasks, HTTPException, UploadFile, File, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -268,63 +268,49 @@ async def get_live_logs(offset: int = 0):
     }
 
 
-@app.post("/api/import-jasaol")
-async def import_jasaol(file: UploadFile = File(...)):
-    """자사몰 후기 XLS 파일 업로드 → reviews.json에 jasaol 데이터로 저장"""
+@app.post("/api/import-jasaol-chunk")
+async def import_jasaol_chunk(request: Request):
+    """브라우저에서 파싱한 리뷰 청크를 받아서 저장"""
     try:
-        from bs4 import BeautifulSoup
-        import io
+        body = await request.json()
+        reviews = body.get("reviews", [])
+        replace = body.get("replace", False)  # True면 기존 교체, False면 추가
 
-        content = await file.read()
-        # EUC-KR 디코딩
-        try:
-            html = content.decode('euc-kr', errors='replace')
-        except Exception:
-            html = content.decode('utf-8', errors='replace')
+        CHUNK_PATH = DATA_PATH.parent / "jasaol_chunk.json"
 
-        soup = BeautifulSoup(html, 'html.parser')
-        rows = soup.find_all('tr')
-        if len(rows) < 2:
-            raise HTTPException(status_code=400, detail="데이터가 없습니다.")
+        if replace:
+            # 첫 청크: 새로 시작
+            chunk_data = reviews
+        else:
+            # 이후 청크: 기존에 추가
+            existing_chunk = []
+            if CHUNK_PATH.exists():
+                try:
+                    existing_chunk = json.loads(CHUNK_PATH.read_text(encoding="utf-8"))
+                except Exception:
+                    existing_chunk = []
+            chunk_data = existing_chunk + reviews
 
-        def parse_score(s): return float(s.count('★'))
-        def parse_platform(mid):
-            m = (mid or '').upper()
-            return 'kakao' if 'KAKAO' in m else 'naver' if 'NAVER' in m else 'direct'
+        CHUNK_PATH.write_text(json.dumps(chunk_data, ensure_ascii=False), encoding="utf-8")
+        return {"ok": True, "total": len(chunk_data)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-        reviews = []
-        errors = 0
-        for row in rows[1:]:
-            cells = [td.get_text(strip=True) for td in row.find_all(['th', 'td'])]
-            if len(cells) < 12:
-                errors += 1
-                continue
-            try:
-                from datetime import datetime as dt
-                date_str = cells[10][:10]
-                dt.strptime(date_str, '%Y-%m-%d')
-            except Exception:
-                errors += 1
-                continue
-            content_text = cells[9].strip()[:500]
-            if not content_text or len(content_text) < 2:
-                errors += 1
-                continue
-            reviews.append({
-                "date":     date_str,
-                "score":    parse_score(cells[11]),
-                "product":  cells[7].strip()[:80],
-                "title":    cells[8][:100],
-                "content":  content_text,
-                "platform": parse_platform(cells[3]),
-                "author":   cells[2][:20],
-            })
 
-        # 기존 데이터 로드 후 jasaol만 교체
+@app.post("/api/import-jasaol-done")
+async def import_jasaol_done():
+    """청크 수집 완료 - reviews.json에 반영"""
+    try:
+        CHUNK_PATH = DATA_PATH.parent / "jasaol_chunk.json"
+        if not CHUNK_PATH.exists():
+            raise HTTPException(status_code=400, detail="청크 데이터 없음")
+
+        reviews = json.loads(CHUNK_PATH.read_text(encoding="utf-8"))
+
         existing = {}
         if DATA_PATH.exists():
             try:
-                existing = json.loads(DATA_PATH.read_text(encoding='utf-8'))
+                existing = json.loads(DATA_PATH.read_text(encoding="utf-8"))
             except Exception:
                 pass
 
@@ -336,9 +322,9 @@ async def import_jasaol(file: UploadFile = File(...)):
 
         from scraper import safe_save
         safe_save(existing)
+        CHUNK_PATH.unlink(missing_ok=True)
 
-        return {"ok": True, "imported": len(reviews), "errors": errors}
-
+        return {"ok": True, "imported": len(reviews)}
     except HTTPException:
         raise
     except Exception as e:

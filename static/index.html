@@ -914,29 +914,92 @@ async function importJasaol(input){
   if(!confirm(`"${file.name}" 파일을 자사몰 후기로 임포트할까요?\n기존 자사몰 데이터는 교체됩니다.`)) return;
 
   const termBox = document.getElementById('terminalBox');
-  if(termBox) termBox.innerHTML += '<div style="color:#dcdcaa">[임포트 시작] '+file.name+' ('+Math.round(file.size/1024/1024)+'MB)...</div>';
+  const addLog = (msg, color='#d4d4d4') => {
+    if(termBox){
+      termBox.innerHTML += `<div style="color:${color}">${msg}</div>`;
+      termBox.scrollTop = termBox.scrollHeight;
+    }
+  };
 
-  const formData = new FormData();
-  formData.append('file', file);
+  addLog(`[임포트] ${file.name} (${Math.round(file.size/1024/1024)}MB) 읽는 중...`, '#dcdcaa');
+
   try{
-    const res = await fetch('/api/import-jasaol', {method:'POST', body: formData});
-    const d = await res.json();
-    if(d.ok){
-      showToast('✅ 임포트 완료! '+d.imported.toLocaleString()+'건');
-      if(termBox) termBox.innerHTML += '<div style="color:#4ec9b0">[완료] '+d.imported.toLocaleString()+'건 임포트 (오류 '+d.errors+'건)</div>';
-      logCache = null;
+    // 1. 브라우저에서 파일 읽기
+    const text = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = e => res(e.target.result);
+      reader.onerror = rej;
+      reader.readAsText(file, 'EUC-KR');
+    });
+
+    addLog('[임포트] HTML 파싱 중...', '#dcdcaa');
+
+    // 2. 브라우저에서 DOMParser로 파싱
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, 'text/html');
+    const rows = doc.querySelectorAll('tr');
+    addLog(`[임포트] ${(rows.length-1).toLocaleString()}건 파싱 완료`, '#4ec9b0');
+
+    // 3. 데이터 변환
+    const reviews = [];
+    let errors = 0;
+    for(let i = 1; i < rows.length; i++){
+      const cells = rows[i].querySelectorAll('td,th');
+      if(cells.length < 12){ errors++; continue; }
+      const dateStr = (cells[10].textContent.trim() || '').slice(0,10);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)){ errors++; continue; }
+      const content = cells[9].textContent.trim().slice(0,500);
+      if(!content || content.length < 2){ errors++; continue; }
+      const mid = cells[3].textContent.trim().toUpperCase();
+      const platform = mid.includes('KAKAO') ? 'kakao' : mid.includes('NAVER') ? 'naver' : 'direct';
+      const score = (cells[11].textContent.match(/★/g)||[]).length;
+      reviews.push({
+        date: dateStr,
+        score: score,
+        product: cells[7].textContent.trim().slice(0,80),
+        title: cells[8].textContent.trim().slice(0,100),
+        content: content,
+        platform: platform,
+        author: cells[2].textContent.trim().slice(0,20),
+      });
+    }
+    addLog(`[임포트] 변환: ${reviews.length.toLocaleString()}건 (오류 ${errors}건)`, '#4ec9b0');
+
+    // 4. 청크로 나눠서 전송 (5000건씩)
+    const CHUNK = 5000;
+    const total = reviews.length;
+    let sent = 0;
+    for(let i = 0; i < total; i += CHUNK){
+      const chunk = reviews.slice(i, i+CHUNK);
+      const replace = i === 0;
+      const res = await fetch('/api/import-jasaol-chunk', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({reviews: chunk, replace})
+      });
+      if(!res.ok) throw new Error('청크 전송 실패: ' + await res.text());
+      sent += chunk.length;
+      const pct = Math.round(sent/total*100);
+      addLog(`[임포트] 전송 중... ${sent.toLocaleString()}/${total.toLocaleString()}건 (${pct}%)`, '#9cdcfe');
+    }
+
+    // 5. 완료 신호
+    const doneRes = await fetch('/api/import-jasaol-done', {method: 'POST'});
+    const done = await doneRes.json();
+    if(done.ok){
+      addLog(`[완료] ${done.imported.toLocaleString()}건 임포트 완료!`, '#4ec9b0');
+      showToast('✅ 자사몰 임포트 완료! ' + done.imported.toLocaleString() + '건');
       // 데이터 갱신
       const dataRes = await fetch('/api/data');
       if(dataRes.ok){ allData = await dataRes.json(); updateLastUpdated(allData.last_updated); }
     } else {
-      showToast('❌ 임포트 실패');
-      if(termBox) termBox.innerHTML += '<div style="color:#f48771">[실패] '+JSON.stringify(d)+'</div>';
+      throw new Error(JSON.stringify(done));
     }
   }catch(e){
-    showToast('❌ 오류: '+e.message);
-    if(termBox) termBox.innerHTML += '<div style="color:#f48771">[오류] '+e.message+'</div>';
+    addLog(`[실패] ${e.message}`, '#f48771');
+    showToast('❌ 임포트 실패: ' + e.message);
   }
-  input.value = ''; // 같은 파일 재업로드 가능하게
+  input.value = '';
 }
 
 // ════════════════════════════════════════
