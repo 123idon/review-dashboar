@@ -351,31 +351,42 @@ async def get_product_reviews(client: httpx.AsyncClient, goodsno: int, product_n
 
 
 async def scrape_jasaol(progress_cb=None) -> list:
-    print("  [자사몰] 수집 시작 (부하 최소화 모드, 딜레이 0.5초)")
+    def _cb(msg, pct=2):
+        if progress_cb:
+            progress_cb({
+                "phase": "detail", "done": 0, "total": 1,
+                "collected": 0, "brand": "자사몰",
+                "progress_pct": pct,
+                "progress_msg": msg,
+            })
+
+    print("  [자사몰] 수집 시작")
+    _cb("자사몰 카테고리 수집 중...", 56)
     all_reviews = []
 
     async with httpx.AsyncClient(
         headers=JASAOL_HEADERS, follow_redirects=True, timeout=15
     ) as client:
-        # 카테고리+상품 한번에 수집 (상품명 별도요청 없음)
-        goods_list = await get_categories_and_goods(client)
+        goods_list = await get_categories_and_goods(client, progress_cb)
         if not goods_list:
             print("  [자사몰] 상품 없음 - 종료")
             return []
 
-        print(f"  [자사몰] 총 {len(goods_list)}개 상품 → 후기 수집 시작")
+        total = len(goods_list)
+        print(f"  [자사몰] 총 {total}개 상품 → 후기 수집 시작")
+        _cb(f"자사몰 상품 {total}개 발견, 후기 수집 시작...", 58)
 
         for idx, (goodsno, product_name) in enumerate(goods_list):
             reviews = await get_product_reviews(client, goodsno, product_name)
             all_reviews.extend(reviews)
-            pct = int((idx + 1) / len(goods_list) * 100)
-            print(f"  [{idx+1}/{len(goods_list)}] {product_name} → {len(reviews)}건 (누적 {len(all_reviews)}건)")
+            pct = 58 + int((idx + 1) / total * 42)  # 58~100%
+            print(f"  [{idx+1}/{total}] {product_name} → {len(reviews)}건 (누적 {len(all_reviews)}건)")
             if progress_cb:
                 progress_cb({
-                    "phase": "detail", "done": idx + 1, "total": len(goods_list),
+                    "phase": "detail", "done": idx + 1, "total": total,
                     "collected": len(all_reviews), "brand": "자사몰",
                     "progress_pct": pct,
-                    "progress_msg": f"자사몰 {idx+1}/{len(goods_list)}개 상품 수집 중... ({pct}%)",
+                    "progress_msg": f"자사몰 [{idx+1}/{total}] {product_name[:20]} → {len(reviews)}건 (누적 {len(all_reviews):,}건)",
                 })
 
     print(f"  [자사몰] 최종 {len(all_reviews):,}건")
