@@ -251,6 +251,7 @@ body {
   display: none; align-items: center; gap: 10px;
 }
 .collecting-banner.show { display: flex; }
+.main { transition: padding-top 0.2s; }
 .dot-anim span {
   animation: blink 1.2s infinite;
   display: inline-block;
@@ -493,6 +494,7 @@ function startCollectPolling(){
   if(collectPollTimer) clearInterval(collectPollTimer);
   if(localTickTimer) clearInterval(localTickTimer);
   document.getElementById('collectingBanner').classList.add('show');
+  document.getElementById('mainContent').style.marginTop = '40px';
   const bar = document.getElementById('progressBar');
   const accent = currentShop==='changeok'?'a':currentShop==='myeongga'?'b':currentShop==='papa'?'c':'d';
   bar.className = 'progress-bar '+accent;
@@ -607,6 +609,7 @@ function finishProgressBar(){
   const bar = document.getElementById('progressBar');
   if(bar){ bar.style.width='100%'; setTimeout(()=>bar.style.width='0%',800); }
   document.getElementById('collectingBanner').classList.remove('show');
+  document.getElementById('mainContent').style.marginTop = '';
   const btn = document.getElementById('refreshBtn');
   btn.classList.remove('loading'); btn.disabled=false;
   const pctBar = document.getElementById('collectPctBar');

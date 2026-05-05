@@ -147,11 +147,11 @@ async def fetch_crema_product(client, prod_code, progress_cb=None, prod_idx=0, t
             all_reviews.append(parse_crema_review(rv))
         next_page = d.get("pagy", {}).get("next")
         if progress_cb:
-            pct = 40 + int(((prod_idx + 1) / total_prods) * 15)  # 40~55%
+            pct = 40 + int(((prod_idx + 1) / total_prods) * 15)
             progress_cb({"phase": "detail", "done": prod_idx, "total": total_prods,
                 "collected": len(all_reviews), "brand": "파파공방", "progress_pct": pct,
                 "progress_msg": f"파파공방 idx={prod_code} {len(all_reviews)}건 수집 중..."})
-        if not next_page:
+        if not next_page or page >= 500:  # 안전장치
             break
         page = next_page
         await asyncio.sleep(0.2)
