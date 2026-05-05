@@ -90,21 +90,42 @@ async def scrape_myeongga(progress_cb=None) -> list:
     print(f"  총 {total:,}건 → {(total//LIMIT)+1}번 요청")
     offsets = list(range(0, total, LIMIT))
     sem = asyncio.Semaphore(CONCURRENT)
-    all_reviews = []
+
+    # 임시파일에 배치마다 저장 (메모리 절약)
+    tmp_path = DATA_PATH.parent / "myeongga_tmp.jsonl"
+    tmp_path.parent.mkdir(exist_ok=True)
+    tmp_f = open(tmp_path, "w", encoding="utf-8")
+    count = 0
     done = 0
+
     async with httpx.AsyncClient(timeout=20.0) as client:
         for i in range(0, len(offsets), CONCURRENT):
             batch = offsets[i:i+CONCURRENT]
             results = await asyncio.gather(*[fetch_offset(client, off, sem) for off in batch])
             for _, items in results:
-                all_reviews.extend([parse_myeongga_review(r) for r in items])
+                for r in items:
+                    parsed = parse_myeongga_review(r)
+                    tmp_f.write(json.dumps(parsed, ensure_ascii=False) + "\n")
+                    count += 1
             done += len(batch)
             pct = int(done / len(offsets) * 100)
             if progress_cb:
                 progress_cb({"phase": "detail", "done": done, "total": len(offsets),
-                    "collected": len(all_reviews), "brand": "명가삼대떡집", "progress_pct": int(pct*0.4),
-                    "progress_msg": f"명가삼대떡집 {len(all_reviews):,}/{total:,}건 ({pct}%)"})
+                    "collected": count, "brand": "명가삼대떡집", "progress_pct": int(pct*0.4),
+                    "progress_msg": f"명가삼대떡집 {count:,}/{total:,}건 ({pct}%)"})
             await asyncio.sleep(0.05)
+
+    tmp_f.close()
+
+    # 임시파일 읽어서 리스트로 반환
+    all_reviews = []
+    with open(tmp_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                all_reviews.append(json.loads(line))
+    tmp_path.unlink(missing_ok=True)  # 임시파일 삭제
+
     print(f"  [명가삼대떡집] 최종 {len(all_reviews):,}건")
     return all_reviews
 
@@ -400,6 +421,7 @@ async def collect_all(progress_cb=None) -> dict:
     print("=" * 50)
     print(f"수집 시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
+    # 기존 데이터 로드 (중간실패시 보존용)
     existing = {}
     if DATA_PATH.exists():
         try:
@@ -407,46 +429,59 @@ async def collect_all(progress_cb=None) -> dict:
         except Exception:
             pass
 
-    result = {
+    # 브랜드별로 수집 → 즉시 저장 → 메모리 해제
+    # 최종 결과는 파일에서 읽어서 반환
+    base = {
         "last_updated": datetime.now().isoformat(),
         "changeok": existing.get("changeok", {"jasa": [], "smartstore": []}),
         "myeongga": existing.get("myeongga", {"jasa": [], "smartstore": []}),
         "papa":     existing.get("papa",     {"jasa": [], "smartstore": []}),
         "jasaol":   existing.get("jasaol",   {"jasa": [], "smartstore": []}),
     }
+    del existing
+    safe_save(base)  # 초기 저장
 
     try:
-        myeongga_reviews = await scrape_myeongga(progress_cb)
-        result["myeongga"]["jasa"] = myeongga_reviews
-        safe_save(result)
+        reviews = await scrape_myeongga(progress_cb)
+        # 파일 업데이트: myeongga만 교체
+        data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+        data["myeongga"]["jasa"] = reviews
+        data["last_updated"] = datetime.now().isoformat()
+        safe_save(data)
+        del reviews, data
         print("  [중간저장] 명가 완료")
     except Exception as e:
         print(f"  [명가] 수집 실패: {e}")
 
     try:
-        papa_reviews = await scrape_papa(progress_cb)
-        result["papa"]["jasa"] = papa_reviews
-        safe_save(result)
+        reviews = await scrape_papa(progress_cb)
+        data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+        data["papa"]["jasa"] = reviews
+        data["last_updated"] = datetime.now().isoformat()
+        safe_save(data)
+        del reviews, data
         print("  [중간저장] 파파공방 완료")
     except Exception as e:
         print(f"  [파파공방] 수집 실패: {e}")
 
     try:
-        jasaol_reviews = await scrape_jasaol(progress_cb)
-        result["jasaol"]["jasa"] = jasaol_reviews
-        safe_save(result)
+        reviews = await scrape_jasaol(progress_cb)
+        data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+        data["jasaol"]["jasa"] = reviews
+        data["last_updated"] = datetime.now().isoformat()
+        safe_save(data)
+        del reviews, data
         print("  [중간저장] 자사몰 완료")
     except Exception as e:
         print(f"  [자사몰] 수집 실패: {e}")
 
-    result["last_updated"] = datetime.now().isoformat()
-    safe_save(result)
-
-    m = len(result["myeongga"]["jasa"])
-    p = len(result["papa"]["jasa"])
-    j = len(result["jasaol"]["jasa"])
+    # 최종 데이터 파일에서 읽어서 반환
+    final = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    m = len(final.get("myeongga", {}).get("jasa", []))
+    p = len(final.get("papa", {}).get("jasa", []))
+    j = len(final.get("jasaol", {}).get("jasa", []))
     print(f"\n완료! 명가={m:,} 파파={p:,} 자사몰={j:,}건")
-    return result
+    return final
 
 
 if __name__ == "__main__":
