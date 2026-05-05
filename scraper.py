@@ -38,8 +38,8 @@ JASAOL_HEADERS = {
     "Upgrade-Insecure-Requests": "1",
     "Referer": "https://shop.100yearshop.co.kr/",
 }
-JASAOL_DELAY   = 0.2   # 딜레이 0.5→0.2초
-JASAOL_CONCURRENT = 5  # 동시 요청 수 (서버 부하 낮은 수준)
+JASAOL_DELAY   = 0      # 딜레이 제거
+JASAOL_CONCURRENT = 20  # 동시 요청 20개
 
 
 # ── 안전한 JSON 저장 ──────────────────────────────────────────────────────────
@@ -284,38 +284,39 @@ async def fetch_review_page(client: httpx.AsyncClient, goodsno: int, page: int, 
     return result
 
 
-async def get_product_reviews_fast(client: httpx.AsyncClient, goodsno: int, product_name: str,
-                                    sem: asyncio.Semaphore, progress_cb=None, pct_base=58, pct_range=42, idx=0, total=1) -> list:
-    """첫 페이지로 전체 페이지수 파악 후 병렬 수집"""
-    _, first_reviews, last_page = await fetch_review_page(client, goodsno, 1, sem, product_name)
-    if not first_reviews:
-        return []
-    if last_page <= 1:
-        return first_reviews
+async def get_product_reviews_incremental(client: httpx.AsyncClient, goodsno: int, product_name: str,
+                                           sem: asyncio.Semaphore, since_date: str,
+                                           progress_cb=None, idx=0, total=1) -> list:
+    """since_date 이후 후기만 수집 - 날짜 역순이므로 날짜 넘으면 즉시 중단"""
+    all_reviews = []
+    page = 1
 
-    all_reviews = list(first_reviews)
-    pages = list(range(2, last_page + 1))
-    total_pages = last_page
-    done_pages = 1
+    while True:
+        _, reviews, last_page = await fetch_review_page(client, goodsno, page, sem, product_name)
+        if not reviews:
+            break
 
-    for i in range(0, len(pages), JASAOL_CONCURRENT * 3):
-        batch = pages[i:i + JASAOL_CONCURRENT * 3]
-        tasks = [fetch_review_page(client, goodsno, p, sem, product_name) for p in batch]
-        results = await asyncio.gather(*tasks)
-        for _, reviews, _ in results:
-            all_reviews.extend(reviews)
-        done_pages += len(batch)
+        new_found = 0
+        stop = False
+        for rv in reviews:
+            if rv["date"] >= since_date:
+                all_reviews.append(rv)
+                new_found += 1
+            else:
+                stop = True  # 날짜 기준 이전 데이터 → 이후 페이지 볼 필요 없음
+                break
 
-        # 배치마다 진행 로그
-        if progress_cb:
-            page_pct = int(done_pages / total_pages * 100)
-            pct = pct_base + int((idx / total) * pct_range)
+        if progress_cb and new_found > 0:
             progress_cb({
                 "phase": "detail", "done": idx, "total": total,
                 "collected": len(all_reviews), "brand": "자사몰",
-                "progress_pct": pct,
-                "progress_msg": f"자사몰 [{idx+1}/{total}] {product_name[:15]} - {done_pages}/{total_pages}p ({len(all_reviews):,}건)",
+                "progress_pct": 58 + int((idx / total) * 42),
+                "progress_msg": f"자사몰 [{idx+1}/{total}] {product_name[:15]} +{new_found}건",
             })
+
+        if stop or page >= (last_page or 1):
+            break
+        page += 1
 
     return all_reviews
 
@@ -400,8 +401,23 @@ async def scrape_jasaol(progress_cb=None) -> list:
 
     print("  [자사몰] 수집 시작")
     _cb("자사몰 카테고리 수집 중...", 55)
-    all_reviews = []
 
+    # 기존 데이터에서 마지막 날짜 파악 → 증분 수집
+    since_date = "2000-01-01"
+    if DATA_PATH.exists():
+        try:
+            existing = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+            existing_reviews = existing.get("jasaol", {}).get("jasa", [])
+            if existing_reviews:
+                dates = [r["date"] for r in existing_reviews if r.get("date")]
+                if dates:
+                    since_date = max(dates)
+                    print(f"  [자사몰] 증분 수집: {since_date} 이후만 수집")
+                    _cb(f"자사몰 증분 수집: {since_date} 이후 새 후기만", 56)
+        except Exception:
+            pass
+
+    all_reviews = []
     sem = asyncio.Semaphore(JASAOL_CONCURRENT)
 
     async with httpx.AsyncClient(
@@ -413,19 +429,32 @@ async def scrape_jasaol(progress_cb=None) -> list:
             return []
 
         total = len(goods_list)
-        print(f"  [자사몰] 총 {total}개 상품 → 병렬 후기 수집 시작 (동시 {JASAOL_CONCURRENT}개)")
-        _cb(f"자사몰 상품 {total}개 발견, 후기 수집 시작...", 58, 0, total)
+        print(f"  [자사몰] 총 {total}개 상품 → 증분 수집 시작 ({since_date} 이후)")
+        _cb(f"자사몰 상품 {total}개, {since_date} 이후 수집 시작", 58, 0, total)
 
         for idx, (goodsno, product_name) in enumerate(goods_list):
-            reviews = await get_product_reviews_fast(
+            reviews = await get_product_reviews_incremental(
                 client, goodsno, product_name, sem,
-                progress_cb=progress_cb, pct_base=58, pct_range=42, idx=idx, total=total
+                since_date=since_date,
+                progress_cb=progress_cb, idx=idx, total=total
             )
             all_reviews.extend(reviews)
             pct = 58 + int((idx + 1) / total * 42)
-            msg = f"자사몰 [{idx+1}/{total}] {product_name[:20]} → {len(reviews)}건 (누적 {len(all_reviews):,}건)"
+            msg = f"자사몰 [{idx+1}/{total}] {product_name[:20]} +{len(reviews)}건 (누적 {len(all_reviews):,}건)"
             print(f"  {msg}")
             _cb(msg, pct, idx + 1, total, len(all_reviews))
+
+    # 기존 데이터에 새 후기 병합 (중복 제거)
+    if DATA_PATH.exists() and since_date != "2000-01-01":
+        try:
+            existing = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+            existing_reviews = existing.get("jasaol", {}).get("jasa", [])
+            # 기존 + 새 것 합치되 since_date 이전 기존 것 유지
+            merged = existing_reviews + all_reviews
+            print(f"  [자사몰] 병합: 기존 {len(existing_reviews):,} + 신규 {len(all_reviews):,} = {len(merged):,}건")
+            all_reviews = merged
+        except Exception as e:
+            print(f"  [자사몰] 병합 실패: {e}")
 
     print(f"  [자사몰] 최종 {len(all_reviews):,}건")
     return all_reviews
