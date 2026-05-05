@@ -285,18 +285,18 @@ async def fetch_review_page(client: httpx.AsyncClient, goodsno: int, page: int, 
 
 
 async def get_product_reviews_fast(client: httpx.AsyncClient, goodsno: int, product_name: str,
-                                    sem: asyncio.Semaphore) -> list:
+                                    sem: asyncio.Semaphore, progress_cb=None, pct_base=58, pct_range=42, idx=0, total=1) -> list:
     """첫 페이지로 전체 페이지수 파악 후 병렬 수집"""
-    # 1) 첫 페이지 수집 + 마지막 페이지 번호 파악
     _, first_reviews, last_page = await fetch_review_page(client, goodsno, 1, sem, product_name)
     if not first_reviews:
         return []
     if last_page <= 1:
         return first_reviews
 
-    # 2) 나머지 페이지 병렬 수집 (JASAOL_CONCURRENT개씩)
     all_reviews = list(first_reviews)
     pages = list(range(2, last_page + 1))
+    total_pages = last_page
+    done_pages = 1
 
     for i in range(0, len(pages), JASAOL_CONCURRENT * 3):
         batch = pages[i:i + JASAOL_CONCURRENT * 3]
@@ -304,6 +304,18 @@ async def get_product_reviews_fast(client: httpx.AsyncClient, goodsno: int, prod
         results = await asyncio.gather(*tasks)
         for _, reviews, _ in results:
             all_reviews.extend(reviews)
+        done_pages += len(batch)
+
+        # 배치마다 진행 로그
+        if progress_cb:
+            page_pct = int(done_pages / total_pages * 100)
+            pct = pct_base + int((idx / total) * pct_range)
+            progress_cb({
+                "phase": "detail", "done": idx, "total": total,
+                "collected": len(all_reviews), "brand": "자사몰",
+                "progress_pct": pct,
+                "progress_msg": f"자사몰 [{idx+1}/{total}] {product_name[:15]} - {done_pages}/{total_pages}p ({len(all_reviews):,}건)",
+            })
 
     return all_reviews
 
@@ -405,7 +417,10 @@ async def scrape_jasaol(progress_cb=None) -> list:
         _cb(f"자사몰 상품 {total}개 발견, 후기 수집 시작...", 58, 0, total)
 
         for idx, (goodsno, product_name) in enumerate(goods_list):
-            reviews = await get_product_reviews_fast(client, goodsno, product_name, sem)
+            reviews = await get_product_reviews_fast(
+                client, goodsno, product_name, sem,
+                progress_cb=progress_cb, pct_base=58, pct_range=42, idx=idx, total=total
+            )
             all_reviews.extend(reviews)
             pct = 58 + int((idx + 1) / total * 42)
             msg = f"자사몰 [{idx+1}/{total}] {product_name[:20]} → {len(reviews)}건 (누적 {len(all_reviews):,}건)"
