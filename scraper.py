@@ -38,16 +38,17 @@ JASAOL_HEADERS = {
     "Upgrade-Insecure-Requests": "1",
     "Referer": "https://shop.100yearshop.co.kr/",
 }
-JASAOL_DELAY = 0.5  # 서버 부하 최소화 (1.5→0.5초로 개선)
+JASAOL_DELAY   = 0.2   # 딜레이 0.5→0.2초
+JASAOL_CONCURRENT = 5  # 동시 요청 수 (서버 부하 낮은 수준)
 
 
-# ── 안전한 JSON 저장 (원자적 쓰기) ───────────────────────────────────────────
+# ── 안전한 JSON 저장 ──────────────────────────────────────────────────────────
 def safe_save(data: dict):
     DATA_PATH.parent.mkdir(exist_ok=True)
     tmp = DATA_PATH.with_suffix(".tmp")
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, DATA_PATH)  # 원자적 교체 - 쓰기 중 크래시 방지
+    os.replace(tmp, DATA_PATH)
 
 
 # ─────────────────────────── 명가삼대떡집 ────────────────────────────────────
@@ -60,13 +61,11 @@ def parse_myeongga_review(r: dict) -> dict:
     origin = (r.get("origin_from") or "").lower()
     platform = "naver" if "naver" in origin else "kakao" if "kakao" in origin else "direct"
     return {
-        "date":     date_str,
-        "score":    r.get("rating", 0) or 0,
-        "product":  ((r.get("product") or {}).get("name") or "")[:80],
-        "title":    (r.get("title") or "")[:100],
-        "content":  (r.get("text") or "")[:500],
-        "platform": platform,
-        "author":   "",
+        "date": date_str, "score": r.get("rating", 0) or 0,
+        "product": ((r.get("product") or {}).get("name") or "")[:80],
+        "title": (r.get("title") or "")[:100],
+        "content": (r.get("text") or "")[:500],
+        "platform": platform, "author": "",
     }
 
 
@@ -103,14 +102,14 @@ async def scrape_myeongga(progress_cb=None) -> list:
             pct = int(done / len(offsets) * 100)
             if progress_cb:
                 progress_cb({"phase": "detail", "done": done, "total": len(offsets),
-                    "collected": len(all_reviews), "brand": "명가삼대떡집", "progress_pct": pct,
+                    "collected": len(all_reviews), "brand": "명가삼대떡집", "progress_pct": int(pct*0.4),
                     "progress_msg": f"명가삼대떡집 {len(all_reviews):,}/{total:,}건 ({pct}%)"})
             await asyncio.sleep(0.05)
     print(f"  [명가삼대떡집] 최종 {len(all_reviews):,}건")
     return all_reviews
 
 
-# ─────────────────────────── 파파공방 Crema ────────────────────────────────────
+# ─────────────────────────── 파파공방 Crema ───────────────────────────────────
 def parse_crema_review(r: dict) -> dict:
     try:
         d = datetime.fromisoformat(r["created_at"][:19])
@@ -119,22 +118,16 @@ def parse_crema_review(r: dict) -> dict:
         date_str = datetime.now().strftime("%Y-%m-%d")
     score = float(r.get("score") or 0)
     content = re.sub(r'\s+', ' ', (r.get("filtered_message") or "").strip())[:500]
-    author = (r.get("user_display_name") or "")[:20]
-    product = (r.get("product_name") or "")[:80]
     ext = (r.get("external_platform_type") or "").lower()
     src = str(r.get("review_source") or "").lower()
-    if "naver" in ext or "naver" in src:
-        platform = "naver"
-    elif "kakao" in ext or "kakao" in src:
-        platform = "kakao"
-    else:
-        platform = "direct"
-    return {"date": date_str, "score": score, "product": product,
-            "title": "", "content": content, "platform": platform, "author": author}
+    platform = "naver" if ("naver" in ext or "naver" in src) else "kakao" if ("kakao" in ext or "kakao" in src) else "direct"
+    return {"date": date_str, "score": score,
+            "product": (r.get("product_name") or "")[:80],
+            "title": "", "content": content, "platform": platform,
+            "author": (r.get("user_display_name") or "")[:20]}
 
 
-async def fetch_crema_product(client: httpx.AsyncClient, prod_code: int,
-                               progress_cb=None, prod_idx: int = 0, total_prods: int = 6) -> list:
+async def fetch_crema_product(client, prod_code, progress_cb=None, prod_idx=0, total_prods=6):
     all_reviews = []
     page = 1
     while True:
@@ -153,10 +146,10 @@ async def fetch_crema_product(client: httpx.AsyncClient, prod_code: int,
         for rv in reviews:
             all_reviews.append(parse_crema_review(rv))
         next_page = d.get("pagy", {}).get("next")
-        print(f"  papa idx={prod_code} p{page} → {len(all_reviews)}건")
         if progress_cb:
+            pct = 40 + int((prod_idx / total_prods) * 15)
             progress_cb({"phase": "detail", "done": prod_idx, "total": total_prods,
-                "collected": len(all_reviews), "brand": "파파공방",
+                "collected": len(all_reviews), "brand": "파파공방", "progress_pct": pct,
                 "progress_msg": f"파파공방 idx={prod_code} {len(all_reviews)}건 수집 중..."})
         if not next_page:
             break
@@ -172,25 +165,139 @@ async def scrape_papa(progress_cb=None) -> list:
         for i, prod_code in enumerate(PAPA_PRODUCTS):
             reviews = await fetch_crema_product(client, prod_code, progress_cb, i, len(PAPA_PRODUCTS))
             all_reviews.extend(reviews)
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.3)
     print(f"  [파파공방] 최종 {len(all_reviews):,}건")
     return all_reviews
 
 
-# ─────────────────────────── 자사몰(고도몰) ────────────────────────────────────
+# ─────────────────────────── 자사몰(고도몰) ──────────────────────────────────
 def fetch_html_euckr(resp: httpx.Response) -> BeautifulSoup:
     html = resp.content.decode("euc-kr", errors="replace")
     return BeautifulSoup(html, "html.parser")
 
 
+def get_last_page(soup: BeautifulSoup) -> int:
+    """페이지네이션에서 마지막 페이지 번호 추출"""
+    max_page = 1
+    for a in soup.find_all("a", href=True):
+        if "goods_review" in a["href"]:
+            m = re.search(r"page=(\d+)", a["href"])
+            if m:
+                p = int(m.group(1))
+                if p > max_page:
+                    max_page = p
+    return max_page
+
+
+def parse_jasaol_review(row, product_name: str):
+    try:
+        tds = row.find_all("td", recursive=False)
+        if len(tds) < 5:
+            return None
+        # 날짜: td[4] 우선
+        date_str = ""
+        if len(tds) > 4:
+            t = tds[4].get_text(strip=True)
+            if re.match(r"\d{4}-\d{2}-\d{2}", t):
+                date_str = t[:10]
+        if not date_str:
+            for td in tds:
+                t = td.get_text(strip=True)
+                if re.match(r"\d{4}-\d{2}-\d{2}", t):
+                    date_str = t[:10]
+                    break
+        if not date_str:
+            return None
+        # 별점
+        score = 0
+        if len(tds) > 5 and "14AA46" in str(tds[5]):
+            score = tds[5].get_text().count("★")
+        else:
+            for td in tds:
+                if "14AA46" in str(td):
+                    score = td.get_text().count("★")
+                    break
+        # 내용: td[2]
+        content = ""
+        if len(tds) > 2:
+            content = tds[2].get_text(separator=" ", strip=True)
+        if len(content) < 5:
+            for td in tds[2:]:
+                t = td.get_text(separator=" ", strip=True)
+                if len(t) > len(content) and not re.match(r"^[\d\-\s★☆]+$", t):
+                    content = t
+        content = re.sub(r"\s+", " ", content).strip()[:500]
+        # 작성자
+        author = ""
+        if len(tds) > 3:
+            t = tds[3].get_text(strip=True)
+            if re.match(r"^[가-힣a-zA-Z\*]{1,10}$", t) and len(t) >= 2:
+                author = t
+        if not content or len(content) < 2:
+            return None
+        return {"date": date_str, "score": float(score),
+                "product": product_name[:80], "title": "",
+                "content": content, "platform": "direct", "author": author}
+    except Exception:
+        return None
+
+
+async def fetch_review_page(client: httpx.AsyncClient, goodsno: int, page: int, sem: asyncio.Semaphore, product_name: str):
+    """단일 후기 페이지 수집"""
+    url = f"{JASAOL_BASE}/shop/goods/goods_review.php?goodsno={goodsno}&page={page}"
+    async with sem:
+        try:
+            resp = await client.get(url, timeout=15)
+            soup = fetch_html_euckr(resp)
+            tbl = soup.find("div", class_="rv_tbl")
+            if not tbl:
+                return page, [], 0
+            rows = tbl.find_all("tr", onmouseover=True)
+            reviews = []
+            for row in rows:
+                rv = parse_jasaol_review(row, product_name)
+                if rv:
+                    reviews.append(rv)
+            # 마지막 페이지 번호 (첫 페이지에서만 의미있음)
+            last_page = get_last_page(soup) if page == 1 else 0
+            return page, reviews, last_page
+        except Exception as e:
+            print(f"  [자사몰] goodsno={goodsno} p{page} 실패: {e}")
+            return page, [], 0
+        finally:
+            await asyncio.sleep(JASAOL_DELAY)
+
+
+async def get_product_reviews_fast(client: httpx.AsyncClient, goodsno: int, product_name: str,
+                                    sem: asyncio.Semaphore) -> list:
+    """첫 페이지로 전체 페이지수 파악 후 병렬 수집"""
+    # 1) 첫 페이지 수집 + 마지막 페이지 번호 파악
+    _, first_reviews, last_page = await fetch_review_page(client, goodsno, 1, sem, product_name)
+    if not first_reviews:
+        return []
+    if last_page <= 1:
+        return first_reviews
+
+    # 2) 나머지 페이지 병렬 수집 (JASAOL_CONCURRENT개씩)
+    all_reviews = list(first_reviews)
+    pages = list(range(2, last_page + 1))
+
+    for i in range(0, len(pages), JASAOL_CONCURRENT * 3):
+        batch = pages[i:i + JASAOL_CONCURRENT * 3]
+        tasks = [fetch_review_page(client, goodsno, p, sem, product_name) for p in batch]
+        results = await asyncio.gather(*tasks)
+        for _, reviews, _ in results:
+            all_reviews.extend(reviews)
+
+    return all_reviews
+
+
 async def get_categories_and_goods(client: httpx.AsyncClient, progress_cb=None) -> list:
-    """메인페이지에서 카테고리 수집 → 상품번호+상품명 수집 (상품명 별도요청 없음)"""
     def _cb(msg, pct=56):
         if progress_cb:
-            progress_cb({"phase":"detail","done":0,"total":1,"collected":0,
-                "brand":"자사몰","progress_pct":pct,"progress_msg":msg})
+            progress_cb({"phase": "detail", "done": 0, "total": 1, "collected": 0,
+                "brand": "자사몰", "progress_pct": pct, "progress_msg": msg})
 
-    # 1) 카테고리 URL 수집
     try:
         _cb("자사몰 메인페이지 접속 중...", 56)
         resp = await client.get(f"{JASAOL_BASE}/shop/main/index.php", timeout=15)
@@ -211,15 +318,14 @@ async def get_categories_and_goods(client: httpx.AsyncClient, progress_cb=None) 
         return []
 
     if not cat_ids:
-        print("  [자사몰] 카테고리 0개 - HTML 구조 확인 필요")
+        print("  [자사몰] 카테고리 0개")
         _cb("자사몰 카테고리 0개 - 수집 불가", 56)
         return []
 
     await asyncio.sleep(JASAOL_DELAY)
 
-    # 2) 카테고리별 상품번호+상품명 수집
-    goods = {}  # {goodsno: product_name}
-    for cid in cat_ids:
+    goods = {}
+    for idx, cid in enumerate(cat_ids):
         page = 1
         while True:
             try:
@@ -234,16 +340,13 @@ async def get_categories_and_goods(client: httpx.AsyncClient, progress_cb=None) 
                     gno = int(m.group(1))
                     if gno in goods:
                         continue
-                    # 상품명: a 태그 텍스트 또는 주변 텍스트
                     name = a.get_text(strip=True)
-                    if not name or len(name) < 2:
-                        # img alt 시도
+                    if not name:
                         img = a.find("img")
                         name = img.get("alt", "") if img else ""
-                    if not name or len(name) < 2:
-                        name = f"상품{gno}"
-                    goods[gno] = name[:80]
-                    found += 1
+                    if len(name) >= 2:
+                        goods[gno] = name[:80]
+                        found += 1
                 if found == 0:
                     break
                 await asyncio.sleep(JASAOL_DELAY)
@@ -253,134 +356,25 @@ async def get_categories_and_goods(client: httpx.AsyncClient, progress_cb=None) 
             except Exception as e:
                 print(f"  [자사몰] 상품목록 수집 실패 cat={cid} p{page}: {e}")
                 break
-        print(f"  카테고리 {cid} 완료 → 누적 상품 {len(goods)}개")
+        pct = 57 + int((idx + 1) / len(cat_ids) * 1)
+        _cb(f"카테고리 {cid} 완료 → 상품 {len(goods)}개", pct)
         await asyncio.sleep(JASAOL_DELAY)
 
-    return list(goods.items())  # [(goodsno, name), ...]
-
-
-def parse_jasaol_review(row, product_name: str):
-    """후기 테이블 행 파싱 - td 순서 기반"""
-    try:
-        tds = row.find_all("td", recursive=False)
-        if len(tds) < 5:
-            return None
-
-        # td[0]: 번호 (숫자)
-        # td[1]: 상품 (img + 상품명)
-        # td[2]: 후기 내용 (중첩 테이블)
-        # td[3]: 작성자
-        # td[4]: 날짜
-        # td[5]: 별점
-        # td[6]: 추천수
-
-        # 날짜: td[4] 우선, 없으면 순회
-        date_str = ""
-        if len(tds) > 4:
-            t = tds[4].get_text(strip=True)
-            if re.match(r"\d{4}-\d{2}-\d{2}", t):
-                date_str = t[:10]
-        if not date_str:
-            for td in tds:
-                t = td.get_text(strip=True)
-                if re.match(r"\d{4}-\d{2}-\d{2}", t):
-                    date_str = t[:10]
-                    break
-        if not date_str:
-            return None
-
-        # 별점: td[5] 우선, 없으면 color 검색
-        score = 0
-        if len(tds) > 5 and "14AA46" in str(tds[5]):
-            score = tds[5].get_text().count("★")
-        else:
-            for td in tds:
-                if "14AA46" in str(td):
-                    score = td.get_text().count("★")
-                    break
-        # 별점 파싱 실패시 0 유지 (5.0 기본값 제거 - 통계 왜곡 방지)
-
-        # 내용: td[2] (중첩테이블 포함한 후기내용 td)
-        content = ""
-        if len(tds) > 2:
-            # td[2]에서 직접 텍스트만 추출 (중첩 테이블 내용 포함)
-            content = tds[2].get_text(separator=" ", strip=True)
-        # td[2]가 비어있거나 너무 짧으면 fallback
-        if len(content) < 5:
-            for td in tds[2:]:
-                t = td.get_text(separator=" ", strip=True)
-                if len(t) > len(content) and not re.match(r"^[\d\-\s★☆]+$", t):
-                    content = t
-        content = re.sub(r"\s+", " ", content).strip()[:500]
-
-        # 작성자: td[3] 우선
-        author = ""
-        if len(tds) > 3:
-            t = tds[3].get_text(strip=True)
-            if re.match(r"^[가-힣a-zA-Z\*]{1,10}$", t) and len(t) >= 2:
-                author = t
-
-        if not content or len(content) < 2:
-            return None
-
-        return {
-            "date":     date_str,
-            "score":    float(score),  # 0이면 analyzer에서 제외됨
-            "product":  product_name[:80],
-            "title":    "",
-            "content":  content,
-            "platform": "direct",
-            "author":   author,
-        }
-    except Exception:
-        return None
-
-
-async def get_product_reviews(client: httpx.AsyncClient, goodsno: int, product_name: str) -> list:
-    all_reviews = []
-    page = 1
-    while True:
-        try:
-            url = f"{JASAOL_BASE}/shop/goods/goods_review.php?goodsno={goodsno}&page={page}"
-            resp = await client.get(url, timeout=15)
-            soup = fetch_html_euckr(resp)
-            tbl = soup.find("div", class_="rv_tbl")
-            if not tbl:
-                break
-            rows = tbl.find_all("tr", onmouseover=True)
-            if not rows:
-                break
-            found = 0
-            for row in rows:
-                rv = parse_jasaol_review(row, product_name)
-                if rv:
-                    all_reviews.append(rv)
-                    found += 1
-            if found == 0:
-                break
-            await asyncio.sleep(JASAOL_DELAY)
-            page += 1
-            if page > 200:
-                break
-        except Exception as e:
-            print(f"  [자사몰] 후기 수집 실패 goodsno={goodsno} p{page}: {e}")
-            break
-    return all_reviews
+    return list(goods.items())
 
 
 async def scrape_jasaol(progress_cb=None) -> list:
-    def _cb(msg, pct=2):
+    def _cb(msg, pct=58, done=0, total=1, collected=0):
         if progress_cb:
-            progress_cb({
-                "phase": "detail", "done": 0, "total": 1,
-                "collected": 0, "brand": "자사몰",
-                "progress_pct": pct,
-                "progress_msg": msg,
-            })
+            progress_cb({"phase": "detail", "done": done, "total": total,
+                "collected": collected, "brand": "자사몰",
+                "progress_pct": pct, "progress_msg": msg})
 
     print("  [자사몰] 수집 시작")
     _cb("자사몰 카테고리 수집 중...", 56)
     all_reviews = []
+
+    sem = asyncio.Semaphore(JASAOL_CONCURRENT)
 
     async with httpx.AsyncClient(
         headers=JASAOL_HEADERS, follow_redirects=True, timeout=15
@@ -391,21 +385,16 @@ async def scrape_jasaol(progress_cb=None) -> list:
             return []
 
         total = len(goods_list)
-        print(f"  [자사몰] 총 {total}개 상품 → 후기 수집 시작")
-        _cb(f"자사몰 상품 {total}개 발견, 후기 수집 시작...", 58)
+        print(f"  [자사몰] 총 {total}개 상품 → 병렬 후기 수집 시작 (동시 {JASAOL_CONCURRENT}개)")
+        _cb(f"자사몰 상품 {total}개 발견, 후기 수집 시작...", 58, 0, total)
 
         for idx, (goodsno, product_name) in enumerate(goods_list):
-            reviews = await get_product_reviews(client, goodsno, product_name)
+            reviews = await get_product_reviews_fast(client, goodsno, product_name, sem)
             all_reviews.extend(reviews)
-            pct = 58 + int((idx + 1) / total * 42)  # 58~100%
-            print(f"  [{idx+1}/{total}] {product_name} → {len(reviews)}건 (누적 {len(all_reviews)}건)")
-            if progress_cb:
-                progress_cb({
-                    "phase": "detail", "done": idx + 1, "total": total,
-                    "collected": len(all_reviews), "brand": "자사몰",
-                    "progress_pct": pct,
-                    "progress_msg": f"자사몰 [{idx+1}/{total}] {product_name[:20]} → {len(reviews)}건 (누적 {len(all_reviews):,}건)",
-                })
+            pct = 58 + int((idx + 1) / total * 42)
+            msg = f"자사몰 [{idx+1}/{total}] {product_name[:20]} → {len(reviews)}건 (누적 {len(all_reviews):,}건)"
+            print(f"  {msg}")
+            _cb(msg, pct, idx + 1, total, len(all_reviews))
 
     print(f"  [자사몰] 최종 {len(all_reviews):,}건")
     return all_reviews
@@ -416,7 +405,6 @@ async def collect_all(progress_cb=None) -> dict:
     print("=" * 50)
     print(f"수집 시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # 기존 데이터 로드 (중간 실패시 기존 데이터 유지용)
     existing = {}
     if DATA_PATH.exists():
         try:
@@ -432,7 +420,6 @@ async def collect_all(progress_cb=None) -> dict:
         "jasaol":   existing.get("jasaol",   {"jasa": [], "smartstore": []}),
     }
 
-    # 명가 수집 → 즉시 저장
     try:
         myeongga_reviews = await scrape_myeongga(progress_cb)
         result["myeongga"]["jasa"] = myeongga_reviews
@@ -441,7 +428,6 @@ async def collect_all(progress_cb=None) -> dict:
     except Exception as e:
         print(f"  [명가] 수집 실패: {e}")
 
-    # 파파공방 수집 → 즉시 저장
     try:
         papa_reviews = await scrape_papa(progress_cb)
         result["papa"]["jasa"] = papa_reviews
@@ -450,7 +436,6 @@ async def collect_all(progress_cb=None) -> dict:
     except Exception as e:
         print(f"  [파파공방] 수집 실패: {e}")
 
-    # 자사몰 수집 → 즉시 저장
     try:
         jasaol_reviews = await scrape_jasaol(progress_cb)
         result["jasaol"]["jasa"] = jasaol_reviews
