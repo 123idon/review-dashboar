@@ -3,8 +3,8 @@ import traceback
 from datetime import datetime
 import os
 from pathlib import Path
-from fastapi import FastAPI, BackgroundTasks, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, BackgroundTasks, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pydantic import BaseModel
@@ -266,6 +266,83 @@ async def get_live_logs(offset: int = 0):
         "total": len(logs),
         "offset": offset,
     }
+
+
+@app.post("/api/import-jasaol")
+async def import_jasaol(file: UploadFile = File(...)):
+    """자사몰 후기 XLS 파일 업로드 → reviews.json에 jasaol 데이터로 저장"""
+    try:
+        from bs4 import BeautifulSoup
+        import io
+
+        content = await file.read()
+        # EUC-KR 디코딩
+        try:
+            html = content.decode('euc-kr', errors='replace')
+        except Exception:
+            html = content.decode('utf-8', errors='replace')
+
+        soup = BeautifulSoup(html, 'html.parser')
+        rows = soup.find_all('tr')
+        if len(rows) < 2:
+            raise HTTPException(status_code=400, detail="데이터가 없습니다.")
+
+        def parse_score(s): return float(s.count('★'))
+        def parse_platform(mid):
+            m = (mid or '').upper()
+            return 'kakao' if 'KAKAO' in m else 'naver' if 'NAVER' in m else 'direct'
+
+        reviews = []
+        errors = 0
+        for row in rows[1:]:
+            cells = [td.get_text(strip=True) for td in row.find_all(['th', 'td'])]
+            if len(cells) < 12:
+                errors += 1
+                continue
+            try:
+                from datetime import datetime as dt
+                date_str = cells[10][:10]
+                dt.strptime(date_str, '%Y-%m-%d')
+            except Exception:
+                errors += 1
+                continue
+            content_text = cells[9].strip()[:500]
+            if not content_text or len(content_text) < 2:
+                errors += 1
+                continue
+            reviews.append({
+                "date":     date_str,
+                "score":    parse_score(cells[11]),
+                "product":  cells[7].strip()[:80],
+                "title":    cells[8][:100],
+                "content":  content_text,
+                "platform": parse_platform(cells[3]),
+                "author":   cells[2][:20],
+            })
+
+        # 기존 데이터 로드 후 jasaol만 교체
+        existing = {}
+        if DATA_PATH.exists():
+            try:
+                existing = json.loads(DATA_PATH.read_text(encoding='utf-8'))
+            except Exception:
+                pass
+
+        existing.setdefault('changeok', {'jasa': [], 'smartstore': []})
+        existing.setdefault('myeongga', {'jasa': [], 'smartstore': []})
+        existing.setdefault('papa',     {'jasa': [], 'smartstore': []})
+        existing['jasaol'] = {'jasa': reviews, 'smartstore': []}
+        existing['last_updated'] = datetime.now().isoformat()
+
+        from scraper import safe_save
+        safe_save(existing)
+
+        return {"ok": True, "imported": len(reviews), "errors": errors}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/memo")
