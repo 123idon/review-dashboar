@@ -30,9 +30,13 @@ CREMA_HEADERS = {
 # ── 자사몰(고도몰) ─────────────────────────────────────────────────────────────
 JASAOL_BASE    = "https://shop.100yearshop.co.kr"
 JASAOL_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    "Accept": "text/html,application/xhtml+xml",
-    "Accept-Language": "ko-KR,ko;q=0.9",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Referer": "https://shop.100yearshop.co.kr/",
 }
 JASAOL_DELAY = 0.5  # 서버 부하 최소화 (1.5→0.5초로 개선)
 
@@ -179,11 +183,18 @@ def fetch_html_euckr(resp: httpx.Response) -> BeautifulSoup:
     return BeautifulSoup(html, "html.parser")
 
 
-async def get_categories_and_goods(client: httpx.AsyncClient) -> list:
+async def get_categories_and_goods(client: httpx.AsyncClient, progress_cb=None) -> list:
     """메인페이지에서 카테고리 수집 → 상품번호+상품명 수집 (상품명 별도요청 없음)"""
+    def _cb(msg, pct=56):
+        if progress_cb:
+            progress_cb({"phase":"detail","done":0,"total":1,"collected":0,
+                "brand":"자사몰","progress_pct":pct,"progress_msg":msg})
+
     # 1) 카테고리 URL 수집
     try:
+        _cb("자사몰 메인페이지 접속 중...", 56)
         resp = await client.get(f"{JASAOL_BASE}/shop/main/index.php", timeout=15)
+        print(f"  [자사몰] 메인페이지 status={resp.status_code}")
         soup = fetch_html_euckr(resp)
         cat_ids = []
         for a in soup.find_all("a", href=True):
@@ -193,8 +204,15 @@ async def get_categories_and_goods(client: httpx.AsyncClient) -> list:
                 if cid not in cat_ids:
                     cat_ids.append(cid)
         print(f"  [자사몰] 카테고리 {len(cat_ids)}개 발견: {cat_ids}")
+        _cb(f"자사몰 카테고리 {len(cat_ids)}개 발견", 57)
     except Exception as e:
         print(f"  [자사몰] 카테고리 수집 실패: {e}")
+        _cb(f"자사몰 카테고리 수집 실패: {e}", 56)
+        return []
+
+    if not cat_ids:
+        print("  [자사몰] 카테고리 0개 - HTML 구조 확인 필요")
+        _cb("자사몰 카테고리 0개 - 수집 불가", 56)
         return []
 
     await asyncio.sleep(JASAOL_DELAY)
