@@ -183,7 +183,8 @@ async def get_categories(client: httpx.AsyncClient) -> list[str]:
                     full = f"{JASAOL_BASE}/shop/goods/goods_list.php?category={cat}"
                     if full not in cats:
                         cats.append(full)
-        print(f"  [자사몰] 카테고리 {len(cats)}개 발견: {[re.search(r'category=(\d+)',c).group(1) for c in cats]}")
+      cat_ids = [re.search(r'category=(\d+)', c).group(1) for c in cats]
+        print(f"  [자사몰] 카테고리 {len(cats)}개 발견: {cat_ids}")
         return cats
     except Exception as e:
         print(f"  [자사몰] 카테고리 수집 실패: {e}")
