@@ -51,9 +51,14 @@ def progress_cb(info: dict):
 
 def _append_live_log(msg: str):
     ts = datetime.now().strftime("%H:%M:%S")
-    collect_state["live_logs"].append(f"[{ts}] {msg}")
-    if len(collect_state["live_logs"]) > 200:
-        collect_state["live_logs"] = collect_state["live_logs"][-200:]
+    entry = f"[{ts}] {msg}"
+    # 마지막 로그와 메시지가 같으면 추가 안 함 (중복 방지)
+    logs = collect_state["live_logs"]
+    if logs and "] " in logs[-1] and logs[-1].split("] ", 1)[-1] == msg:
+        return
+    logs.append(entry)
+    if len(logs) > 200:
+        collect_state["live_logs"] = logs[-200:]
 
 
 def write_log(success: bool, detail: str = ""):

@@ -518,7 +518,7 @@ function startCollectPolling(){
     // ETA: 1%당 걸린 시간 × 남은% (단순하고 정확)
     const etaEl = document.getElementById('collectETA');
     if(etaEl){
-      if(serverPct > 3 && elapsed > 5){
+      if(serverPct > 30 && elapsed > 10){
         const secPerPct = elapsed / serverPct;
         const remainSec = Math.round(secPerPct * (100 - serverPct));
         etaEl.textContent = remainSec > 3 ? '| 예상 '+fmtSec(remainSec)+' 남음' : '| 거의 완료';
@@ -618,6 +618,8 @@ function finishProgressBar(){
 // ════════════════════════════════════════
 function switchShop(shop, el){
   currentShop = shop;
+  // 로그 탭 나가면 폴링 정리
+  if(shop !== 'log' && logPollTimer){ clearInterval(logPollTimer); logPollTimer=null; }
   document.querySelectorAll('.shop-tab').forEach(t=>t.classList.remove('active-a','active-b','active-c','active-d'));
   if(shop==='memo'){ el.classList.add('active-a'); renderMemo(); return; }
   if(shop==='log'){  el.classList.add('active-a'); renderLog();  return; }
@@ -1049,7 +1051,7 @@ async function _updateLiveLog(){
 // 초기화
 // ════════════════════════════════════════
 loadData();
-setInterval(loadData, 60*60*1000); // 1시간마다 자동 갱신
+setInterval(()=>{ if(!collectPollTimer) loadData(); }, 60*60*1000); // 1시간마다 자동갱신 (수집중이면 스킵)
 </script>
 </body>
 </html>

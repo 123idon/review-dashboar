@@ -147,7 +147,7 @@ async def fetch_crema_product(client, prod_code, progress_cb=None, prod_idx=0, t
             all_reviews.append(parse_crema_review(rv))
         next_page = d.get("pagy", {}).get("next")
         if progress_cb:
-            pct = 40 + int((prod_idx / total_prods) * 15)
+            pct = 40 + int(((prod_idx + 1) / total_prods) * 15)  # 40~55%
             progress_cb({"phase": "detail", "done": prod_idx, "total": total_prods,
                 "collected": len(all_reviews), "brand": "파파공방", "progress_pct": pct,
                 "progress_msg": f"파파공방 idx={prod_code} {len(all_reviews)}건 수집 중..."})
@@ -243,29 +243,24 @@ def parse_jasaol_review(row, product_name: str):
 
 
 async def fetch_review_page(client: httpx.AsyncClient, goodsno: int, page: int, sem: asyncio.Semaphore, product_name: str):
-    """단일 후기 페이지 수집"""
+    """단일 후기 페이지 수집 - sem 해제 후 딜레이"""
     url = f"{JASAOL_BASE}/shop/goods/goods_review.php?goodsno={goodsno}&page={page}"
+    result = (page, [], 0)
     async with sem:
         try:
             resp = await client.get(url, timeout=15)
             soup = fetch_html_euckr(resp)
             tbl = soup.find("div", class_="rv_tbl")
-            if not tbl:
-                return page, [], 0
-            rows = tbl.find_all("tr", onmouseover=True)
-            reviews = []
-            for row in rows:
-                rv = parse_jasaol_review(row, product_name)
-                if rv:
-                    reviews.append(rv)
-            # 마지막 페이지 번호 (첫 페이지에서만 의미있음)
-            last_page = get_last_page(soup) if page == 1 else 0
-            return page, reviews, last_page
+            if tbl:
+                rows = tbl.find_all("tr", onmouseover=True)
+                reviews = [rv for row in rows for rv in [parse_jasaol_review(row, product_name)] if rv]
+                last_page = get_last_page(soup) if page == 1 else 0
+                result = (page, reviews, last_page)
         except Exception as e:
             print(f"  [자사몰] goodsno={goodsno} p{page} 실패: {e}")
-            return page, [], 0
-        finally:
-            await asyncio.sleep(JASAOL_DELAY)
+    # sem 해제 후 딜레이 - 다른 요청 대기 안 막음
+    await asyncio.sleep(JASAOL_DELAY)
+    return result
 
 
 async def get_product_reviews_fast(client: httpx.AsyncClient, goodsno: int, product_name: str,
@@ -371,7 +366,7 @@ async def scrape_jasaol(progress_cb=None) -> list:
                 "progress_pct": pct, "progress_msg": msg})
 
     print("  [자사몰] 수집 시작")
-    _cb("자사몰 카테고리 수집 중...", 56)
+    _cb("자사몰 카테고리 수집 중...", 55)
     all_reviews = []
 
     sem = asyncio.Semaphore(JASAOL_CONCURRENT)
