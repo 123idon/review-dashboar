@@ -150,12 +150,14 @@ async def get_data():
     changeok = raw["changeok"]["jasa"] + raw["changeok"]["smartstore"]
     myeongga = raw["myeongga"]["jasa"] + raw["myeongga"]["smartstore"]
     papa     = raw.get("papa", {}).get("jasa", []) + raw.get("papa", {}).get("smartstore", [])
+    jasaol   = raw.get("jasaol", {}).get("jasa", []) + raw.get("jasaol", {}).get("smartstore", [])
     return {
         "last_updated": raw.get("last_updated"),
         "collecting": collect_state["running"],
         "changeok": compute_stats(changeok),
         "myeongga": compute_stats(myeongga),
         "papa":     compute_stats(papa),
+        "jasaol":   compute_stats(jasaol),
     }
 
 
