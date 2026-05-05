@@ -242,6 +242,8 @@ body {
 }
 .progress-bar.a { background: var(--accent-a); }
 .progress-bar.b { background: var(--accent-b); }
+.progress-bar.c { background: var(--accent-c); }
+.progress-bar.d { background: var(--accent-d); }
 .collecting-banner {
   position: fixed; top: 56px; left: 0; width: 100%; z-index: 998;
   background: #fff8e1; border-bottom: 1px solid #ffe082;
@@ -358,10 +360,10 @@ body {
   <div class="header-left">
     <span class="logo">후기 대시보드</span>
     <div class="shop-tabs">
-      <button class="shop-tab active-a" onclick="switchShop('changeok', this)">창억떡</button>
+      <button class="shop-tab active-d" onclick="switchShop('jasaol', this)" style="font-weight:700;">백년화편</button>
+      <button class="shop-tab" onclick="switchShop('changeok', this)">창억떡</button>
       <button class="shop-tab" onclick="switchShop('myeongga', this)">명가삼대떡집</button>
       <button class="shop-tab" onclick="switchShop('papa', this)">파파공방</button>
-      <button class="shop-tab" onclick="switchShop('jasaol', this)">백년화편</button>
       <button class="shop-tab" onclick="switchShop('memo', this)">메모장</button>
       <button class="shop-tab" onclick="switchShop('log', this)">수집로그</button>
     </div>
@@ -388,7 +390,7 @@ body {
 // 상태
 // ════════════════════════════════════════
 let allData     = null;
-let currentShop = 'changeok';
+let currentShop = 'jasaol';
 let reviewFilter  = 'all';
 let keywordPeriod = 'all';
 let collectPollTimer = null;
@@ -487,7 +489,7 @@ function startCollectPolling(){
   if(collectPollTimer) clearInterval(collectPollTimer);
   document.getElementById('collectingBanner').classList.add('show');
   const bar = document.getElementById('progressBar');
-  const accent = currentShop==='changeok' ? 'a' : 'b';
+  const accent = currentShop==='changeok' ? 'a' : currentShop==='myeongga' ? 'b' : currentShop==='papa' ? 'c' : 'd';
   bar.className = 'progress-bar '+accent;
   bar.style.width = '2%';
 
@@ -563,7 +565,7 @@ function finishProgressBar(){
 // ════════════════════════════════════════
 function switchShop(shop, el){
   currentShop = shop;
-  document.querySelectorAll('.shop-tab').forEach(t=>t.classList.remove('active-a','active-b','active-c'));
+  document.querySelectorAll('.shop-tab').forEach(t=>t.classList.remove('active-a','active-b','active-c','active-d'));
   if(shop==='memo'){ el.classList.add('active-a'); renderMemo(); return; }
   if(shop==='log'){  el.classList.add('active-a'); renderLog();  return; }
   const activeClass = shop==='changeok' ? 'active-a' : shop==='myeongga' ? 'active-b' : shop==='papa' ? 'active-c' : 'active-d';
