@@ -167,10 +167,15 @@ async def get_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": f"파일 오류: {e}"})
 
-    changeok = raw["changeok"]["jasa"] + raw["changeok"]["smartstore"]
-    myeongga = raw["myeongga"]["jasa"] + raw["myeongga"]["smartstore"]
+    from scraper import JASAOL_BASE_PATH, JASAOL_NEW_PATH, load_json
+    changeok = raw.get("changeok", {}).get("jasa", []) + raw.get("changeok", {}).get("smartstore", [])
+    myeongga = raw.get("myeongga", {}).get("jasa", []) + raw.get("myeongga", {}).get("smartstore", [])
     papa     = raw.get("papa", {}).get("jasa", []) + raw.get("papa", {}).get("smartstore", [])
-    jasaol   = raw.get("jasaol", {}).get("jasa", []) + raw.get("jasaol", {}).get("smartstore", [])
+    # jasaol: base(XLS) + new(증분) 합산
+    jasaol_base = load_json(JASAOL_BASE_PATH, [])
+    jasaol_new  = load_json(JASAOL_NEW_PATH, [])
+    jasaol = jasaol_base + jasaol_new
+    del jasaol_base, jasaol_new
     return {
         "last_updated": raw.get("last_updated"),
         "collecting": collect_state["running"],
@@ -299,30 +304,33 @@ async def import_jasaol_chunk(request: Request):
 
 @app.post("/api/import-jasaol-done")
 async def import_jasaol_done():
-    """청크 수집 완료 - reviews.json에 반영"""
+    """청크 수집 완료 - jasaol_base.json에 반영"""
     try:
         CHUNK_PATH = DATA_PATH.parent / "jasaol_chunk.json"
         if not CHUNK_PATH.exists():
             raise HTTPException(status_code=400, detail="청크 데이터 없음")
 
+        from scraper import JASAOL_BASE_PATH, JASAOL_NEW_PATH, safe_save as sc_save
         reviews = json.loads(CHUNK_PATH.read_text(encoding="utf-8"))
 
-        existing = {}
+        # base에 저장 (XLS 전체 데이터)
+        sc_save(JASAOL_BASE_PATH, reviews)
+        # new는 초기화 (base가 최신이므로)
+        sc_save(JASAOL_NEW_PATH, [])
+        CHUNK_PATH.unlink(missing_ok=True)
+
+        # reviews.json last_updated 갱신
+        data = {}
         if DATA_PATH.exists():
             try:
-                existing = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+                data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
             except Exception:
                 pass
-
-        existing.setdefault('changeok', {'jasa': [], 'smartstore': []})
-        existing.setdefault('myeongga', {'jasa': [], 'smartstore': []})
-        existing.setdefault('papa',     {'jasa': [], 'smartstore': []})
-        existing['jasaol'] = {'jasa': reviews, 'smartstore': []}
-        existing['last_updated'] = datetime.now().isoformat()
-
-        from scraper import safe_save
-        safe_save(existing)
-        CHUNK_PATH.unlink(missing_ok=True)
+        data.setdefault("changeok", {"jasa": [], "smartstore": []})
+        data.setdefault("myeongga", {"jasa": [], "smartstore": []})
+        data.setdefault("papa",     {"jasa": [], "smartstore": []})
+        data["last_updated"] = datetime.now().isoformat()
+        sc_save(DATA_PATH, data)
 
         return {"ok": True, "imported": len(reviews)}
     except HTTPException:
