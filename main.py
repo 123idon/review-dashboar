@@ -173,16 +173,29 @@ async def get_status():
         elapsed = int((datetime.now() - datetime.fromisoformat(s["started_at"])).total_seconds())
 
     if s["running"]:
-        if s["phase"] == "listing":
-            # 목록 수집 중 - 전체 페이지 모르므로 페이지 수로 표시
-            pct = min(30, s["page"] * 0.3)
-            msg = f"[{s['brand']}] 목록 수집 중 — {s['page']}페이지 ({s['total_so_far']}건 발견)"
-        elif s["phase"] == "detail":
-            total = s["total"] or 1
-            pct = 30 + int(s["done"] / total * 70)
-            msg = f"[{s['brand']}] 상세 수집 중 — {s['done']}/{s['total']}건 ({pct}%)"
+        brand = s.get("brand", "")
+        done = s.get("done", 0)
+        total = s.get("total", 1) or 1
+        phase_pct = int(done / total * 100)
+
+        # 브랜드별 전체 진행률 구간 (역행 방지)
+        if brand == "명가삼대떡집":
+            pct = int(phase_pct * 0.4)           # 0~40%
+            msg = f"[명가삼대떡집] {done}/{total}배치 수집 중... ({pct}%)"
+        elif brand == "파파공방":
+            pct = 40 + int(phase_pct * 0.15)     # 40~55%
+            msg = f"[파파공방] {done}/{total}상품 수집 중... ({pct}%)"
+        elif brand == "자사몰":
+            pct = 55 + int(phase_pct * 0.45)     # 55~100%
+            msg = f"[자사몰] {done}/{total}상품 수집 중... ({pct}%)"
+        elif s.get("phase") == "listing":
+            pct = min(10, s.get("page", 0))
+            msg = f"[{brand}] 목록 수집 중..."
         else:
+            pct = 2
             msg = "수집 준비 중..."
+        if s.get("progress_msg"):
+            msg = s["progress_msg"]
     elif s["last_error"]:
         msg = f"오류: {s['last_error']}"
     elif s["last_success"]:

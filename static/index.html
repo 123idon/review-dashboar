@@ -484,91 +484,116 @@ async function triggerCollect(){
 }
 
 // ════════════════════════════════════════
-// 수집 폴링 (1초 로컬카운터 + 3초 서버확인)
+// 수집 폴링
 // ════════════════════════════════════════
 let localTickTimer = null;
-let logCache = null; // 로그 캐시
+let logCache = null;
 
 function startCollectPolling(){
   if(collectPollTimer) clearInterval(collectPollTimer);
   if(localTickTimer) clearInterval(localTickTimer);
   document.getElementById('collectingBanner').classList.add('show');
   const bar = document.getElementById('progressBar');
-  const accent = currentShop==='changeok' ? 'a' : currentShop==='myeongga' ? 'b' : currentShop==='papa' ? 'c' : 'd';
+  const accent = currentShop==='changeok'?'a':currentShop==='myeongga'?'b':currentShop==='papa'?'c':'d';
   bar.className = 'progress-bar '+accent;
   bar.style.width = '2%';
 
   const pollStarted = Date.now();
-  let lastPct = 0;
-  let lastPctTime = Date.now();
+  let serverPct = 0;       // 서버에서 받은 실제 %
+  let displayPct = 0;      // 화면에 표시 중인 %
+  let lastServerTime = Date.now(); // 마지막 서버응답 시간
+  let lastCollectingState = true;  // 이전 collecting 상태
 
-  // 로컬 1초 카운터 - 경과시간 실시간 업데이트
+  // 1초마다: 경과시간 + % 부드럽게 보간
   localTickTimer = setInterval(()=>{
     const elapsed = Math.floor((Date.now()-pollStarted)/1000);
     const elEl = document.getElementById('collectElapsed');
     if(elEl) elEl.textContent = fmtSec(elapsed);
 
-    // 예상 남은시간 계산
+    // % 부드러운 보간: 서버값 향해 1%씩 전진
+    if(displayPct < serverPct){
+      displayPct = Math.min(displayPct + 1, serverPct);
+      _updatePctDisplay(displayPct, bar);
+    }
+
+    // ETA: 서버 % 기준으로만 계산 (displayPct 기반 x)
     const etaEl = document.getElementById('collectETA');
-    if(etaEl && lastPct > 2 && elapsed > 5){
-      const totalEstSec = Math.floor(elapsed / (lastPct/100));
-      const remainSec = Math.max(0, totalEstSec - elapsed);
-      etaEl.textContent = '| 예상 ' + fmtSec(remainSec) + ' 남음';
+    if(etaEl){
+      if(serverPct > 5 && elapsed > 10){
+        const timeSinceServer = (Date.now()-lastServerTime)/1000;
+        const effectiveElapsed = elapsed - timeSinceServer; // 서버응답 기준 경과
+        const totalEstSec = effectiveElapsed / (serverPct/100);
+        const remainSec = Math.max(0, Math.round(totalEstSec - elapsed));
+        etaEl.textContent = remainSec > 0 ? '| 예상 '+fmtSec(remainSec)+' 남음' : '| 거의 완료';
+      } else {
+        etaEl.textContent = '';
+      }
     }
   }, 1000);
 
-  // 3초마다 서버 상태 확인
+  // 3초마다: 서버 상태 확인
   collectPollTimer = setInterval(async ()=>{
     try{
       const stRes = await fetch('/api/status');
-      if(stRes.ok){
-        const st = await stRes.json();
-        // 진행 메시지
-        const msgEl = document.getElementById('collectStatusMsg');
-        if(msgEl && st.progress_msg) msgEl.textContent = st.progress_msg;
-        // 퍼센트
-        const pct = st.progress_pct || 0;
-        if(pct > lastPct){ lastPct = pct; lastPctTime = Date.now(); }
-        const pctEl = document.getElementById('collectPct');
-        const pctBar = document.getElementById('collectPctBar');
-        if(pctEl) pctEl.textContent = pct+'%';
-        if(pctBar) pctBar.style.width = Math.max(pct,2)+'%';
-        if(bar && pct>0) bar.style.width = Math.max(pct,2)+'%';
-        // 메인 화면 메시지
-        const detailEl = document.getElementById('collectDetailMsg');
-        if(detailEl && st.progress_msg) detailEl.textContent = st.progress_msg;
-        // 오류
-        if(st.last_error && !st.collecting){
-          _stopPolling();
-          finishProgressBar();
-          document.getElementById('mainContent').innerHTML =
-            '<div class="loading-state">'+
-            '<div style="font-size:15px;color:var(--danger);margin-bottom:10px">❌ 수집 중 오류 발생</div>'+
-            '<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:12px;border-radius:8px;max-width:480px;text-align:left;word-break:break-all;font-family:var(--mono)">'+st.last_error+'</div>'+
-            (st.error_detail?'<details style="margin-top:10px;max-width:480px;text-align:left"><summary style="font-size:11px;color:var(--muted);cursor:pointer">상세 보기</summary><pre style="font-size:11px;color:var(--muted);white-space:pre-wrap;word-break:break-all;margin-top:6px">'+st.error_detail+'</pre></details>':'')+
-            '<button class="refresh-btn" style="margin-top:16px" onclick="triggerCollect()">↻ 다시 시도</button>'+
-            '</div>';
-          return;
-        }
-        // 완료 감지 - collecting false + 데이터 있음
-        if(!st.collecting && st.data_exists){
+      if(!stRes.ok) return;
+      const st = await stRes.json();
+
+      // 서버 % 업데이트
+      const pct = st.progress_pct || 0;
+      if(pct >= serverPct) { serverPct = pct; lastServerTime = Date.now(); }
+
+      // 메시지 업데이트
+      const msgEl = document.getElementById('collectStatusMsg');
+      if(msgEl && st.progress_msg) msgEl.textContent = st.progress_msg;
+      const detailEl = document.getElementById('collectDetailMsg');
+      if(detailEl && st.progress_msg) detailEl.textContent = st.progress_msg;
+
+      // 오류 처리
+      if(st.last_error && !st.collecting){
+        _stopPolling();
+        finishProgressBar();
+        document.getElementById('mainContent').innerHTML =
+          '<div class="loading-state">'+
+          '<div style="font-size:15px;color:var(--danger);margin-bottom:10px">❌ 수집 중 오류 발생</div>'+
+          '<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:12px;border-radius:8px;max-width:480px;text-align:left;word-break:break-all;font-family:var(--mono)">'+st.last_error+'</div>'+
+          (st.error_detail?'<details style="margin-top:10px;max-width:480px;text-align:left"><summary style="font-size:11px;color:var(--muted);cursor:pointer">상세 보기</summary><pre style="font-size:11px;color:var(--muted);white-space:pre-wrap;word-break:break-all;margin-top:6px">'+st.error_detail+'</pre></details>':'')+
+          '<button class="refresh-btn" style="margin-top:16px" onclick="triggerCollect()">↻ 다시 시도</button>'+
+          '</div>';
+        return;
+      }
+
+      // 완료 감지: collecting이 true→false로 전환된 순간만
+      if(lastCollectingState && !st.collecting){
+        lastCollectingState = false;
+        // 완료 확인 - last_success 있고 data_exists
+        if(st.last_success && st.data_exists){
           const res = await fetch('/api/data');
           if(res.ok){
             const data = await res.json();
-            if(!allData || data.last_updated !== (allData||{}).last_updated){
-              allData = data;
-              logCache = null; // 로그 캐시 무효화
-              updateLastUpdated(data.last_updated);
-              if(currentShop!=='memo' && currentShop!=='log') render();
-              _stopPolling();
-              finishProgressBar();
-              showToast('✅ 수집 완료! 데이터가 업데이트됐어요.');
-            }
+            allData = data;
+            logCache = null;
+            updateLastUpdated(data.last_updated);
+            serverPct = 100; displayPct = 100;
+            _updatePctDisplay(100, bar);
+            if(currentShop!=='memo' && currentShop!=='log') render();
+            _stopPolling();
+            finishProgressBar();
+            showToast('✅ 수집 완료! 데이터가 업데이트됐어요.');
           }
         }
+      } else {
+        lastCollectingState = st.collecting;
       }
     }catch(e){}
-  }, 3000);
+  }, 1000);
+}
+
+function _updatePctDisplay(pct, bar){
+  const pctEl = document.getElementById('collectPct');
+  const pctBar = document.getElementById('collectPctBar');
+  if(pctEl) pctEl.textContent = pct+'%';
+  if(pctBar) pctBar.style.width = Math.max(pct,2)+'%';
+  if(bar) bar.style.width = Math.max(pct,2)+'%';
 }
 
 function _stopPolling(){
