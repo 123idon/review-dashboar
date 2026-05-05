@@ -287,38 +287,58 @@ async def fetch_review_page(client: httpx.AsyncClient, goodsno: int, page: int, 
 async def get_product_reviews_incremental(client: httpx.AsyncClient, goodsno: int, product_name: str,
                                            sem: asyncio.Semaphore, since_date: str,
                                            progress_cb=None, idx=0, total=1) -> list:
-    """since_date 이후 후기만 수집 - 날짜 역순이므로 날짜 넘으면 즉시 중단"""
+    """since_date 이후 후기만 수집 - 최신순이므로 날짜 넘으면 즉시 중단"""
     all_reviews = []
     page = 1
+    last_page_known = None
 
     while True:
-        _, reviews, last_page = await fetch_review_page(client, goodsno, page, sem, product_name)
+        _, reviews, first_last_page = await fetch_review_page(client, goodsno, page, sem, product_name)
+
+        # 첫 페이지에서 마지막 페이지 파악
+        if page == 1 and first_last_page:
+            last_page_known = first_last_page
+
         if not reviews:
             break
 
-        new_found = 0
         stop = False
+        new_found = 0
         for rv in reviews:
             if rv["date"] >= since_date:
                 all_reviews.append(rv)
                 new_found += 1
             else:
-                stop = True  # 날짜 기준 이전 데이터 → 이후 페이지 볼 필요 없음
+                stop = True  # 이 날짜 이전 → 더 볼 필요 없음
                 break
 
-        if progress_cb and new_found > 0:
-            progress_cb({
-                "phase": "detail", "done": idx, "total": total,
-                "collected": len(all_reviews), "brand": "자사몰",
-                "progress_pct": 58 + int((idx / total) * 42),
-                "progress_msg": f"자사몰 [{idx+1}/{total}] {product_name[:15]} +{new_found}건",
-            })
+        if stop:
+            break
 
-        if stop or page >= (last_page or 1):
+        # 다음 페이지 있는지 확인
+        max_page = last_page_known or page
+        if page >= max_page:
             break
         page += 1
 
+    if all_reviews and progress_cb:
+        progress_cb({
+            "phase": "detail", "done": idx + 1, "total": total,
+            "collected": len(all_reviews), "brand": "자사몰",
+            "progress_pct": 58 + int(((idx + 1) / total) * 42),
+            "progress_msg": f"자사몰 [{idx+1}/{total}] {product_name[:20]} +{len(all_reviews)}건",
+        })
+
     return all_reviews
+
+
+async def collect_goods_reviews(args):
+    """병렬 처리용 wrapper"""
+    client, goodsno, product_name, sem, since_date, progress_cb, idx, total = args
+    return await get_product_reviews_incremental(
+        client, goodsno, product_name, sem, since_date,
+        progress_cb=progress_cb, idx=idx, total=total
+    )
 
 
 async def get_categories_and_goods(client: httpx.AsyncClient, progress_cb=None) -> list:
@@ -417,7 +437,6 @@ async def scrape_jasaol(progress_cb=None) -> list:
         except Exception:
             pass
 
-    all_reviews = []
     sem = asyncio.Semaphore(JASAOL_CONCURRENT)
 
     async with httpx.AsyncClient(
@@ -429,20 +448,26 @@ async def scrape_jasaol(progress_cb=None) -> list:
             return []
 
         total = len(goods_list)
-        print(f"  [자사몰] 총 {total}개 상품 → 증분 수집 시작 ({since_date} 이후)")
+        print(f"  [자사몰] 총 {total}개 상품 → 증분 수집 ({since_date} 이후, 5개 병렬)")
         _cb(f"자사몰 상품 {total}개, {since_date} 이후 수집 시작", 58, 0, total)
 
-        for idx, (goodsno, product_name) in enumerate(goods_list):
-            reviews = await get_product_reviews_incremental(
-                client, goodsno, product_name, sem,
-                since_date=since_date,
-                progress_cb=progress_cb, idx=idx, total=total
-            )
-            all_reviews.extend(reviews)
-            pct = 58 + int((idx + 1) / total * 42)
-            msg = f"자사몰 [{idx+1}/{total}] {product_name[:20]} +{len(reviews)}건 (누적 {len(all_reviews):,}건)"
-            print(f"  {msg}")
-            _cb(msg, pct, idx + 1, total, len(all_reviews))
+        # 상품 5개씩 병렬 처리
+        GOODS_CONCURRENT = 5
+        all_reviews = []
+        done = 0
+
+        for i in range(0, total, GOODS_CONCURRENT):
+            batch = goods_list[i:i + GOODS_CONCURRENT]
+            tasks = [
+                collect_goods_reviews((client, gno, name, sem, since_date, progress_cb, i+j, total))
+                for j, (gno, name) in enumerate(batch)
+            ]
+            results = await asyncio.gather(*tasks)
+            for reviews in results:
+                all_reviews.extend(reviews)
+            done += len(batch)
+            pct = 58 + int(done / total * 42)
+            _cb(f"자사몰 {done}/{total}개 완료 (누적 {len(all_reviews):,}건)", pct, done, total, len(all_reviews))
 
     # 기존 데이터에 새 후기 병합 (중복 제거)
     if DATA_PATH.exists() and since_date != "2000-01-01":
