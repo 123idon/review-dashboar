@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0046)file:///C:/Users/atoda/Downloads/index_14.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>후기 대시보드</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="./후기 대시보드_files/css2" rel="stylesheet">
+<script src="./후기 대시보드_files/chart.umd.min.js.다운로드"></script>
 <style>
 :root {
   --bg: #f5f4f0;
@@ -337,7 +337,7 @@ body {
 }
 </style>
 </head>
-<body>
+<body><div id="initOverlay" style="position: fixed; inset: 0px; z-index: 10000; background: rgb(245, 244, 240); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; font-family: inherit; transition: opacity 0.5s; opacity: 0;"><div style="font-size:22px;font-weight:700;color:#1a1917">후기 대시보드</div><div style="width:240px;height:3px;background:#e2e0d8;border-radius:4px;overflow:hidden"><div id="initBar" style="height: 100%; width: 100%; background: rgb(45, 90, 61); border-radius: 4px; transition: width 0.5s;"></div></div><div id="initMsg" style="font-size:13px;color:#7a7870">완료!</div></div>
 
 
 <div class="progress-wrap">
@@ -361,12 +361,12 @@ body {
   <div class="header-left">
     <span class="logo">후기 대시보드</span>
     <div class="shop-tabs">
-      <button class="shop-tab active-d" onclick="switchShop('jasaol', this)" style="font-weight:700;">백년화편</button>
-      <button class="shop-tab" onclick="switchShop('changeok', this)">창억떡</button>
-      <button class="shop-tab" onclick="switchShop('myeongga', this)">명가삼대떡집</button>
-      <button class="shop-tab" onclick="switchShop('papa', this)">파파공방</button>
-      <button class="shop-tab" onclick="switchShop('memo', this)">메모장</button>
-      <button class="shop-tab" onclick="switchShop('log', this)">수집로그</button>
+      <button class="shop-tab active-d" onclick="switchShop(&#39;jasaol&#39;, this)" style="font-weight:700;">백년화편</button>
+      <button class="shop-tab" onclick="switchShop(&#39;changeok&#39;, this)">창억떡</button>
+      <button class="shop-tab" onclick="switchShop(&#39;myeongga&#39;, this)">명가삼대떡집</button>
+      <button class="shop-tab" onclick="switchShop(&#39;papa&#39;, this)">파파공방</button>
+      <button class="shop-tab" onclick="switchShop(&#39;memo&#39;, this)">메모장</button>
+      <button class="shop-tab" onclick="switchShop(&#39;log&#39;, this)">수집로그</button>
     </div>
   </div>
   <div class="header-right">
@@ -377,12 +377,7 @@ body {
   </div>
 </header>
 
-<div class="main" id="mainContent">
-  <div class="loading-state">
-    <div class="spinner"></div>
-    데이터 불러오는 중...
-  </div>
-</div>
+<div class="main" id="mainContent"><div class="loading-state"><div style="font-size:13px;color:var(--muted)">서버 연결 중... 자동 재시도합니다.</div></div></div>
 
 <div class="toast" id="toast"></div>
 
@@ -516,19 +511,20 @@ function startCollectPolling(){
       _updatePctDisplay(displayPct, bar);
     }
 
-    // ETA: 서버 % 기준으로만 계산 (displayPct 기반 x)
+    // ETA: 1%당 걸린 시간 × 남은% (단순하고 정확)
     const etaEl = document.getElementById('collectETA');
     if(etaEl){
-      if(serverPct > 5 && elapsed > 10){
-        const timeSinceServer = (Date.now()-lastServerTime)/1000;
-        const effectiveElapsed = elapsed - timeSinceServer; // 서버응답 기준 경과
-        const totalEstSec = effectiveElapsed / (serverPct/100);
-        const remainSec = Math.max(0, Math.round(totalEstSec - elapsed));
-        etaEl.textContent = remainSec > 0 ? '| 예상 '+fmtSec(remainSec)+' 남음' : '| 거의 완료';
+      if(serverPct > 3 && elapsed > 5){
+        const secPerPct = elapsed / serverPct;
+        const remainSec = Math.round(secPerPct * (100 - serverPct));
+        etaEl.textContent = remainSec > 3 ? '| 예상 '+fmtSec(remainSec)+' 남음' : '| 거의 완료';
       } else {
         etaEl.textContent = '';
       }
     }
+
+    // 수집로그 탭 실시간 상태 업데이트
+    if(currentShop === 'log') _updateLiveLog();
   }, 1000);
 
   // 3초마다: 서버 상태 확인
@@ -903,49 +899,85 @@ async function deleteMemo(id){
 }
 
 // ════════════════════════════════════════
-// 수집 로그 탭
+// 수집 로그 탭 (실시간)
 // ════════════════════════════════════════
+let logPollTimer = null;
+
 async function renderLog(){
-  const mc=document.getElementById('mainContent');
-  // 캐시 있으면 재사용 (수집완료시 logCache=null로 무효화)
-  if(logCache){
-    mc.innerHTML=logCache;
-    return;
-  }
-  mc.innerHTML='<div class="loading-state"><div class="spinner"></div></div>';
+  const mc = document.getElementById('mainContent');
+  mc.innerHTML = `<div style="max-width:720px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700">수집 로그</div>
+      <button class="refresh-btn" onclick="logCache=null;_fetchAndRenderLog()">새로고침</button>
+    </div>
+    <div id="liveStatusWrap"></div>
+    <div id="logHistoryWrap"><div class="loading-state"><div class="spinner"></div></div></div>
+  </div>`;
+  await _fetchAndRenderLog();
+  // 수집중이면 1초마다 상태 업데이트 (localTickTimer가 _updateLiveLog 호출)
+}
+
+async function _fetchAndRenderLog(){
   try{
-    const [stRes,logRes]=await Promise.all([fetch('/api/status'),fetch('/api/logs')]);
-    const st=await stRes.json(), logs=(await logRes.json()).logs||[];
-    let statusHtml='';
-    if(st.collecting){
-      statusHtml+=`<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#7b5c00">
-        🔄 수집 중... &nbsp; ${st.progress_msg||''} &nbsp; <b>${st.progress_pct||0}%</b>
-      </div>`;
-    }
-    if(st.last_error){
-      statusHtml+=`<div style="background:var(--danger-bg);border:1px solid #f0c4c0;border-radius:8px;padding:12px 16px;margin-bottom:12px">
-        <div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:6px">❌ 마지막 오류</div>
-        <div style="font-size:12px;color:var(--danger);font-family:var(--mono);word-break:break-all">${st.last_error}</div>
-        ${st.error_detail?`<details style="margin-top:8px"><summary style="font-size:11px;color:var(--muted);cursor:pointer">상세 보기</summary><pre style="font-size:11px;color:var(--muted);white-space:pre-wrap;word-break:break-all;margin-top:6px">${st.error_detail}</pre></details>`:''}
-      </div>`;
-    }
-    if(st.last_success){
-      statusHtml+=`<div style="background:var(--positive-bg);border:1px solid #b8dfc8;border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:12px;color:var(--positive)">✅ 마지막 성공: ${st.last_success.replace('T',' ').slice(0,19)}</div>`;
-    }
-    const logRows=logs.map(l=>`<div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+    const [stRes, logRes] = await Promise.all([fetch('/api/status'), fetch('/api/logs')]);
+    const st = await stRes.json();
+    const logs = (await logRes.json()).logs || [];
+    _renderLiveStatus(st);
+    const logRows = logs.map(l=>`<div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:11px;font-family:var(--mono);color:var(--muted);flex-shrink:0;white-space:nowrap">${l.time}</span>
       <span style="font-size:12px;${l.success?'color:var(--positive)':'color:var(--danger)'}">${l.success?'✅':'❌'} ${l.detail}</span>
-    </div>`).join('')||'<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px">로그 없음</div>';
-    mc.innerHTML=`<div style="max-width:720px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:15px;font-weight:700">수집 로그</div>
-        <button class="refresh-btn" onclick="logCache=null;renderLog()">새로고침</button>
+    </div>`).join('') || '<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px">로그 없음</div>';
+    const hw = document.getElementById('logHistoryWrap');
+    if(hw) hw.innerHTML = `<div class="card"><div class="card-title">수집 이력 (최근 50건)</div>${logRows}</div>`;
+  }catch(e){}
+}
+
+function _renderLiveStatus(st){
+  const wrap = document.getElementById('liveStatusWrap');
+  if(!wrap) return;
+  let html = '';
+  if(st.collecting){
+    const pct = st.progress_pct || 0;
+    html += `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:14px 16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:700;color:#7b5c00">🔄 수집 중</span>
+        <span style="font-size:13px;font-weight:700;color:#7b5c00" id="livePct">${pct}%</span>
       </div>
-      ${statusHtml}
-      <div class="card"><div class="card-title">수집 이력 (최근 50건)</div>${logRows}</div>
+      <div style="background:#ffe082;border-radius:4px;height:6px;overflow:hidden;margin-bottom:8px">
+        <div id="liveBar" style="height:100%;background:#b8860b;border-radius:4px;transition:width .5s ease;width:${Math.max(pct,2)}%"></div>
+      </div>
+      <div style="font-size:12px;color:#a07800" id="liveMsg">${st.progress_msg||''}</div>
     </div>`;
-    logCache = mc.innerHTML; // 캐시 저장
-  }catch(e){ mc.innerHTML='<div class="loading-state">로그를 불러올 수 없습니다.</div>'; }
+  }
+  if(st.last_error){
+    html += `<div style="background:var(--danger-bg);border:1px solid #f0c4c0;border-radius:8px;padding:12px 16px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:6px">❌ 마지막 오류</div>
+      <div style="font-size:12px;color:var(--danger);font-family:var(--mono);word-break:break-all">${st.last_error}</div>
+      ${st.error_detail?`<details style="margin-top:8px"><summary style="font-size:11px;color:var(--muted);cursor:pointer">상세 보기</summary><pre style="font-size:11px;color:var(--muted);white-space:pre-wrap;word-break:break-all;margin-top:6px">${st.error_detail}</pre></details>`:''}
+    </div>`;
+  }
+  if(st.last_success && !st.collecting){
+    html += `<div style="background:var(--positive-bg);border:1px solid #b8dfc8;border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:12px;color:var(--positive)">✅ 마지막 성공: ${st.last_success.replace('T',' ').slice(0,19)}</div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+async function _updateLiveLog(){
+  // 수집중일때만 상태 부분만 업데이트 (로그 이력은 그대로)
+  const wrap = document.getElementById('liveStatusWrap');
+  if(!wrap) return;
+  try{
+    const stRes = await fetch('/api/status');
+    if(stRes.ok){
+      const st = await stRes.json();
+      _renderLiveStatus(st);
+      // % 바도 실시간 업데이트
+      const liveBar = document.getElementById('liveBar');
+      const livePct = document.getElementById('livePct');
+      if(liveBar) liveBar.style.width = Math.max(st.progress_pct||0, 2)+'%';
+      if(livePct) livePct.textContent = (st.progress_pct||0)+'%';
+    }
+  }catch(e){}
 }
 
 // ════════════════════════════════════════
@@ -954,5 +986,5 @@ async function renderLog(){
 loadData();
 setInterval(loadData, 60*60*1000); // 1시간마다 자동 갱신
 </script>
-</body>
-</html>
+
+</body></html>
