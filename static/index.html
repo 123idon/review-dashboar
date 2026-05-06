@@ -366,6 +366,7 @@ body {
       <button class="shop-tab" onclick="switchShop('changeok', this)">창억떡</button>
       <button class="shop-tab" onclick="switchShop('myeongga', this)">명가삼대떡집</button>
       <button class="shop-tab" onclick="switchShop('papa', this)">파파공방</button>
+      <button class="shop-tab" onclick="switchShop('smartstore', this)">네이버</button>
       <button class="shop-tab" onclick="switchShop('memo', this)">메모장</button>
       <button class="shop-tab" onclick="switchShop('log', this)">수집로그</button>
     </div>
@@ -496,7 +497,7 @@ function startCollectPolling(){
   document.getElementById('collectingBanner').classList.add('show');
   document.getElementById('mainContent').style.marginTop = '40px';
   const bar = document.getElementById('progressBar');
-  const accent = currentShop==='changeok'?'a':currentShop==='myeongga'?'b':currentShop==='papa'?'c':'d';
+  const accent = currentShop==='changeok'?'a':currentShop==='myeongga'?'b':currentShop==='papa'?'c':currentShop==='smartstore'?'b':'d';
   bar.className = 'progress-bar '+accent;
   bar.style.width = '2%';
 
@@ -908,6 +909,74 @@ async function deleteMemo(id){
   try{ const res=await fetch('/api/memo/'+encodeURIComponent(id),{method:'DELETE'}); if(res.ok){ memoList=memoList.filter(m=>m.id!==id); renderMemoList(); } }catch(e){}
 }
 
+async function importSmartstore(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(!confirm(`"${file.name}" 네이버 리뷰 파일을 임포트할까요?\n기존 네이버 데이터는 교체됩니다.`)) return;
+
+  const termBox = document.getElementById('terminalBox');
+  const addLog = (msg, color='#d4d4d4') => {
+    if(termBox){ termBox.innerHTML += `<div style="color:${color}">${msg}</div>`; termBox.scrollTop = termBox.scrollHeight; }
+  };
+  addLog(`[네이버 임포트] ${file.name} (${Math.round(file.size/1024)}KB) 읽는 중...`, '#dcdcaa');
+
+  try{
+    // SheetJS로 엑셀 파싱
+    const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array', cellDates:true});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+    addLog(`[네이버 임포트] ${rows.length.toLocaleString()}건 파싱 완료`, '#4ec9b0');
+
+    const reviews = [];
+    let errors = 0;
+    for(const row of rows){
+      const dateRaw = String(row['리뷰등록일'] || '');
+      const m = dateRaw.match(/(\d{4})[.\-](\d{2})[.\-](\d{2})/);
+      if(!m){ errors++; continue; }
+      const content = String(row['리뷰상세내용'] || '').trim().slice(0,500);
+      if(!content || content.length < 2){ errors++; continue; }
+      reviews.push({
+        date: `${m[1]}-${m[2]}-${m[3]}`,
+        score: parseFloat(row['구매자평점'] || 0),
+        product: String(row['상품명'] || '').slice(0,80),
+        title: '',
+        content: content,
+        platform: 'naver',
+        author: String(row['등록자'] || '').slice(0,20),
+      });
+    }
+    addLog(`[네이버 임포트] 변환: ${reviews.length.toLocaleString()}건 (오류 ${errors}건)`, '#4ec9b0');
+
+    // 청크 전송
+    const CHUNK = 500;
+    for(let i = 0; i < reviews.length; i += CHUNK){
+      const chunk = reviews.slice(i, i+CHUNK);
+      const res = await fetch('/api/import-smartstore-chunk', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({reviews: chunk, replace: i===0})
+      });
+      if(!res.ok) throw new Error('청크 전송 실패');
+      const pct = Math.round((i+chunk.length)/reviews.length*100);
+      addLog(`[네이버 임포트] 전송 중... ${(i+chunk.length).toLocaleString()}/${reviews.length.toLocaleString()}건 (${pct}%)`, '#9cdcfe');
+    }
+
+    const doneRes = await fetch('/api/import-smartstore-done', {method:'POST'});
+    const done = await doneRes.json();
+    if(done.ok){
+      addLog(`[완료] 네이버 ${done.imported.toLocaleString()}건 임포트 완료!`, '#4ec9b0');
+      showToast('✅ 네이버 임포트 완료! ' + done.imported.toLocaleString() + '건');
+      const dataRes = await fetch('/api/data');
+      if(dataRes.ok){ allData = await dataRes.json(); updateLastUpdated(allData.last_updated); }
+    }
+  }catch(e){
+    addLog(`[실패] ${e.message}`, '#f48771');
+    showToast('❌ 임포트 실패: ' + e.message);
+  }
+  input.value = '';
+}
+
 async function importJasaol(input){
   const file = input.files[0];
   if(!file) return;
@@ -1018,6 +1087,10 @@ async function renderLog(){
         <label style="cursor:pointer;padding:6px 12px;background:var(--accent-d);color:#fff;border-radius:6px;font-size:12px;font-weight:600" title="자사몰 XLS 파일 업로드">
           📂 자사몰 임포트
           <input type="file" accept=".xls,.xlsx,.html,.htm" style="display:none" onchange="importJasaol(this)">
+        </label>
+        <label style="cursor:pointer;padding:6px 12px;background:#03C75A;color:#fff;border-radius:6px;font-size:12px;font-weight:600" title="네이버 스마트스토어 리뷰 엑셀 업로드">
+          🟢 네이버 임포트
+          <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importSmartstore(this)">
         </label>
         <button class="refresh-btn" onclick="_refreshLog()">새로고침</button>
       </div>
