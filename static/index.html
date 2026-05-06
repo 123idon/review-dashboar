@@ -344,6 +344,10 @@ body {
 <div class="progress-wrap">
   <div class="progress-bar" id="progressBar"></div>
 </div>
+<div id="cookieExpiredBanner" style="display:none;position:fixed;top:56px;left:0;width:100%;z-index:999;background:#ff4444;color:#fff;padding:10px 20px;font-size:13px;font-weight:600;align-items:center;justify-content:space-between;gap:10px">
+  <span>⚠️ 네이버 쿠키가 만료됐어요. 집 PC에서 쿠키를 갱신해주세요.</span>
+  <button onclick="fetch('/api/smartstore-cookie-ok',{method:'POST'});this.parentElement.style.display='none'" style="background:rgba(255,255,255,0.3);border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px">확인</button>
+</div>
 <div class="collecting-banner" id="collectingBanner">
   <span>후기 수집 중</span>
   <span class="dot-anim"><span>.</span><span>.</span><span>.</span></span>
@@ -441,8 +445,17 @@ async function loadData(){
       updateLastUpdated(data.last_updated);
       if(currentShop !== 'memo' && currentShop !== 'log') render();
       window._hideOverlay && window._hideOverlay();
-      // 수집 중이면 배너 표시
       if(data.collecting) startCollectPolling();
+
+      // 쿠키 만료 체크
+      try{
+        const st = await fetch('/api/smartstore-status');
+        if(st.ok){
+          const s = await st.json();
+          const banner = document.getElementById('cookieExpiredBanner');
+          if(banner) banner.style.display = s.cookie_expired ? 'flex' : 'none';
+        }
+      }catch(e){}
     } else {
       // 데이터 없음 → 자동 수집
       window._hideOverlay && window._hideOverlay();
