@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>업데이트 내역 — 백년화편</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{min-height:100vh;background:#0f1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;color:#e2e8f0;}
+
+    header{padding:24px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;}
+    .header-left{display:flex;align-items:center;gap:14px;}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#f97316,#ec4899);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+    .brand-name{font-size:16px;font-weight:700;}
+    .brand-sub{font-size:11px;color:#475569;margin-top:1px;letter-spacing:.4px;text-transform:uppercase;}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid #1e293b;color:#94a3b8;font-size:13px;text-decoration:none;transition:.15s;}
+    .back-btn:hover{background:rgba(255,255,255,.1);color:#e2e8f0;}
+
+    .wrap{max-width:720px;margin:0 auto;padding:36px 40px 80px;}
+
+    .page-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:#818cf8;font-size:11px;font-weight:600;padding:4px 12px;border-radius:100px;margin-bottom:14px;}
+    h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;background:linear-gradient(135deg,#f8fafc 40%,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .subtitle{font-size:13px;color:#475569;margin-bottom:40px;}
+
+    /* 타임라인 */
+    .timeline{position:relative;padding-left:28px;}
+    .timeline::before{content:'';position:absolute;left:7px;top:8px;bottom:0;width:1px;background:linear-gradient(to bottom,#334155,transparent);}
+
+    .entry{position:relative;margin-bottom:36px;}
+    .entry-dot{position:absolute;left:-28px;top:6px;width:15px;height:15px;border-radius:50%;border:2px solid #0f1117;flex-shrink:0;}
+    .dot-new  {background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.4);}
+    .dot-fix  {background:#3b82f6;box-shadow:0 0 8px rgba(59,130,246,.3);}
+    .dot-feat {background:#a855f7;box-shadow:0 0 8px rgba(168,85,247,.3);}
+    .dot-refactor{background:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,.3);}
+
+    .entry-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+    .entry-date{font-size:12px;color:#475569;font-weight:600;}
+    .entry-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;letter-spacing:.5px;}
+    .tag-new     {background:rgba(34,197,94,.12);color:#4ade80;}
+    .tag-feat    {background:rgba(168,85,247,.12);color:#c084fc;}
+    .tag-fix     {background:rgba(59,130,246,.12);color:#60a5fa;}
+    .tag-refactor{background:rgba(245,158,11,.12);color:#fbbf24;}
+
+    .entry-title{font-size:15px;font-weight:700;margin-bottom:6px;letter-spacing:-.2px;}
+    .entry-items{list-style:none;display:flex;flex-direction:column;gap:5px;}
+    .entry-items li{font-size:13px;color:#64748b;line-height:1.6;display:flex;gap:8px;}
+    .entry-items li::before{content:'·';color:#334155;flex-shrink:0;}
+
+    @media(max-width:600px){
+      header{padding:18px 20px;}
+      .wrap{padding:24px 20px 48px;}
+      h1{font-size:20px;}
+      .entry-title{font-size:14px;}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <div class="logo-icon">🍡</div>
+    <div>
+      <div class="brand-name">백년화편</div>
+      <div class="brand-sub">Management System</div>
+    </div>
+  </div>
+  <a href="/" class="back-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    메인으로
+  </a>
+</header>
+
+<div class="wrap">
+  <div class="page-badge">🔄 Changelog</div>
+  <h1>업데이트 내역</h1>
+  <p class="subtitle">백년화편 관리 시스템의 기능 추가 및 개선 이력입니다.</p>
+
+  <div class="timeline">
+
+    <div class="entry">
+      <div class="entry-dot dot-new"></div>
+      <div class="entry-header">
+        <span class="entry-date">2026.05.06</span>
+        <span class="entry-tag tag-new">NEW</span>
+      </div>
+      <div class="entry-title">메인 랜딩 페이지 + 메모장 · 업데이트 내역 추가</div>
+      <ul class="entry-items">
+        <li>메인 홈 화면 신설 — 카드형 메뉴 포털로 분리</li>
+        <li>메모장 독립 페이지 (메인에서 직접 접근)</li>
+        <li>업데이트 내역 페이지 신설</li>
+        <li>인사이트 리포트 목록 페이지 — 주간·월간·분기별 필터</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-dot dot-feat"></div>
+      <div class="entry-header">
+        <span class="entry-date">2026.05.06</span>
+        <span class="entry-tag tag-feat">FEAT</span>
+      </div>
+      <div class="entry-title">인사이트 리포트 시스템 구축</div>
+      <ul class="entry-items">
+        <li>GitHub 푸시 → Railway 자동 배포 방식으로 리포트 업로드</li>
+        <li>리포트 파일명 한국어 제목 자동 변환 (W19 → 19주차 주간 리포트)</li>
+        <li>리포트 내 뒤로가기 버튼 자동 주입</li>
+        <li>리포트 모바일 반응형 CSS 최적화 (테이블 스크롤, 그리드 1열 전환 등)</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-dot dot-feat"></div>
+      <div class="entry-header">
+        <span class="entry-date">2026.05.06</span>
+        <span class="entry-tag tag-feat">FEAT</span>
+      </div>
+      <div class="entry-title">후기 대시보드 UI 개선</div>
+      <ul class="entry-items">
+        <li>후기 목록 페이지당 개수 선택 탭 추가 (20 / 50 / 100개)</li>
+        <li>기본 표시 개수 10개 → 20개로 상향</li>
+        <li>상단 탭에 메인 돌아가기 버튼 추가 (← 메인)</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-dot dot-refactor"></div>
+      <div class="entry-header">
+        <span class="entry-date">2026.05.06</span>
+        <span class="entry-tag tag-refactor">REFACTOR</span>
+      </div>
+      <div class="entry-title">라우팅 구조 분리</div>
+      <ul class="entry-items">
+        <li>/ → 메인 랜딩, /dashboard → 후기 대시보드로 분리</li>
+        <li>/insights, /memo, /changelog 라우트 신설</li>
+        <li>/api/reports 엔드포인트 추가 (static/reports/ 폴더 스캔)</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
