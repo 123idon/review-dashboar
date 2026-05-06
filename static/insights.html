@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>인사이트 — 백년화편</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #0f1117;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      color: #e2e8f0;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      padding: 28px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .brand-name { font-size: 16px; font-weight: 700; }
+    .brand-sub  { font-size: 11px; color: #475569; margin-top: 1px; letter-spacing: 0.4px; text-transform: uppercase; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 9px;
+      background: rgba(255,255,255,0.06); border: 1px solid #1e293b;
+      color: #94a3b8; font-size: 13px; text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+
+    /* ── 페이지 타이틀 ── */
+    .page-header {
+      padding: 40px 40px 0;
+      max-width: 960px; margin: 0 auto;
+    }
+    .page-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25);
+      color: #a78bfa; font-size: 11px; font-weight: 600;
+      padding: 4px 12px; border-radius: 100px; margin-bottom: 16px;
+    }
+    .page-header h1 {
+      font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #f8fafc 40%, #94a3b8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 8px;
+    }
+    .page-header p { font-size: 14px; color: #475569; }
+
+    /* ── 필터 탭 ── */
+    .filter-bar {
+      padding: 28px 40px 0;
+      max-width: 960px; margin: 0 auto;
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .flt-btn {
+      padding: 6px 16px; border-radius: 8px;
+      border: 1px solid #1e293b; background: transparent;
+      color: #64748b; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all .15s;
+    }
+    .flt-btn.active, .flt-btn:hover {
+      background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.4); color: #a78bfa;
+    }
+
+    /* ── 리포트 그리드 ── */
+    .reports-grid {
+      padding: 24px 40px 60px;
+      max-width: 960px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── 리포트 카드 ── */
+    .report-card {
+      background: #1a1f2e; border: 1px solid #1e293b;
+      border-radius: 18px; padding: 24px;
+      cursor: pointer; text-decoration: none; color: inherit;
+      display: flex; flex-direction: column; gap: 12px;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+      position: relative; overflow: hidden;
+    }
+    .report-card::before {
+      content: ''; position: absolute; inset: 0; border-radius: 18px;
+      background: linear-gradient(135deg, rgba(139,92,246,0.06), transparent);
+      opacity: 0; transition: opacity .2s;
+    }
+    .report-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(139,92,246,0.45);
+      box-shadow: 0 10px 35px rgba(139,92,246,0.12);
+    }
+    .report-card:hover::before { opacity: 1; }
+
+    .report-type-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; padding: 3px 9px;
+      border-radius: 100px; width: fit-content; letter-spacing: 0.5px;
+    }
+    .badge-weekly  { background: rgba(139,92,246,0.15); color: #a78bfa; }
+    .badge-monthly { background: rgba(249,115,22,0.15); color: #fb923c; }
+
+    .report-title {
+      font-size: 15px; font-weight: 700; letter-spacing: -0.2px;
+      line-height: 1.4;
+    }
+    .report-date {
+      font-size: 12px; color: #475569;
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    .report-arrow {
+      position: absolute; top: 22px; right: 20px;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s, transform .2s;
+    }
+    .report-card:hover .report-arrow {
+      background: rgba(139,92,246,0.2);
+      transform: translate(2px, -2px);
+    }
+    .report-arrow svg { width: 12px; height: 12px; stroke: #64748b; }
+    .report-card:hover .report-arrow svg { stroke: #a78bfa; }
+
+    /* ── 빈 상태 ── */
+    .empty-state {
+      padding: 80px 40px;
+      text-align: center; color: #334155;
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #475569; }
+    .empty-state p  { font-size: 13px; line-height: 1.7; }
+
+    /* ── 로딩 ── */
+    .loading { text-align: center; padding: 60px; color: #334155; font-size: 14px; }
+    .spinner {
+      width: 28px; height: 28px; border: 2px solid #1e293b;
+      border-top-color: #8b5cf6; border-radius: 50%;
+      animation: spin .7s linear infinite; margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 모바일 ── */
+    @media (max-width: 600px) {
+      header { padding: 20px; }
+      .page-header, .filter-bar { padding-left: 20px; padding-right: 20px; }
+      .reports-grid { padding: 20px 20px 48px; grid-template-columns: 1fr; }
+      .page-header h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <div class="logo-icon">🍡</div>
+      <div>
+        <div class="brand-name">백년화편</div>
+        <div class="brand-sub">Management System</div>
+      </div>
+    </div>
+    <a href="/" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      메인으로
+    </a>
+  </header>
+
+  <div class="page-header">
+    <div class="page-badge">📊 Insights</div>
+    <h1>인사이트 리포트</h1>
+    <p>주간·월간 브랜드 분석 리포트를 한곳에서 확인하세요.</p>
+  </div>
+
+  <div class="filter-bar">
+    <button class="flt-btn active" onclick="filterReports('all', this)">전체</button>
+    <button class="flt-btn" onclick="filterReports('weekly', this)">주간</button>
+    <button class="flt-btn" onclick="filterReports('monthly', this)">월간</button>
+  </div>
+
+  <div class="reports-grid" id="reportsGrid">
+    <div class="loading">
+      <div class="spinner"></div>
+      리포트 불러오는 중…
+    </div>
+  </div>
+
+  <script>
+    let allReports = [];
+    let currentFilter = 'all';
+
+    async function loadReports() {
+      try {
+        const res = await fetch('/api/reports');
+        const data = await res.json();
+        allReports = data.reports || [];
+        render();
+      } catch(e) {
+        document.getElementById('reportsGrid').innerHTML =
+          '<div class="empty-state"><div class="icon">⚠️</div><h3>불러오기 실패</h3><p>서버와 연결할 수 없어요.</p></div>';
+      }
+    }
+
+    function filterReports(type, el) {
+      currentFilter = type;
+      document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      render();
+    }
+
+    function guessType(filename) {
+      const f = filename.toLowerCase();
+      if (f.includes('monthly') || f.includes('월간')) return 'monthly';
+      return 'weekly';
+    }
+
+    function formatDate(mtime) {
+      const d = new Date(mtime * 1000);
+      return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function makeTitleFromFilename(filename) {
+      // 예: 2025-W20_weekly_report.html → 그대로 정제
+      return filename.replace('.html','').replace(/_/g,' ').replace(/-/g,' ');
+    }
+
+    function render() {
+      const grid = document.getElementById('reportsGrid');
+      const filtered = currentFilter === 'all'
+        ? allReports
+        : allReports.filter(r => guessType(r.filename) === currentFilter);
+
+      if (!filtered.length) {
+        const msg = allReports.length === 0
+          ? '<div class="empty-state"><div class="icon">📭</div><h3>아직 리포트가 없어요</h3><p>주간 리포트 대화에서 리포트를 생성하고<br>GitHub에 업로드하면 여기 자동으로 나타나요.</p></div>'
+          : '<div class="empty-state"><div class="icon">🔍</div><h3>해당 유형의 리포트가 없어요</h3><p>다른 필터를 선택해 보세요.</p></div>';
+        grid.innerHTML = msg;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(r => {
+        const type = guessType(r.filename);
+        const badgeCls = type === 'monthly' ? 'badge-monthly' : 'badge-weekly';
+        const badgeLabel = type === 'monthly' ? '📅 월간' : '📆 주간';
+        const title = makeTitleFromFilename(r.filename);
+        const date = formatDate(r.modified);
+        return `
+          <a class="report-card" href="${r.url}" target="_blank">
+            <div class="report-type-badge ${badgeCls}">${badgeLabel}</div>
+            <div class="report-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 17L17 7M17 7H7M17 7v10"/>
+              </svg>
+            </div>
+            <div class="report-title">${title}</div>
+            <div class="report-date">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              ${date} 업로드
+            </div>
+          </a>`;
+      }).join('');
+    }
+
+    loadReports();
+  </script>
+</body>
+</html>
