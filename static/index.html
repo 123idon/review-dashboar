@@ -487,6 +487,7 @@ body {
 // 상태
 // ════════════════════════════════════════
 let allData     = null;
+let filteredData = null;  // 날짜 필터 적용된 데이터
 let currentShop = 'jasaol';
 let reviewFilter  = 'all';
 let keywordPeriod = 'all';
@@ -532,6 +533,7 @@ async function loadData(){
     if(res.ok){
       const data = await res.json();
       allData = data;
+      filteredData = null;  // 새 데이터 로드 시 필터 초기화
       updateLastUpdated(data.last_updated);
       if(currentShop !== 'memo' && currentShop !== 'log') render();
       window._hideOverlay && window._hideOverlay();
@@ -789,33 +791,51 @@ function renderDateFilterBar(){
   </div>`;
 }
 
+
+// ════════════════════════════════════════
+// 날짜 필터 서버 조회
+// ════════════════════════════════════════
+async function fetchFilteredData(){
+  if(!dateFilterStart && !dateFilterEnd){ filteredData = null; render(); return; }
+  const params = new URLSearchParams();
+  if(dateFilterStart) params.set('date_from', dateFilterStart);
+  if(dateFilterEnd)   params.set('date_to',   dateFilterEnd);
+  try{
+    const res = await fetch('/api/data?' + params.toString());
+    if(res.ok){
+      filteredData = await res.json();
+      render();
+    }
+  }catch(e){ showToast('데이터 조회 실패'); }
+}
+
 function fmtDate(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
-function applyPreset(days){
+async function applyPreset(days){
   const today = new Date();
-  // 오늘 자정 기준으로 계산 (시간 오차 제거)
   const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const from = new Date(todayMid);
   from.setDate(from.getDate() - days);
   dateFilterStart = fmtDate(from);
   dateFilterEnd   = fmtDate(today);
-  render();
+  await fetchFilteredData();
 }
 
-function applyDateRange(){
+async function applyDateRange(){
   const from = document.getElementById('dateFrom')?.value;
   const to   = document.getElementById('dateTo')?.value;
   if(!from && !to){ resetDateFilter(); return; }
   dateFilterStart = from || null;
   dateFilterEnd   = to   || fmtDate(new Date());
-  render();
+  await fetchFilteredData();
 }
 
-function resetDateFilter(){
+async function resetDateFilter(){
   dateFilterStart = null;
   dateFilterEnd   = null;
+  filteredData = null;
   render();
 }
 
@@ -936,9 +956,9 @@ function render(){
   if(!allData) return;
   if(currentShop==='memo'){ renderMemo(); return; }
   if(currentShop==='log'){  renderLog();  return; }
-  const raw = allData[currentShop];
-  if(!raw) return;
-  const d = computeFilteredStats(raw);
+  const src = filteredData || allData;
+  const d = src[currentShop];
+  if(!d) return;
   const mc = document.getElementById('mainContent');
   mc.innerHTML = `
     ${renderDateFilterBar()}
