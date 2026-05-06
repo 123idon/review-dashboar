@@ -182,6 +182,14 @@ async def dashboard():
 async def insights():
     return FileResponse("static/insights.html")
 
+@app.get("/memo")
+async def memo_page():
+    return FileResponse("static/memo.html")
+
+@app.get("/changelog")
+async def changelog_page():
+    return FileResponse("static/changelog.html")
+
 @app.get("/api/reports")
 async def list_reports():
     """static/reports/ 폴더의 HTML 리포트 목록 반환"""
