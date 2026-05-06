@@ -277,6 +277,19 @@ async def get_live_logs(offset: int = 0):
     }
 
 
+@app.get("/api/smartstore-latest-date")
+async def smartstore_latest_date():
+    from scraper import load_json
+    SMARTSTORE_PATH = DATA_PATH.parent / "smartstore.json"
+    reviews = load_json(SMARTSTORE_PATH, [])
+    if not reviews:
+        from datetime import timedelta
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        return {"date": yesterday}
+    dates = [r["date"] for r in reviews if r.get("date")]
+    return {"date": max(dates) if dates else datetime.now().strftime("%Y-%m-%d")}
+
+
 @app.post("/api/import-smartstore-chunk")
 async def import_smartstore_chunk(request: Request):
     """집 PC에서 수집한 네이버 리뷰 청크 수신"""
