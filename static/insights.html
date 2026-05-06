@@ -111,7 +111,8 @@
       border-radius: 100px; width: fit-content; letter-spacing: 0.5px;
     }
     .badge-weekly  { background: rgba(139,92,246,0.15); color: #a78bfa; }
-    .badge-monthly { background: rgba(249,115,22,0.15); color: #fb923c; }
+    .badge-monthly  { background: rgba(249,115,22,0.15); color: #fb923c; }
+.badge-quarterly{ background: rgba(20,184,166,0.15); color: #2dd4bf; }
 
     .report-title {
       font-size: 15px; font-weight: 700; letter-spacing: -0.2px;
@@ -189,6 +190,7 @@
     <button class="flt-btn active" onclick="filterReports('all', this)">전체</button>
     <button class="flt-btn" onclick="filterReports('weekly', this)">주간</button>
     <button class="flt-btn" onclick="filterReports('monthly', this)">월간</button>
+    <button class="flt-btn" onclick="filterReports('quarterly', this)">분기별</button>
   </div>
 
   <div class="reports-grid" id="reportsGrid">
@@ -223,6 +225,7 @@
 
     function guessType(filename) {
       const f = filename.toLowerCase();
+      if (f.includes('quarterly') || f.includes('분기')) return 'quarterly';
       if (f.includes('monthly') || f.includes('월간')) return 'monthly';
       return 'weekly';
     }
@@ -253,8 +256,8 @@
 
       grid.innerHTML = filtered.map(r => {
         const type = guessType(r.filename);
-        const badgeCls = type === 'monthly' ? 'badge-monthly' : 'badge-weekly';
-        const badgeLabel = type === 'monthly' ? '📅 월간' : '📆 주간';
+        const badgeCls = type === 'quarterly' ? 'badge-quarterly' : type === 'monthly' ? 'badge-monthly' : 'badge-weekly';
+        const badgeLabel = type === 'quarterly' ? '📈 분기' : type === 'monthly' ? '📅 월간' : '📆 주간';
         const title = makeTitleFromFilename(r.filename);
         const date = formatDate(r.modified);
         return `
