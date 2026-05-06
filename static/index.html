@@ -768,7 +768,8 @@ function renderDateFilterBar(){
     {label:'1년', days:365},
   ];
   const presetBtns = presets.map(p=>{
-    const active = isActive && dateFilterStart === fmtDate(new Date(Date.now()-p.days*864e5)) && dateFilterEnd === todayStr;
+    const _presetFrom = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()); _presetFrom.setDate(_presetFrom.getDate()-p.days);
+    const active = isActive && dateFilterStart === fmtDate(_presetFrom) && dateFilterEnd === todayStr;
     return `<button class="date-preset-btn${active?' active':''}" onclick="applyPreset(${p.days})">${p.label}</button>`;
   }).join('');
 
@@ -794,7 +795,10 @@ function fmtDate(d){
 
 function applyPreset(days){
   const today = new Date();
-  const from  = new Date(Date.now() - days*864e5);
+  // 오늘 자정 기준으로 계산 (시간 오차 제거)
+  const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const from = new Date(todayMid);
+  from.setDate(from.getDate() - days);
   dateFilterStart = fmtDate(from);
   dateFilterEnd   = fmtDate(today);
   render();
@@ -839,7 +843,9 @@ function computeFilteredStats(d){
   const weekMap = {};
   reviews.forEach(r=>{
     if(!r.date)return;
-    const d2=new Date(r.date);
+    // YYYY-MM-DD 파싱 (로컬 시간대, UTC 오차 방지)
+    const parts=r.date.split('-');
+    const d2=new Date(+parts[0],+parts[1]-1,+parts[2]);
     const dow=d2.getDay(); // 0=일
     const mon=new Date(d2); mon.setDate(d2.getDate()-(dow===0?6:dow-1));
     const key=fmtDate(mon);
@@ -848,7 +854,7 @@ function computeFilteredStats(d){
     if(r.score>0&&r.score<=3)weekMap[key].neg++;
     if(r.score>0){weekMap[key].scoreSum+=r.score;weekMap[key].scoreCnt++;}
   });
-  const trend = Object.values(weekMap).sort((a,b)=>a.week.localeCompare(b.week)).slice(-16).map(w=>({
+  const trend = Object.values(weekMap).sort((a,b)=>a.week.localeCompare(b.week)).map(w=>({
     week:w.week, count:w.count, negative:w.neg,
     avg_score: w.scoreCnt?Math.round(w.scoreSum/w.scoreCnt*10)/10:0
   }));
@@ -899,8 +905,8 @@ function computeFilteredStats(d){
   const negRevs=reviews.filter(r=>r.score>0&&r.score<=3);
 
   // 주간 필터용
-  const weekAgo=new Date(Date.now()-7*864e5);
-  const weekFrom=fmtDate(weekAgo);
+  const weekAgoD=new Date(); weekAgoD.setDate(weekAgoD.getDate()-7);
+  const weekFrom=fmtDate(weekAgoD);
   const weekRevs=reviews.filter(r=>r.date>=weekFrom);
 
   return {
