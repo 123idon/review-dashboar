@@ -373,6 +373,15 @@ body {
   background: var(--warn-bg); color: var(--warn); border: 1px solid #e6c84a40;
   font-weight: 600; white-space: nowrap;
 }
+.filter-loading {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--muted);
+}
+.filter-spinner {
+  width: 12px; height: 12px; border: 2px solid var(--border);
+  border-top-color: var(--text); border-radius: 50%;
+  animation: spin .6s linear infinite; flex-shrink: 0;
+}
 
 /* ── 반응형 ── */
 @media (max-width: 768px) {
@@ -795,18 +804,56 @@ function renderDateFilterBar(){
 // ════════════════════════════════════════
 // 날짜 필터 서버 조회
 // ════════════════════════════════════════
+let _filterAbort = null;  // 이전 요청 취소용
+
 async function fetchFilteredData(){
   if(!dateFilterStart && !dateFilterEnd){ filteredData = null; render(); return; }
+
+  // 이전 진행 중 요청 취소
+  if(_filterAbort){ _filterAbort.abort(); }
+  _filterAbort = new AbortController();
+
+  // 즉시 로딩 표시 (버튼 반응 즉각적으로)
+  _showFilterLoading(true);
+
   const params = new URLSearchParams();
   if(dateFilterStart) params.set('date_from', dateFilterStart);
   if(dateFilterEnd)   params.set('date_to',   dateFilterEnd);
+
   try{
-    const res = await fetch('/api/data?' + params.toString());
+    const res = await fetch('/api/data?' + params.toString(), {
+      signal: _filterAbort.signal
+    });
     if(res.ok){
       filteredData = await res.json();
-      render();
+      render();  // render()에서 로딩 표시 사라짐 (필터 바 새로 그림)
     }
-  }catch(e){ showToast('데이터 조회 실패'); }
+  }catch(e){
+    if(e.name !== 'AbortError') showToast('데이터 조회 실패');
+  } finally {
+    _showFilterLoading(false);
+    _filterAbort = null;
+  }
+}
+
+function _showFilterLoading(show){
+  // 필터 바의 로딩 표시 토글
+  const bar = document.getElementById('dateFilterBar');
+  if(!bar) return;
+  let loader = bar.querySelector('.filter-loading');
+  if(show){
+    if(!loader){
+      loader = document.createElement('span');
+      loader.className = 'filter-loading';
+      loader.innerHTML = '<div class="filter-spinner"></div> 조회 중...';
+      bar.appendChild(loader);
+    }
+    // 버튼들 비활성화
+    bar.querySelectorAll('button').forEach(b=>b.disabled=true);
+  } else {
+    if(loader) loader.remove();
+    bar.querySelectorAll('button').forEach(b=>b.disabled=false);
+  }
 }
 
 function fmtDate(d){
@@ -820,6 +867,9 @@ async function applyPreset(days){
   from.setDate(from.getDate() - days);
   dateFilterStart = fmtDate(from);
   dateFilterEnd   = fmtDate(today);
+  // 프리셋 버튼 즉각 active 표시
+  document.querySelectorAll('.date-preset-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
   await fetchFilteredData();
 }
 
@@ -836,6 +886,7 @@ async function resetDateFilter(){
   dateFilterStart = null;
   dateFilterEnd   = null;
   filteredData = null;
+  if(_filterAbort){ _filterAbort.abort(); _filterAbort = null; }
   render();
 }
 
