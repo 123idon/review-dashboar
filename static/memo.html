@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>메모장 — 백년화편</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{min-height:100vh;background:#0f1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;color:#e2e8f0;}
+
+    header{padding:24px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;}
+    .header-left{display:flex;align-items:center;gap:14px;}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#f97316,#ec4899);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+    .brand-name{font-size:16px;font-weight:700;}
+    .brand-sub{font-size:11px;color:#475569;margin-top:1px;letter-spacing:.4px;text-transform:uppercase;}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid #1e293b;color:#94a3b8;font-size:13px;text-decoration:none;transition:.15s;}
+    .back-btn:hover{background:rgba(255,255,255,.1);color:#e2e8f0;}
+
+    .wrap{max-width:760px;margin:0 auto;padding:36px 40px 60px;}
+
+    .page-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.25);color:#fbbf24;font-size:11px;font-weight:600;padding:4px 12px;border-radius:100px;margin-bottom:14px;}
+    h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;background:linear-gradient(135deg,#f8fafc 40%,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .subtitle{font-size:13px;color:#475569;margin-bottom:28px;}
+
+    /* 입력창 */
+    .input-box{background:#1a1f2e;border:1px solid #1e293b;border-radius:16px;padding:20px;margin-bottom:24px;transition:border-color .2s;}
+    .input-box:focus-within{border-color:rgba(234,179,8,.4);}
+    textarea{width:100%;background:transparent;border:none;outline:none;color:#e2e8f0;font-size:14px;font-family:inherit;resize:none;line-height:1.7;min-height:100px;}
+    textarea::placeholder{color:#334155;}
+    .input-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid #1e293b;}
+    .char-count{font-size:12px;color:#334155;}
+    .save-btn{padding:8px 20px;background:linear-gradient(135deg,#eab308,#f59e0b);border:none;border-radius:9px;color:#0f1117;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;}
+    .save-btn:hover{opacity:.85;}
+    .save-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+    /* 메모 목록 */
+    .memo-count{font-size:12px;color:#475569;margin-bottom:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+    .memo-list{display:flex;flex-direction:column;gap:12px;}
+    .memo-card{background:#1a1f2e;border:1px solid #1e293b;border-radius:14px;padding:18px 20px;position:relative;transition:border-color .2s;}
+    .memo-card:hover{border-color:#2d3748;}
+    .memo-content{font-size:14px;line-height:1.75;color:#cbd5e1;white-space:pre-wrap;word-break:break-word;padding-right:36px;}
+    .memo-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid #1e293b;}
+    .memo-date{font-size:11px;color:#334155;}
+    .del-btn{background:none;border:none;cursor:pointer;color:#334155;font-size:18px;line-height:1;padding:2px 6px;border-radius:6px;transition:.15s;position:absolute;top:14px;right:14px;}
+    .del-btn:hover{color:#f87171;background:rgba(248,113,113,.1);}
+
+    .empty{text-align:center;padding:60px 20px;color:#334155;}
+    .empty .icon{font-size:40px;margin-bottom:12px;opacity:.5;}
+    .empty p{font-size:13px;}
+
+    .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 20px;border-radius:100px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+    @media(max-width:600px){
+      header{padding:18px 20px;}
+      .wrap{padding:24px 20px 48px;}
+      h1{font-size:20px;}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <div class="logo-icon">🍡</div>
+    <div>
+      <div class="brand-name">백년화편</div>
+      <div class="brand-sub">Management System</div>
+    </div>
+  </div>
+  <a href="/" class="back-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    메인으로
+  </a>
+</header>
+
+<div class="wrap">
+  <div class="page-badge">📝 Memo</div>
+  <h1>메모장</h1>
+  <p class="subtitle">아이디어, 할 일, 참고사항을 자유롭게 기록하세요.</p>
+
+  <div class="input-box">
+    <textarea id="memoInput" placeholder="메모를 입력하세요..." oninput="updateCount()"></textarea>
+    <div class="input-footer">
+      <span class="char-count" id="charCount">0자</span>
+      <button class="save-btn" id="saveBtn" onclick="saveMemo()">저장</button>
+    </div>
+  </div>
+
+  <div class="memo-count" id="memoCount"></div>
+  <div class="memo-list" id="memoList">
+    <div class="empty"><div class="icon">📭</div><p>불러오는 중…</p></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let memos = [];
+
+function updateCount(){
+  const v = document.getElementById('memoInput').value;
+  document.getElementById('charCount').textContent = v.length + '자';
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+function formatDate(id){
+  const d = new Date(id);
+  if(isNaN(d)) return id;
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function render(){
+  const el = document.getElementById('memoList');
+  const cnt = document.getElementById('memoCount');
+  cnt.textContent = memos.length ? `총 ${memos.length}개` : '';
+  if(!memos.length){
+    el.innerHTML = '<div class="empty"><div class="icon">📝</div><p>아직 메모가 없어요.<br>위에서 첫 메모를 작성해보세요.</p></div>';
+    return;
+  }
+  el.innerHTML = [...memos].reverse().map(m=>`
+    <div class="memo-card">
+      <button class="del-btn" onclick="deleteMemo('${m.id}')" title="삭제">×</button>
+      <div class="memo-content">${m.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      <div class="memo-footer">
+        <span class="memo-date">${formatDate(m.id)}</span>
+      </div>
+    </div>`).join('');
+}
+
+async function loadMemos(){
+  try{
+    const r = await fetch('/api/memo');
+    const d = await r.json();
+    memos = d.memos || [];
+    render();
+  }catch(e){
+    document.getElementById('memoList').innerHTML='<div class="empty"><div class="icon">⚠️</div><p>불러오기 실패</p></div>';
+  }
+}
+
+async function saveMemo(){
+  const inp = document.getElementById('memoInput');
+  const content = inp.value.trim();
+  if(!content) return;
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  try{
+    await fetch('/api/memo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})});
+    inp.value = ''; updateCount();
+    await loadMemos();
+    showToast('저장됐어요 ✓');
+  }catch(e){ showToast('저장 실패'); }
+  finally{ btn.disabled = false; }
+}
+
+async function deleteMemo(id){
+  if(!confirm('삭제할까요?')) return;
+  try{
+    await fetch(`/api/memo/${id}`,{method:'DELETE'});
+    await loadMemos();
+    showToast('삭제됐어요');
+  }catch(e){ showToast('삭제 실패'); }
+}
+
+// Enter(Shift+Enter 줄바꿈, Ctrl+Enter 저장)
+document.getElementById('memoInput').addEventListener('keydown', e=>{
+  if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); saveMemo(); }
+});
+
+loadMemos();
+</script>
+</body>
+</html>
