@@ -168,6 +168,7 @@ async def get_data():
         raise HTTPException(status_code=500, detail={"message": f"파일 오류: {e}"})
 
     from scraper import JASAOL_BASE_PATH, JASAOL_NEW_PATH, load_json
+    SMARTSTORE_PATH = DATA_PATH.parent / "smartstore.json"
     changeok = raw.get("changeok", {}).get("jasa", []) + raw.get("changeok", {}).get("smartstore", [])
     myeongga = raw.get("myeongga", {}).get("jasa", []) + raw.get("myeongga", {}).get("smartstore", [])
     papa     = raw.get("papa", {}).get("jasa", []) + raw.get("papa", {}).get("smartstore", [])
@@ -176,13 +177,16 @@ async def get_data():
     jasaol_new  = load_json(JASAOL_NEW_PATH, [])
     jasaol = jasaol_base + jasaol_new
     del jasaol_base, jasaol_new
+    # smartstore: 집 PC에서 수집한 네이버 리뷰
+    smartstore = load_json(SMARTSTORE_PATH, [])
     return {
         "last_updated": raw.get("last_updated"),
         "collecting": collect_state["running"],
-        "changeok": compute_stats(changeok),
-        "myeongga": compute_stats(myeongga),
-        "papa":     compute_stats(papa),
-        "jasaol":   compute_stats(jasaol),
+        "changeok":   compute_stats(changeok),
+        "myeongga":   compute_stats(myeongga),
+        "papa":       compute_stats(papa),
+        "jasaol":     compute_stats(jasaol),
+        "smartstore": compute_stats(smartstore),
     }
 
 
@@ -273,7 +277,51 @@ async def get_live_logs(offset: int = 0):
     }
 
 
-@app.post("/api/import-jasaol-chunk")
+@app.post("/api/import-smartstore-chunk")
+async def import_smartstore_chunk(request: Request):
+    """집 PC에서 수집한 네이버 리뷰 청크 수신"""
+    try:
+        body = await request.json()
+        reviews = body.get("reviews", [])
+        replace = body.get("replace", False)
+        CHUNK_PATH = DATA_PATH.parent / "smartstore_chunk.json"
+        if replace:
+            chunk_data = reviews
+        else:
+            existing = []
+            if CHUNK_PATH.exists():
+                try:
+                    existing = json.loads(CHUNK_PATH.read_text(encoding="utf-8"))
+                except Exception:
+                    existing = []
+            chunk_data = existing + reviews
+        CHUNK_PATH.write_text(json.dumps(chunk_data, ensure_ascii=False), encoding="utf-8")
+        return {"ok": True, "total": len(chunk_data)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/import-smartstore-done")
+async def import_smartstore_done():
+    """네이버 리뷰 청크 완료 → smartstore.json에 저장"""
+    try:
+        CHUNK_PATH = DATA_PATH.parent / "smartstore_chunk.json"
+        if not CHUNK_PATH.exists():
+            raise HTTPException(status_code=400, detail="청크 없음")
+        from scraper import safe_save, load_json
+        SMARTSTORE_PATH = DATA_PATH.parent / "smartstore.json"
+        reviews = json.loads(CHUNK_PATH.read_text(encoding="utf-8"))
+        safe_save(SMARTSTORE_PATH, reviews)
+        CHUNK_PATH.unlink(missing_ok=True)
+        # last_updated 갱신
+        data = load_json(DATA_PATH, {})
+        data["last_updated"] = datetime.now().isoformat()
+        safe_save(DATA_PATH, data)
+        return {"ok": True, "imported": len(reviews)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 async def import_jasaol_chunk(request: Request):
     """브라우저에서 파싱한 리뷰 청크를 받아서 저장"""
     try:
