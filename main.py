@@ -178,6 +178,26 @@ async def root():
 @app.get("/dashboard")
 async def dashboard():
     return FileResponse("static/index.html")
+@app.get("/insights")
+async def insights():
+    return FileResponse("static/insights.html")
+
+@app.get("/api/reports")
+async def list_reports():
+    """static/reports/ 폴더의 HTML 리포트 목록 반환"""
+    reports_dir = Path("static/reports")
+    reports_dir.mkdir(exist_ok=True)
+    files = []
+    for f in sorted(reports_dir.glob("*.html"), reverse=True):
+        stat = f.stat()
+        files.append({
+            "filename": f.name,
+            "url": f"/static/reports/{f.name}",
+            "size": stat.st_size,
+            "modified": stat.st_mtime
+        })
+    return JSONResponse({"reports": files})
+
 
 @app.get("/api/data")
 async def get_data(date_from: str = None, date_to: str = None):
