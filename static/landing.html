@@ -260,6 +260,21 @@
       50% { opacity: 0.5; transform: scale(0.85); }
     }
 
+    /* ── 최근 업데이트 ── */
+    .updates-section { max-width: 960px; margin: 0 auto; padding: 0 40px 48px; }
+    .updates-list { display: flex; flex-direction: column; gap: 0; }
+    .update-item { display: flex; align-items: baseline; gap: 12px; padding: 11px 0; border-bottom: 1px solid #111827; }
+    .update-item:last-child { border-bottom: none; }
+    .update-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; letter-spacing: .4px; }
+    .badge-new  { background: rgba(34,197,94,.12); color: #4ade80; }
+    .badge-feat { background: rgba(168,85,247,.12); color: #c084fc; }
+    .badge-fix  { background: rgba(59,130,246,.12); color: #60a5fa; }
+    .update-date { font-size: 11px; color: #334155; white-space: nowrap; flex-shrink: 0; }
+    .update-text { font-size: 13px; color: #64748b; line-height: 1.5; }
+    .updates-footer { margin-top: 10px; }
+    .updates-footer a { font-size: 12px; color: #334155; text-decoration: none; transition: color .15s; }
+    .updates-footer a:hover { color: #94a3b8; }
+
     /* ── 푸터 ── */
     footer {
       text-align: center;
@@ -274,6 +289,7 @@
       .hero { padding: 40px 20px 28px; }
       .grid-section { padding: 8px 20px 48px; }
       .cards-grid { grid-template-columns: 1fr; }
+      .updates-section { padding-left: 20px; padding-right: 20px; }
       .hero h2 { font-size: 26px; }
     }
   </style>
@@ -339,14 +355,41 @@
         <div class="status-badge live">LIVE</div>
       </a>
 
-      <!-- 업데이트 내역 -->
-      <a class="card indigo" href="/changelog">
-        <div class="card-icon">🔄</div>
-        <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
-        <div class="card-title">업데이트 내역</div>
-        <div class="card-desc">시스템 기능 추가 및 개선 이력을 확인하세요.</div>
-        <div class="status-badge live">LIVE</div>
-      </a>
+    </div>
+  </div>
+
+  <!-- 최근 업데이트 -->
+  <div class="updates-section">
+    <div class="section-label" style="margin-bottom:14px;">최근 업데이트</div>
+    <div class="updates-list">
+      <div class="update-item">
+        <span class="update-badge badge-new">NEW</span>
+        <span class="update-date">2026.05.06</span>
+        <span class="update-text">메인 화면 포털 개편 — 메모장·업데이트 내역 카드 추가</span>
+      </div>
+      <div class="update-item">
+        <span class="update-badge badge-feat">FEAT</span>
+        <span class="update-date">2026.05.06</span>
+        <span class="update-text">인사이트 리포트 시스템 — 주간·월간·분기별 리포트 목록, 모바일 최적화</span>
+      </div>
+      <div class="update-item">
+        <span class="update-badge badge-feat">FEAT</span>
+        <span class="update-date">2026.05.06</span>
+        <span class="update-text">후기 목록 페이지당 개수 선택 탭 추가 (20 / 50 / 100개)</span>
+      </div>
+      <div class="update-item">
+        <span class="update-badge badge-feat">FEAT</span>
+        <span class="update-date">2026.05.06</span>
+        <span class="update-text">대시보드 상단 탭에 메인 돌아가기 버튼 추가</span>
+      </div>
+      <div class="update-item">
+        <span class="update-badge badge-feat">FEAT</span>
+        <span class="update-date">2026.05.06</span>
+        <span class="update-text">메인 랜딩 페이지 신설 — / 라우트 분리, 카드형 메뉴 포털</span>
+      </div>
+    </div>
+    <div class="updates-footer" style="margin-top:14px;">
+      <a href="/changelog">전체 내역 보기 →</a>
     </div>
   </div>
 
