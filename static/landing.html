@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>백년화편 관리 시스템</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #0f1117;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      padding: 32px 40px 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 20px rgba(249,115,22,0.35);
+    }
+
+    .header-text h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .header-text p {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* ── 히어로 ── */
+    .hero {
+      padding: 60px 40px 40px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(249,115,22,0.12);
+      border: 1px solid rgba(249,115,22,0.25);
+      color: #fb923c;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    .hero h2 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #f8fafc 30%, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      color: #64748b;
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    /* ── 카드 그리드 ── */
+    .grid-section {
+      flex: 1;
+      padding: 10px 40px 60px;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── 개별 카드 ── */
+    .card {
+      position: relative;
+      background: #1a1f2e;
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 28px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 20px;
+      opacity: 0;
+      transition: opacity 0.22s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+
+    /* 활성 카드 색상별 */
+    .card.orange { border-color: rgba(249,115,22,0.2); }
+    .card.orange::before { background: linear-gradient(135deg, rgba(249,115,22,0.06), transparent); }
+    .card.orange:hover { border-color: rgba(249,115,22,0.5); box-shadow: 0 12px 40px rgba(249,115,22,0.15); }
+    .card.orange:hover::before { opacity: 1; }
+
+    .card.blue { border-color: rgba(59,130,246,0.2); }
+    .card.blue::before { background: linear-gradient(135deg, rgba(59,130,246,0.06), transparent); }
+    .card.blue:hover { border-color: rgba(59,130,246,0.5); box-shadow: 0 12px 40px rgba(59,130,246,0.15); }
+    .card.blue:hover::before { opacity: 1; }
+
+    .card.green { border-color: rgba(34,197,94,0.2); }
+    .card.green::before { background: linear-gradient(135deg, rgba(34,197,94,0.06), transparent); }
+    .card.green:hover { border-color: rgba(34,197,94,0.5); box-shadow: 0 12px 40px rgba(34,197,94,0.15); }
+    .card.green:hover::before { opacity: 1; }
+
+    .card.pink { border-color: rgba(236,72,153,0.2); }
+    .card.pink::before { background: linear-gradient(135deg, rgba(236,72,153,0.06), transparent); }
+    .card.pink:hover { border-color: rgba(236,72,153,0.5); box-shadow: 0 12px 40px rgba(236,72,153,0.15); }
+    .card.pink:hover::before { opacity: 1; }
+
+    .card.purple { border-color: rgba(139,92,246,0.2); }
+    .card.purple::before { background: linear-gradient(135deg, rgba(139,92,246,0.06), transparent); }
+    .card.purple:hover { border-color: rgba(139,92,246,0.5); box-shadow: 0 12px 40px rgba(139,92,246,0.15); }
+    .card.purple:hover::before { opacity: 1; }
+
+    /* 카드 아이콘 */
+    .card-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+    }
+
+    .card.orange .card-icon { background: rgba(249,115,22,0.15); }
+    .card.blue   .card-icon { background: rgba(59,130,246,0.15); }
+    .card.green  .card-icon { background: rgba(34,197,94,0.15); }
+    .card.pink   .card-icon { background: rgba(236,72,153,0.15); }
+    .card.purple .card-icon { background: rgba(139,92,246,0.15); }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 7px;
+      letter-spacing: -0.2px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    /* 화살표 */
+    .card-arrow {
+      position: absolute;
+      top: 28px;
+      right: 24px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .card:hover .card-arrow {
+      background: rgba(255,255,255,0.1);
+      transform: translate(2px, -2px);
+    }
+
+    .card-arrow svg {
+      width: 14px;
+      height: 14px;
+      stroke: #475569;
+    }
+
+    /* 상태 뱃지 */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 100px;
+      margin-top: 14px;
+    }
+
+    .status-badge.live {
+      background: rgba(34,197,94,0.12);
+      color: #4ade80;
+    }
+
+    .status-badge.live::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* ── 푸터 ── */
+    footer {
+      text-align: center;
+      padding: 20px 40px 32px;
+      font-size: 12px;
+      color: #334155;
+    }
+
+    /* ── 모바일 ── */
+    @media (max-width: 600px) {
+      header { padding: 24px 20px 0; }
+      .hero { padding: 40px 20px 28px; }
+      .grid-section { padding: 8px 20px 48px; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .hero h2 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 헤더 -->
+  <header>
+    <div class="logo-icon">🍡</div>
+    <div class="header-text">
+      <h1>백년화편</h1>
+      <p>Management System</p>
+    </div>
+  </header>
+
+  <!-- 히어로 -->
+  <div class="hero">
+    <div class="hero-badge">
+      <span>⚡</span> 백년화편 통합 관리 포털
+    </div>
+    <h2>모든 데이터를<br/>한 곳에서</h2>
+    <p>후기, 매출, 경쟁사, 마케팅까지<br>브랜드 운영에 필요한 모든 도구를 제공합니다.</p>
+  </div>
+
+  <!-- 카드 그리드 -->
+  <div class="grid-section">
+    <div class="section-label">메뉴</div>
+    <div class="cards-grid">
+
+      <!-- 후기 대시보드 (활성) -->
+      <a class="card orange" href="/dashboard">
+        <div class="card-icon">⭐</div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 17L17 7M17 7H7M17 7v10"/>
+          </svg>
+        </div>
+        <div class="card-title">후기 대시보드</div>
+        <div class="card-desc">자사몰·네이버 구매 후기 수집 및 분석. 브랜드별 별점 트렌드 확인.</div>
+        <div class="status-badge live">LIVE</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- 푸터 -->
+  <footer>
+    © 2025 백년화편 &nbsp;·&nbsp; 내부 관리용
+  </footer>
+
+</body>
+</html>
