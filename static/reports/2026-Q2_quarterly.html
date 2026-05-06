@@ -3,972 +3,614 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>백년화편 분기 리서치 리포트 — 2026년 Q2</title>
+<title>백년화편 2026-Q2 분기별 전략 리포트</title>
 <style>
   :root {
-    --bg: #f5f4f0;
-    --card: #ffffff;
-    --border: #e2e0d8;
-    --text: #1a1917;
-    --muted: #7a7870;
-    --accent: #2d5a3d;
-    --danger: #c0392b;
-    --danger-bg: #fdf0ee;
-    --warn: #b8860b;
-    --warn-bg: #fefae8;
-    --positive: #1a6b3a;
-    --positive-bg: #edf7f1;
-    --font: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
-    --mono: 'DM Mono', 'Courier New', monospace;
-    --radius: 12px;
-    --radius-sm: 8px;
+    --primary: #8e44ad;
+    --primary-light: #a569bd;
+    --primary-dark: #6c3483;
+    --primary-bg: #f4ecf7;
+    --accent: #e74c3c;
+    --success: #27ae60;
+    --warning: #f39c12;
+    --text: #2c3e50;
+    --text-muted: #7f8c8d;
+    --border: #ddd;
+    --bg: #f9f9f9;
+    --white: #ffffff;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
 
-  /* ── 헤더 ── */
+  /* Fixed Header */
   .report-header {
-    background: var(--accent);
-    color: white;
-    padding: 36px 40px 28px;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: var(--primary); color: white;
+    padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }
-  .report-header .tag {
-    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-    opacity: .7; margin-bottom: 8px;
-  }
-  .report-header h1 { font-size: 26px; font-weight: 700; letter-spacing: -.5px; }
-  .report-header .meta {
-    display: flex; gap: 24px; margin-top: 14px; font-size: 13px; opacity: .75;
-  }
+  .report-header h1 { font-size: 16px; font-weight: 700; }
+  .report-header .meta { font-size: 12px; opacity: 0.85; }
 
-  /* ── 레이아웃 ── */
-  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px 80px; }
-  .section { margin-bottom: 36px; }
+  /* Fixed Nav */
+  .nav-bar {
+    position: fixed; top: 62px; left: 0; right: 0; z-index: 99;
+    background: var(--primary-dark); display: flex; gap: 0;
+    overflow-x: auto; border-bottom: 2px solid var(--primary-bg);
+  }
+  .nav-bar a {
+    color: rgba(255,255,255,0.8); text-decoration: none;
+    padding: 10px 18px; font-size: 13px; white-space: nowrap;
+    transition: all 0.2s; border-bottom: 3px solid transparent;
+  }
+  .nav-bar a:hover { background: rgba(255,255,255,0.1); color: white; border-bottom-color: white; }
+
+  /* Main Container */
+  .container { margin-top: 108px; max-width: 1100px; margin-left: auto; margin-right: auto; padding: 24px 20px 60px; }
+
+  /* Section */
+  .section { background: white; border-radius: 10px; padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
   .section-title {
-    font-size: 13px; font-weight: 700; letter-spacing: .08em;
-    color: var(--muted); text-transform: uppercase; margin-bottom: 14px;
-    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    font-size: 18px; font-weight: 700; color: var(--primary);
+    margin-bottom: 20px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-bg);
+    display: flex; align-items: center; gap: 8px;
   }
-  .section-title span { color: var(--accent); }
+  .section-title .icon { font-size: 20px; }
 
-  /* ── 카드 ── */
-  .card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 20px 22px; margin-bottom: 12px;
-  }
-  .card-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
-  .card.warn { background: var(--warn-bg); border-color: #f0d88a; }
-  .card.positive { background: var(--positive-bg); border-color: #b0dfc0; }
-  .card.danger { background: var(--danger-bg); border-color: #f0c4c0; }
-
-  /* ── KPI 그리드 ── */
-  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  /* KPI Cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
   .kpi-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 16px;
+    background: var(--primary-bg); border-radius: 8px; padding: 18px;
+    text-align: center; border-left: 4px solid var(--primary);
   }
-  .kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
-  .kpi-val { font-size: 26px; font-weight: 700; font-family: var(--mono); letter-spacing: -1px; }
-  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .kpi-danger { color: var(--danger); }
-  .kpi-positive { color: var(--positive); }
+  .kpi-card .kpi-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .kpi-card .kpi-value { font-size: 28px; font-weight: 800; color: var(--primary); }
+  .kpi-card .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .kpi-card.warn { border-left-color: var(--warning); background: #fef9e7; }
+  .kpi-card.warn .kpi-value { color: var(--warning); }
+  .kpi-card.success { border-left-color: var(--success); background: #eafaf1; }
+  .kpi-card.success .kpi-value { color: var(--success); }
 
-  /* ── 2열 그리드 ── */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  /* Progress Bar */
+  .progress-wrap { margin: 12px 0; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+  .progress-bar { background: #e0e0e0; border-radius: 20px; height: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--primary), var(--primary-light)); transition: width 0.6s; }
+  .progress-fill.warn { background: linear-gradient(90deg, var(--warning), #f8c471); }
+  .progress-fill.success { background: linear-gradient(90deg, var(--success), #58d68d); }
 
-  /* ── 테이블 ── */
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th {
-    background: var(--bg); font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
-    padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border);
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th { background: var(--primary); color: white; padding: 10px 12px; font-size: 13px; text-align: center; }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 13px; text-align: center; vertical-align: top; }
+  tr:hover td { background: var(--primary-bg); }
+  .td-left { text-align: left; }
+  .bold { font-weight: 700; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .tag-green { background: #eafaf1; color: var(--success); }
+  .tag-red { background: #fdedec; color: var(--accent); }
+  .tag-yellow { background: #fef9e7; color: var(--warning); }
+  .tag-purple { background: var(--primary-bg); color: var(--primary); }
+  .tag-gray { background: #f2f3f4; color: #666; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 30px; }
+  .timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: var(--primary-light); }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -24px; top: 4px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--primary); border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--primary);
   }
-  td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  tr:last-child td { border-bottom: none; }
-  .num { font-family: var(--mono); font-size: 13px; }
-  .tag {
-    font-size: 10px; padding: 2px 8px; border-radius: 10px;
-    font-weight: 700; display: inline-block;
-  }
-  .tag-red { background: var(--danger-bg); color: var(--danger); }
-  .tag-green { background: var(--positive-bg); color: var(--positive); }
-  .tag-warn { background: var(--warn-bg); color: var(--warn); }
-  .tag-blue { background: #e8f0fd; color: #2650a8; }
-  .tag-gray { background: #f0efec; color: #666; }
+  .timeline-month { font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+  .timeline-content { background: var(--primary-bg); border-radius: 6px; padding: 10px 14px; }
+  .timeline-event { font-size: 13px; color: var(--text); margin-bottom: 4px; padding-left: 14px; position: relative; }
+  .timeline-event::before { content: '▸'; position: absolute; left: 0; color: var(--primary); }
 
-  /* ── 별점 바 ── */
-  .star-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-  .star-label { width: 16px; text-align: right; font-size: 12px; font-family: var(--mono); color: var(--muted); }
-  .star-bar-wrap { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
-  .star-bar { height: 100%; border-radius: 4px; }
-  .s5 { background: #2d9a5f; }
-  .s4 { background: #5db87a; }
-  .s3 { background: #e6b84a; }
-  .s2 { background: #e07b3a; }
-  .s1 { background: var(--danger); }
-  .star-count { font-size: 11px; font-family: var(--mono); color: var(--muted); width: 52px; text-align: right; }
+  /* SWOT */
+  .swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .swot-card { border-radius: 8px; padding: 16px; }
+  .swot-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+  .swot-card ul { list-style: none; padding: 0; }
+  .swot-card ul li { font-size: 13px; margin-bottom: 6px; padding-left: 16px; position: relative; }
+  .swot-card ul li::before { content: '•'; position: absolute; left: 0; font-weight: 700; }
+  .swot-s { background: #eafaf1; }
+  .swot-s h4, .swot-s li::before { color: var(--success); }
+  .swot-w { background: #fdedec; }
+  .swot-w h4, .swot-w li::before { color: var(--accent); }
+  .swot-o { background: #eaf4fb; }
+  .swot-o h4, .swot-o li::before { color: #2980b9; }
+  .swot-t { background: #fef9e7; }
+  .swot-t h4, .swot-t li::before { color: var(--warning); }
 
-  /* ── 키워드 칩 ── */
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 500;
-    display: flex; align-items: center; gap: 4px;
-  }
-  .chip-pos { background: var(--positive-bg); color: var(--positive); }
-  .chip-neg { background: var(--danger-bg); color: var(--danger); }
-  .chip-cnt { font-size: 10px; font-family: var(--mono); opacity: .7; }
+  /* Action Items */
+  .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .action-card { border-radius: 8px; padding: 16px; border-left: 4px solid var(--primary); background: var(--primary-bg); }
+  .action-card .action-type { font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 6px; text-transform: uppercase; }
+  .action-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+  .action-card p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .action-card.mid { border-left-color: var(--primary-light); }
 
-  /* ── 리뷰 카드 ── */
-  .review-card {
-    border: 1px solid var(--border); border-radius: var(--radius-sm);
-    padding: 12px 14px; margin-bottom: 8px; background: var(--card);
-  }
-  .review-card.low { border-left: 3px solid var(--danger); }
-  .review-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--muted); }
-  .stars { letter-spacing: 1px; }
-  .star-on { color: #e6b84a; }
-  .star-off { color: #d0cfc8; }
-  .review-content { font-size: 13px; color: #3a3836; line-height: 1.6; }
+  /* Star rating */
+  .stars { color: #f39c12; }
 
-  /* ── 트렌드 바 차트 ── */
-  .trend-bar-wrap { margin-top: 8px; }
-  .trend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .trend-label { font-size: 11px; font-family: var(--mono); color: var(--muted); width: 60px; }
-  .trend-bar-bg { flex: 1; height: 16px; background: var(--bg); border-radius: 3px; overflow: hidden; position: relative; }
-  .trend-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); opacity: .7; }
-  .trend-cnt { font-size: 11px; font-family: var(--mono); width: 48px; text-align: right; color: var(--muted); }
+  /* Label badge */
+  .badge-confirm { font-size: 10px; color: var(--text-muted); font-style: italic; }
+  .badge-est { font-size: 10px; color: var(--warning); font-style: italic; }
 
-  /* ── 비교 테이블 강조 ── */
-  .highlight-row { background: #f0f5f1; }
-
-  /* ── 인사이트 박스 ── */
+  /* Insights box */
   .insight-box {
-    border-left: 3px solid var(--accent); padding: 10px 14px;
-    background: var(--card); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    margin-bottom: 8px; font-size: 13px;
+    background: var(--primary-bg); border-left: 4px solid var(--primary);
+    padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 16px 0;
+    font-size: 13px; line-height: 1.7;
   }
-  .insight-box.warn { border-left-color: var(--warn); }
-  .insight-box.danger { border-left-color: var(--danger); }
-  .insight-box strong { display: block; margin-bottom: 2px; font-size: 13px; }
-  .insight-box p { color: #555; font-size: 13px; margin: 0; }
+  .insight-box strong { color: var(--primary); }
 
-  /* ── 섹션 넘버 ── */
-  .sec-num {
-    display: inline-block; width: 22px; height: 22px; line-height: 22px;
-    text-align: center; background: var(--accent); color: white;
-    border-radius: 50%; font-size: 11px; font-weight: 700; margin-right: 6px;
-  }
+  /* Footer */
+  .report-footer { text-align: center; padding: 20px; color: var(--text-muted); font-size: 12px; }
 
-  /* ── 푸터 ── */
-  .report-footer {
-    margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border);
-    font-size: 11px; color: var(--muted);
-  }
-  .source-list { margin-top: 6px; line-height: 1.8; }
-  .source-list a { color: var(--muted); text-decoration: none; }
-  .source-list a:hover { color: var(--accent); }
-
-  @media (max-width: 640px) {
+  /* Responsive */
+  @media (max-width: 768px) {
+    .swot-grid { grid-template-columns: 1fr; }
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    .grid-2 { grid-template-columns: 1fr; }
-    .grid-3 { grid-template-columns: 1fr 1fr; }
-    .report-header { padding: 24px 20px 20px; }
-    .container { padding: 20px 16px 60px; }
   }
 </style>
 </head>
 <body>
 
+<!-- Fixed Header -->
 <div class="report-header">
-  <div class="tag">백년화편 정기 리서치 리포트</div>
-  <h1>2026년 2분기 (Q2) 분기 리포트</h1>
-  <div class="meta">
-    <span>📅 기준일: 2026-05-06</span>
-    <span>📊 데이터 출처: 자사 리뷰 대시보드 + 웹 리서치</span>
-    <span>🏷️ 분석 대상: 백년화편 · 창억떡 · 명가삼대떡집 · 파파공방</span>
-  </div>
+  <h1>🍡 백년화편 분기별 전략 리포트 — 2026 Q2</h1>
+  <div class="meta">분석 기준: 2026-05-06 · 대상 분기: 2026년 4~6월</div>
 </div>
 
+<!-- Fixed Nav -->
+<nav class="nav-bar">
+  <a href="#summary">Q2 요약</a>
+  <a href="#timeline">분기 타임라인</a>
+  <a href="#market">시장 분석</a>
+  <a href="#competitors">경쟁사 동향</a>
+  <a href="#self">자사 현황</a>
+  <a href="#swot">SWOT</a>
+  <a href="#strategy">다음 분기 전략</a>
+</nav>
+
+<!-- Main Content -->
 <div class="container">
 
-  <!-- ══════════════ 요약 ══════════════ -->
-  <div class="section">
-    <div class="section-title"><span>Executive Summary</span> — 핵심 요약</div>
-
-    <div class="card warn">
-      <div class="card-title">⚠️ 이번 분기 핵심 이슈 3가지</div>
-      <div class="insight-box danger">
-        <strong>① 창억떡 SNS 바이럴 — 떡 시장 지형 급변</strong>
-        <p>2026년 3월, 창억떡 호박인절미가 유튜버·아이돌(DAY6 Young K) 언급으로 전국구 바이럴. 검색량 지수 100(최고치) 도달. '떡픈런' 현상 발생, 온라인 주문 폭주로 배송 지연. 백년화편은 이 바이럴 흐름에서 완전히 소외.</p>
-      </div>
-      <div class="insight-box warn">
-        <strong>② 제품 품질 우려 리뷰 증가 — '공장떡' 언급</strong>
-        <p>스마트스토어 1성 리뷰에서 "밥알 느낌이 없다", "예전 맛이 아니다", "공장떡같아졌다"는 장기 고객의 실망 리뷰 확인. 브랜드 정체성(밥알 식감)이 흔들리고 있다는 신호.</p>
-      </div>
-      <div class="insight-box">
-        <strong>③ 쿠팡 사태 → 네이버 스마트스토어 성장 기회</strong>
-        <p>쿠팡 개인정보 유출 이탈자 중 40.7%가 네이버쇼핑으로 이동. 네이버 커머스 매출 26% 급등. 백년화편 스마트스토어 채널 강화 타이밍.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════ 자사 리뷰 현황 ══════════════ -->
-  <div class="section">
-    <div class="section-title"><span class="sec-num">1</span>자사 리뷰 현황 — 백년화편</div>
+  <!-- ========== SECTION 1: Q2 SUMMARY ========== -->
+  <section class="section" id="summary">
+    <div class="section-title"><span class="icon">📊</span> 2026 Q2 분기 SUMMARY</div>
 
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-label">자사몰 누적 후기</div>
-        <div class="kpi-val">189,478</div>
-        <div class="kpi-sub">평균 ★4.9</div>
+        <div class="kpi-label">전체 누적 리뷰</div>
+        <div class="kpi-value">189,478</div>
+        <div class="kpi-sub">전체 채널 합산 / 평균 ★4.9</div>
+      </div>
+      <div class="kpi-card success">
+        <div class="kpi-label">리뷰 긍정 비율</div>
+        <div class="kpi-value">99%</div>
+        <div class="kpi-sub">3점 이하 1,745건 (1%)</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">자사몰 부정 후기</div>
-        <div class="kpi-val kpi-danger">1,745</div>
-        <div class="kpi-sub">부정률 0.92%</div>
+        <div class="kpi-label">주간 신규 리뷰</div>
+        <div class="kpi-value">608</div>
+        <div class="kpi-sub">최근 7일 / 부정 9건(1%)</div>
+      </div>
+      <div class="kpi-card warn">
+        <div class="kpi-label">경쟁사 주간 리뷰 (명가)</div>
+        <div class="kpi-value">1,270</div>
+        <div class="kpi-sub">백년화편 대비 +109% 🚨</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">스마트스토어 누적</div>
-        <div class="kpi-val">21,649</div>
-        <div class="kpi-sub">평균 ★4.9</div>
+        <div class="kpi-label">연매출 규모 (추정)</div>
+        <div class="kpi-value">~150억</div>
+        <div class="kpi-sub">정체 국면 지속 (추정)</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">스마트스토어 부정</div>
-        <div class="kpi-val kpi-danger">545</div>
-        <div class="kpi-sub">부정률 2.5% ⚠️</div>
+        <div class="kpi-label">주력 상품 리뷰</div>
+        <div class="kpi-value">78,314</div>
+        <div class="kpi-sub">밥알찹쌀떡 32개 (압도적 1위)</div>
       </div>
     </div>
 
-    <div class="grid-2">
-      <!-- 자사몰 별점 분포 -->
-      <div class="card">
-        <div class="card-title">별점 분포 — 자사몰 (직접 + 카카오 + 네이버)</div>
-        <div class="star-bar-row">
-          <div class="star-label">5</div>
-          <div class="star-bar-wrap"><div class="star-bar s5" style="width:88.3%"></div></div>
-          <div class="star-count">167,362 (88.3%)</div>
-        </div>
-        <div class="star-bar-row">
-          <div class="star-label">4</div>
-          <div class="star-bar-wrap"><div class="star-bar s4" style="width:2.4%"></div></div>
-          <div class="star-count">4,535 (2.4%)</div>
-        </div>
-        <div class="star-bar-row">
-          <div class="star-label">3</div>
-          <div class="star-bar-wrap"><div class="star-bar s3" style="width:0.5%"></div></div>
-          <div class="star-count">989 (0.5%)</div>
-        </div>
-        <div class="star-bar-row">
-          <div class="star-label">2</div>
-          <div class="star-bar-wrap"><div class="star-bar s2" style="width:0.1%"></div></div>
-          <div class="star-count">261 (0.1%)</div>
-        </div>
-        <div class="star-bar-row">
-          <div class="star-label">1</div>
-          <div class="star-bar-wrap"><div class="star-bar s1" style="width:0.3%"></div></div>
-          <div class="star-count">495 (0.3%)</div>
-        </div>
-        <p style="font-size:11px;color:var(--muted);margin-top:10px">5성 비율 88.3%로 매우 높은 수준 유지. 데이터 편향 주의(리뷰를 주로 쓰는 고객층 특성).</p>
-      </div>
-
-      <!-- 플랫폼별 현황 -->
-      <div class="card">
-        <div class="card-title">플랫폼별 현황</div>
-        <table>
-          <thead><tr><th>플랫폼</th><th>후기 수</th><th>평균별점</th><th>부정</th><th>부정률</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><span class="tag tag-blue">자사몰(직접)</span></td>
-              <td class="num">117,238</td>
-              <td class="num">5.0</td>
-              <td class="num" style="color:var(--danger)">819</td>
-              <td class="num">0.70%</td>
-            </tr>
-            <tr>
-              <td><span class="tag tag-warn">카카오</span></td>
-              <td class="num">46,514</td>
-              <td class="num">5.0</td>
-              <td class="num" style="color:var(--danger)">344</td>
-              <td class="num">0.74%</td>
-            </tr>
-            <tr>
-              <td><span class="tag tag-gray">네이버(자사몰)</span></td>
-              <td class="num">25,726</td>
-              <td class="num">4.9</td>
-              <td class="num" style="color:var(--danger)">582</td>
-              <td class="num">2.26%</td>
-            </tr>
-            <tr style="background:#fdf0ee">
-              <td><span class="tag tag-red">스마트스토어</span></td>
-              <td class="num">21,649</td>
-              <td class="num">4.9</td>
-              <td class="num" style="color:var(--danger)">545</td>
-              <td class="num"><strong>2.52% ⚠️</strong></td>
-            </tr>
-          </tbody>
-        </table>
-        <p style="font-size:11px;color:var(--danger);margin-top:8px">스마트스토어와 네이버 채널 부정률이 자사몰 대비 3배 이상 높음. 유입 고객층 차이 또는 검색 유입 고객 기대치 불일치 가능성.</p>
-      </div>
+    <div class="insight-box">
+      <strong>핵심 경고:</strong> 명가삼대떡집의 주간 신규 리뷰(1,270건)가 백년화편(608건)의 2.1배 수준으로, 최근 구매량 격차가 벌어지고 있을 가능성이 높다. 누적 리뷰 총량(189,478 vs 121,526)은 우위이나 신규 유입 속도에서 역전 신호. <strong>Q2 최우선 과제는 신규 고객 유입 가속화</strong>다.
     </div>
 
-    <!-- 주간 트렌드 -->
-    <div class="card">
-      <div class="card-title">주간 후기 트렌드 — 자사몰 (2026년 3~5월)</div>
-      <div class="trend-bar-wrap">
-        <div class="trend-row">
-          <div class="trend-label">03/16</div>
-          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:74%"></div></div>
-          <div class="trend-cnt">1,056건</div>
-        </div>
-        <div class="trend-row">
-          <div class="trend-label">03/23</div>
-          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:81%"></div></div>
-          <div class="trend-cnt">1,150건</div>
-        </div>
-        <div class="trend-row">
-          <div class="trend-label">03/30</div>
-          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:93%"></div></div>
-          <div class="trend-cnt">1,321건</div>
-        </div>
-        <div class="trend-row">
-          <div class="trend-label">04/06</div>
-          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:100%"></div></div>
-          <div class="trend-cnt">1,418건 ▲최고</div>
-        </div>
-        <div class="trend-row">
-          <div class="trend-label">04/13</div>
-          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:85%"></div></div>
-          <div class="trend-cnt">1,200건</div>
-        </div>
-        <div class="trend-row">
-          <div class="trend-label">04/20</div>
-          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:61%"></div></div>
-          <div class="trend-cnt">871건 ↘</div>
-        </div>
-        <div class="trend-row">
-          <div class="trend-label">04/27</div>
-          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:57%"></div></div>
-          <div class="trend-cnt">814건 ↘</div>
-        </div>
-        <div class="trend-row">
-          <div class="trend-label">05/04</div>
-          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:15%"></div></div>
-          <div class="trend-cnt">213건 (집계 중)</div>
-        </div>
-      </div>
-      <p style="font-size:11px;color:var(--muted);margin-top:8px">4월 초 1,418건 고점 후 하락세. 3월 말~4월 초 어린이날/봄 시즌 수요 반영 추정. 4월 말부터 뚜렷한 감소 — 창억떡 바이럴 시기와 겹침. 5월 4일 수치는 집계 중이므로 최종치 아님.</p>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">분기 진행률 (기준일: 2026-05-06 · Q2 = 4월~6월)</p>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Q2 진행률</span><span>~35%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:35%"></div></div>
     </div>
-
-    <!-- TOP 상품 -->
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">후기 많은 상품 TOP 3</div>
-        <table>
-          <thead><tr><th>#</th><th>상품명</th><th>후기</th><th>★</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="num">1</td>
-              <td>밥알찹쌀떡 32개 (팥 앙금)</td>
-              <td class="num">78,314</td>
-              <td class="num">5.0</td>
-            </tr>
-            <tr>
-              <td class="num">2</td>
-              <td>밥알흑임자 32개 (흑임자 앙금)</td>
-              <td class="num">16,307</td>
-              <td class="num">5.0</td>
-            </tr>
-            <tr>
-              <td class="num">3</td>
-              <td>옛날밥알쑥떡 32개 (앙금 없음)</td>
-              <td class="num">12,055</td>
-              <td class="num">5.0</td>
-            </tr>
-          </tbody>
-        </table>
-        <p style="font-size:11px;color:var(--muted);margin-top:8px">밥알찹쌀떡이 압도적 1위. 전체 후기의 41.3% 집중.</p>
-      </div>
-
-      <div class="card danger">
-        <div class="card-title">부정 후기 집중 상품 TOP 3</div>
-        <table>
-          <thead><tr><th>#</th><th>상품명</th><th>부정</th><th>부정률</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="num">1</td>
-              <td>밥알찹쌀떡 32개 (팥 앙금)</td>
-              <td class="num" style="color:var(--danger)">470</td>
-              <td class="num">0.6%</td>
-            </tr>
-            <tr>
-              <td class="num">2</td>
-              <td>스마트스토어 밥알찹쌀떡 32개</td>
-              <td class="num" style="color:var(--danger)">153</td>
-              <td class="num">2.1%</td>
-            </tr>
-            <tr>
-              <td class="num">3</td>
-              <td>밥알흑임자 32개 (흑임자 앙금)</td>
-              <td class="num" style="color:var(--danger)">128</td>
-              <td class="num">0.8%</td>
-            </tr>
-          </tbody>
-        </table>
-        <p style="font-size:11px;color:var(--danger);margin-top:8px">스마트스토어 밥알찹쌀떡 부정률 2.1% — 동일 제품 자사몰(0.6%) 대비 3.5배. 채널별 고객 기대치 괴리.</p>
-      </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>자사몰 리뷰 목표 달성률 (목표: 200,000건)</span><span>94.7%</span></div>
+      <div class="progress-bar"><div class="progress-fill success" style="width:94.7%"></div></div>
     </div>
-
-    <!-- 키워드 분석 -->
-    <div class="card">
-      <div class="card-title">키워드 분석 — 자사몰 전체 누적</div>
-      <div style="margin-bottom:12px">
-        <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:7px">✓ 긍정 키워드 (4~5점)</div>
-        <div class="chips">
-          <span class="chip chip-pos">맛있어요 <span class="chip-cnt">27,874</span></span>
-          <span class="chip chip-pos">맛있다고 <span class="chip-cnt">11,808</span></span>
-          <span class="chip chip-pos">선물로 <span class="chip-cnt">10,511</span></span>
-          <span class="chip chip-pos">맛있게 <span class="chip-cnt">9,801</span></span>
-          <span class="chip chip-pos">먹고 <span class="chip-cnt">8,645</span></span>
-        </div>
-        <p style="font-size:11px;color:var(--muted);margin-top:6px">'선물로' 키워드 3위 — 선물 목적 구매가 핵심 용도임을 확인. 맛 중심 긍정어 압도적.</p>
-      </div>
-      <div>
-        <div style="font-size:11px;color:var(--danger);font-weight:700;margin-bottom:7px">✗ 부정 키워드 (1~3점)</div>
-        <div class="chips">
-          <span class="chip chip-neg">떡이 <span class="chip-cnt">214</span></span>
-          <span class="chip chip-neg">많이 <span class="chip-cnt">143</span></span>
-          <span class="chip chip-neg">맛이 <span class="chip-cnt">124</span></span>
-          <span class="chip chip-neg">떡은 <span class="chip-cnt">98</span></span>
-          <span class="chip chip-neg">바로 <span class="chip-cnt">93</span></span>
-        </div>
-        <p style="font-size:11px;color:var(--muted);margin-top:6px">'떡이/떡은' — 제품 자체 불만. '바로' — 배송 속도 언급 추정. '맛이' — 맛 실망 맥락.</p>
-      </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>부정 리뷰 억제율 (1% 이하 유지)</span><span>99%</span></div>
+      <div class="progress-bar"><div class="progress-fill success" style="width:99%"></div></div>
     </div>
-
-    <!-- 주요 부정 리뷰 샘플 -->
-    <div class="card">
-      <div class="card-title">⚠️ 주요 부정 리뷰 샘플 (2026년 4~5월, 스마트스토어)</div>
-
-      <div class="review-card low">
-        <div class="review-meta">
-          <span class="stars"><span class="star-on">★</span><span class="star-off">★★★★</span></span>
-          <span class="tag tag-red">1성</span>
-          <span>2026-04-29</span>
-          <span>스마트스토어</span>
-          <span>밥알찹쌀떡 32개</span>
-        </div>
-        <div class="review-content">"밥알이 느껴지지도 않고 쑥의 함량도 줄었는지 색도 맛도 흐릿해지고 떡의 식감도 예전의 것이 아니라 요즘 공장떡들처럼 해동하면 흐물해지는 전형적인 공장떡같아져 버렸습니다. 애정하는 곳이었는데 공장떡이 아니라 떡집의 맛있는 쑥떡을 다시 찾아야할것같아 아쉽습니다."</div>
-      </div>
-
-      <div class="review-card low">
-        <div class="review-meta">
-          <span class="stars"><span class="star-on">★</span><span class="star-off">★★★★</span></span>
-          <span class="tag tag-red">1성</span>
-          <span>2026-04-30</span>
-          <span>스마트스토어</span>
-          <span>쑥떡 쑥인절미</span>
-        </div>
-        <div class="review-content">"시커먼게 가족들 먹고 다 이게 무슨 쑥떡이냐고 쑥맛이 진짜 하나도 안 나요!!!! 진짜 해도 너무너무 합니다!!!! 본인들 안드셔 보셨어요? 이게 진짜 쑥떡 맛나요!!!!!!"</div>
-      </div>
-
-      <div class="review-card low">
-        <div class="review-meta">
-          <span class="stars"><span class="star-on">★★★</span><span class="star-off">★★</span></span>
-          <span class="tag tag-warn">3성</span>
-          <span>2026-05-03</span>
-          <span>스마트스토어</span>
-          <span>밥알찹쌀떡 반반세트</span>
-        </div>
-        <div class="review-content">"밥알 느낌이 별로없어 씹는맛이 덜함 / 전에 먹었던기억에 비해 별로임"</div>
-      </div>
-
-      <div class="review-card low">
-        <div class="review-meta">
-          <span class="stars"><span class="star-on">★</span><span class="star-off">★★★★</span></span>
-          <span class="tag tag-red">1성</span>
-          <span>2026-05-04</span>
-          <span>카카오</span>
-          <span>밥알찹쌀떡 32개</span>
-        </div>
-        <div class="review-content">"주소가 잘못 되어서 배송이 안되었는데 배송완료 문자는 왜 보내셨나요? 배송확인도 안하시고... 물건은 폐기한다고 하시고 모두 소비자에게 부담해야 하는게 맞는건가요? 일단 소비자보호센타에 문의해 보겠습니다."</div>
-      </div>
-
-      <p style="font-size:11px;color:var(--muted);margin-top:8px">패턴 분석: ① 장기 고객의 품질 변화 인식(공장떡화) ② 쑥향/밥알 식감 저하 ③ 배송/CS 불만. 특히 ①은 브랜드 정체성과 직결되는 심각한 신호.</p>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>경쟁사 대비 주간 리뷰 속도 격차 (위험)</span><span>48%</span></div>
+      <div class="progress-bar"><div class="progress-fill warn" style="width:48%"></div></div>
     </div>
-  </div>
+  </section>
 
-  <!-- ══════════════ 경쟁사 분석 ══════════════ -->
-  <div class="section">
-    <div class="section-title"><span class="sec-num">2</span>경쟁사 분석</div>
+  <!-- ========== SECTION 2: 분기 타임라인 ========== -->
+  <section class="section" id="timeline">
+    <div class="section-title"><span class="icon">📅</span> 분기 타임라인 (Q1 마감 → Q2 진행)</div>
 
-    <!-- 비교 테이블 -->
-    <div class="card">
-      <div class="card-title">경쟁사 리뷰 지표 비교 (대시보드 기준, 2026-05-06)</div>
-      <table>
-        <thead>
-          <tr>
-            <th>브랜드</th>
-            <th>누적 후기</th>
-            <th>평균 별점</th>
-            <th>부정 후기</th>
-            <th>부정률</th>
-            <th>주간 후기</th>
-            <th>채널</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="highlight-row">
-            <td><strong>백년화편 (자사몰)</strong></td>
-            <td class="num">189,478</td>
-            <td class="num">4.9</td>
-            <td class="num" style="color:var(--danger)">1,745</td>
-            <td class="num">0.92%</td>
-            <td class="num">608</td>
-            <td>자사몰·카카오·네이버</td>
-          </tr>
-          <tr class="highlight-row">
-            <td><strong>백년화편 (스마트스토어)</strong></td>
-            <td class="num">21,649</td>
-            <td class="num">4.9</td>
-            <td class="num" style="color:var(--danger)">545</td>
-            <td class="num">2.52% ⚠️</td>
-            <td class="num">334</td>
-            <td>네이버 스마트스토어</td>
-          </tr>
-          <tr>
-            <td><strong>명가삼대떡집</strong></td>
-            <td class="num">121,526</td>
-            <td class="num">4.9</td>
-            <td class="num" style="color:var(--danger)">1,010</td>
-            <td class="num">0.83%</td>
-            <td class="num">1,270</td>
-            <td>자사몰(네이버쇼핑)</td>
-          </tr>
-          <tr>
-            <td><strong>파파공방</strong></td>
-            <td class="num">7,243</td>
-            <td class="num">4.9</td>
-            <td class="num" style="color:var(--danger)">193</td>
-            <td class="num">2.67%</td>
-            <td class="num">19</td>
-            <td>자사몰</td>
-          </tr>
-          <tr>
-            <td><strong>창억떡</strong></td>
-            <td class="num" style="color:var(--muted)">수집 불가</td>
-            <td class="num" style="color:var(--muted)">—</td>
-            <td class="num" style="color:var(--muted)">—</td>
-            <td class="num" style="color:var(--muted)">—</td>
-            <td class="num" style="color:var(--muted)">—</td>
-            <td>오프라인 + 온라인</td>
-          </tr>
-        </tbody>
-      </table>
-      <p style="font-size:11px;color:var(--muted);margin-top:8px">* 창억떡 데이터는 대시보드에서 수집되지 않음. 별도 수동 조사 필요.<br>* 명가삼대떡집 주간 후기 1,270건 — 백년화편 자사몰(608건) 대비 약 2배. 주간 볼륨 격차 주목.</p>
-    </div>
-
-    <!-- 창억떡 -->
-    <div class="card warn">
-      <div class="card-title">🔥 창억떡 — 2026년 Q1 최대 이슈</div>
-      <table>
-        <thead><tr><th>항목</th><th>내용</th></tr></thead>
-        <tbody>
-          <tr><td>트리거 이벤트</td><td>2026년 3월 5일: 유튜브 채널 '하말넘많' 언급 → 3월 14~15일: DAY6 Young K 콘서트 언급</td></tr>
-          <tr><td>바이럴 규모</td><td>네이버 데이터랩 검색량 지수 100(최고치) 달성. 오프라인 '떡픈런' 발생</td></tr>
-          <tr><td>온라인 영향</td><td>공식 쇼핑몰 "택배량 급증 → 배송 지연" 공지 게시 (3월 18일)</td></tr>
-          <tr><td>주요 제품</td><td>호박인절미 — 광주 향토 상품. 쿠팡에도 입점(냉동)</td></tr>
-          <tr><td>채널</td><td>오프라인 본점(광주) + 온라인 공식몰 + 쿠팡</td></tr>
-          <tr><td>SNS</td><td>Instagram @changeok_official (14K 팔로워)</td></tr>
-          <tr><td>백년화편에 주는 시사점</td><td>SNS 바이럴 공식 부재로 경쟁사의 급등 수혜를 전혀 흡수하지 못함</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 명가삼대떡집 -->
-    <div class="card">
-      <div class="card-title">명가삼대떡집 — 안정적 볼륨 1위 경쟁사</div>
-      <div class="grid-2">
-        <div>
-          <table>
-            <thead><tr><th>지표</th><th>수치</th></tr></thead>
-            <tbody>
-              <tr><td>누적 후기</td><td class="num">121,526건</td></tr>
-              <tr><td>주간 후기</td><td class="num">1,270건 (vs 백년화편 608)</td></tr>
-              <tr><td>평균 별점</td><td class="num">4.9</td></tr>
-              <tr><td>부정 후기</td><td class="num">1,010건 (0.83%)</td></tr>
-              <tr><td>TOP 1 상품 후기</td><td class="num">18,995건 (쑥인절미)</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div>
-          <table>
-            <thead><tr><th>항목</th><th>내용</th></tr></thead>
-            <tbody>
-              <tr><td>SNS</td><td>Instagram @myeongga_official (48K 팔로워 — 창억떡 3배)</td></tr>
-              <tr><td>채널</td><td>자사몰 + 네이버쇼핑 + SSG.com + 롯데ON + 뉴탐사몰</td></tr>
-              <tr><td>가격대</td><td>쑥떡·인절미 중심, 특가 프로모션 적극 활용</td></tr>
-              <tr><td>포지셔닝</td><td>"전통의 정직한 맛", 30년 전통 강조</td></tr>
-              <tr><td>위협 요소</td><td>주간 후기 볼륨에서 백년화편 대비 우위</td></tr>
-            </tbody>
-          </table>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-month">2026년 2월</div>
+        <div class="timeline-content">
+          <div class="timeline-event">설 명절 시즌 — 선물용 떡 시장 최대 성수기. 온라인 선물 카테고리 집중 수요 발생.</div>
+          <div class="timeline-event">네이버 쇼핑 카테고리 개편 예고 (4월 실시). 전통과자 세분화 진행.</div>
         </div>
       </div>
-      <div style="margin-top:10px">
-        <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:7px">긍정 키워드</div>
-        <div class="chips">
-          <span class="chip chip-pos">맛있어요 <span class="chip-cnt">31,552</span></span>
-          <span class="chip chip-pos">맛있게 <span class="chip-cnt">8,386</span></span>
-          <span class="chip chip-pos">많이 <span class="chip-cnt">8,236</span></span>
-          <span class="chip chip-pos">맛있어서 <span class="chip-cnt">6,803</span></span>
-          <span class="chip chip-pos">먹고 <span class="chip-cnt">6,017</span></span>
+      <div class="timeline-item">
+        <div class="timeline-month">2026년 3월</div>
+        <div class="timeline-content">
+          <div class="timeline-event">창억떡 SNS 바이럴 발생 — DAY6 Young K 콘서트·유튜브 채널에서 창억떡 언급 → SNS 검색량 급증. <span class="tag tag-red">경쟁 리스크</span></div>
+          <div class="timeline-event">버터떡 키워드 네이버 검색량 전월 대비 +700% 급등 — 신유형 떡 카테고리 부상.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-month">2026년 4월 (Q2 시작)</div>
+        <div class="timeline-content">
+          <div class="timeline-event">네이버 쇼핑 카테고리 개편 시행 (4/20~24) — 전통과자/떡 카테고리 세분화. 상품 노출 재정렬 가능성.</div>
+          <div class="timeline-event">온라인 식품 시장 채널 점유율: 쿠팡 23%, 네이버쇼핑 20.7% 확인 (2026 기준). 쿠팡 이탈자 40.7%가 네이버쇼핑으로 유입. <span class="tag tag-green">기회</span></div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-month">2026년 5월 (현재)</div>
+        <div class="timeline-content">
+          <div class="timeline-event">어버이날·스승의날 시즌 — 선물용 수요 상승 구간. 전통 선물 카테고리 트래픽 증가 기대.</div>
+          <div class="timeline-event">대시보드 기준(05-06) 백년화편 전체 리뷰 189,478건 / 명가삼대 121,526건 확인.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-month">2026년 6월 (예정)</div>
+        <div class="timeline-content">
+          <div class="timeline-event">여름 시즌 전환 — 냉동떡·선물세트 수요 감소 구간 진입. 여름용 제품 프로모션 필요.</div>
+          <div class="timeline-event">Q2 마감 실적 집계 및 Q3 전략 수립 필요.</div>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- 파파공방 -->
-    <div class="card">
-      <div class="card-title">파파공방 — 건강·무설탕 포지셔닝 신흥 경쟁자</div>
-      <p style="font-size:13px;margin-bottom:12px">현미 밥알쑥떡 시리즈로 <strong>'건강한'</strong> 포지셔닝. 백년화편 밥알 시리즈와 직접 경쟁하는 제품 라인업. 아직 규모는 작으나(총 7,243건) 4월 말 급격한 주간 후기 증가(19→46건) 확인.</p>
-      <div class="grid-3">
-        <div>
-          <div class="kpi-label">누적 후기</div>
-          <div class="kpi-val" style="font-size:20px">7,243</div>
-        </div>
-        <div>
-          <div class="kpi-label">부정률</div>
-          <div class="kpi-val kpi-danger" style="font-size:20px">2.67%</div>
-        </div>
-        <div>
-          <div class="kpi-label">TOP 상품</div>
-          <div style="font-size:13px;margin-top:4px">무염/저염 무설탕<br>현미 밥알쑥떡</div>
-        </div>
-      </div>
-      <div style="margin-top:10px">
-        <div class="chips">
-          <span class="chip chip-pos">맛있어요</span>
-          <span class="chip chip-pos">건강한 <span class="chip-cnt">423</span></span>
-          <span class="chip chip-pos">감사합니다</span>
-        </div>
-      </div>
-      <p style="font-size:11px;color:var(--muted);margin-top:8px">⚠️ '건강한' 키워드가 명확한 포지셔닝. 백년화편이 건강 포지셔닝을 강화하지 않으면 이 세그먼트에서 밀릴 수 있음.</p>
+  <!-- ========== SECTION 3: 시장 분석 ========== -->
+  <section class="section" id="market">
+    <div class="section-title"><span class="icon">🏪</span> 시장 분석</div>
+
+    <table style="margin-bottom:20px">
+      <thead>
+        <tr><th style="width:30%">항목</th><th>내용</th><th style="width:20%">출처/신뢰도</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-left bold">온라인 식품 시장 규모</td>
+          <td class="td-left">약 52조원 (2025년 추정). 식품 선물 카테고리 온라인 구매 비중 지속 확대.</td>
+          <td><span class="badge-est">(추정)</span> 오픈서베이 2026</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">이커머스 채널 점유율</td>
+          <td class="td-left">쿠팡 23%, 네이버쇼핑 20.7%. 상위 2개 플랫폼이 시장 43% 이상 장악.</td>
+          <td>marqvision 2026 (확인)</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">쿠팡 이탈 트렌드</td>
+          <td class="td-left">쿠팡 이탈 소비자의 40.7%가 네이버쇼핑으로 이동. 네이버스토어 중요성 증가.</td>
+          <td>오픈서베이 2026 (확인)</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">소비자 행동 변화</td>
+          <td class="td-left">고물가 지속으로 가격 민감도 상승. 단, 선물용 식품은 품질 우선 경향 유지. '왜 선택하느냐' 기준 변화.</td>
+          <td>foodicon 2026 (확인)</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">신규 트렌드 키워드</td>
+          <td class="td-left">버터떡 검색량 전월 대비 +700% 급등 (careet.net 확인). Z세대 중심 신유형 떡 부상.</td>
+          <td>careet 2026 (확인)</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">2026 식품 소비 트렌드</td>
+          <td class="td-left">건강·편리미엄(건강+프리미엄) 키워드 주도. 1인 가구·고령화로 소포장 수요 강화.</td>
+          <td>식품음료신문 2026 (확인)</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">국내 떡 시장 규모</td>
+          <td class="td-left">공시 통계 부재. 전통 떡 카테고리 성장 지속 (추정). SNS 유형 떡(버터떡 등) 신시장 형성.</td>
+          <td><span class="badge-confirm">확인 불가</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="insight-box">
+      <strong>시장 시사점:</strong> 쿠팡 이탈 소비자가 네이버쇼핑으로 대거 이동 중인 현 시점이 백년화편의 네이버스토어 강화 최적 타이밍이다. 또한 Z세대 중심 신유형 떡(버터떡 등) 트렌드는 기존 전통·선물 포지션에 위협이 되기 전에 해당 세그먼트 대응을 검토해야 한다.
     </div>
+  </section>
 
-    <!-- 포지셔닝 맵 -->
-    <div class="card">
-      <div class="card-title">브랜드 포지셔닝 비교</div>
-      <table>
-        <thead><tr><th>브랜드</th><th>핵심 포지셔닝</th><th>주요 강점</th><th>주요 약점</th><th>SNS 팔로워</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>백년화편</strong></td>
-            <td>밥알 식감, 선물, 전통</td>
-            <td>최다 누적 리뷰, 강한 재구매</td>
-            <td>SNS 바이럴 부재, 품질 일관성 우려</td>
-            <td class="num">확인 필요</td>
-          </tr>
-          <tr>
-            <td><strong>명가삼대떡집</strong></td>
-            <td>30년 전통, 정직한 맛</td>
-            <td>최다 주간 볼륨, 다채널, 48K SNS</td>
-            <td>차별화 포인트 약함</td>
-            <td class="num">48K (인스타)</td>
-          </tr>
-          <tr>
-            <td><strong>창억떡</strong></td>
-            <td>광주 향토, 독보적 맛</td>
-            <td>SNS 바이럴 폭발력, 오프라인 희소성</td>
-            <td>오프라인 중심, 지역 한계</td>
-            <td class="num">14K (인스타)</td>
-          </tr>
-          <tr>
-            <td><strong>파파공방</strong></td>
-            <td>건강, 무설탕, 현미</td>
-            <td>건강 소비 트렌드 정합</td>
-            <td>규모 작음, 인지도 낮음</td>
-            <td class="num">확인 필요</td>
-          </tr>
-          <tr>
-            <td><strong>압구정공주떡집</strong></td>
-            <td>프리미엄, 예약제</td>
-            <td>서울 강남 위치, 프리미엄 이미지</td>
-            <td>온라인 데이터 부족</td>
-            <td class="num">확인 필요</td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- ========== SECTION 4: 경쟁사 동향 ========== -->
+  <section class="section" id="competitors">
+    <div class="section-title"><span class="icon">⚔️</span> 경쟁사 분기 동향 심층 비교</div>
+
+    <table style="margin-bottom:24px">
+      <thead>
+        <tr>
+          <th style="width:16%">항목</th>
+          <th style="width:28%">백년화편 (자사)</th>
+          <th style="width:28%">명가삼대떡집</th>
+          <th style="width:28%">창억떡</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-left bold">브랜드 성격</td>
+          <td class="td-left">대한명인 찹쌀떡 전문, 선물/프리미엄</td>
+          <td class="td-left">30년 전통 쑥떡·인절미 전문, 건강 이미지</td>
+          <td class="td-left">1965년 창업, 광주 기반, 전국 냉동유통</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">주력 상품</td>
+          <td class="td-left">밥알찹쌀떡 32개 (42,000원) · 흑임자 · 쑥떡</td>
+          <td class="td-left">쑥인절미 · 콩달떡 · 쑥설기</td>
+          <td class="td-left">전통떡 냉동 라인업 다수</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">전체 리뷰 수</td>
+          <td class="td-left"><span class="tag tag-green">189,478건 ★4.9</span></td>
+          <td class="td-left"><span class="tag tag-yellow">121,526건 ★4.9</span></td>
+          <td class="td-left"><span class="tag tag-gray">데이터 없음</span></td>
+        </tr>
+        <tr>
+          <td class="td-left bold">주간 신규 리뷰</td>
+          <td class="td-left">608건/주</td>
+          <td class="td-left"><strong style="color:var(--accent)">1,270건/주 🚨</strong></td>
+          <td class="td-left"><span class="badge-confirm">확인 불가</span></td>
+        </tr>
+        <tr>
+          <td class="td-left bold">판매 채널</td>
+          <td class="td-left">자사몰 > 네이버 > 쿠팡</td>
+          <td class="td-left">자사몰 단일 채널 (집중형)</td>
+          <td class="td-left">홈쇼핑·쿠팡·마켓컬리·공영홈쇼핑</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">소셜 이슈 (Q1)</td>
+          <td class="td-left">특이 이슈 없음</td>
+          <td class="td-left">인스타그램 48K 팔로워 유지, 할인 링크 적극 운영</td>
+          <td class="td-left"><strong style="color:var(--accent)">DAY6 Young K 언급 → SNS 바이럴 🚨</strong></td>
+        </tr>
+        <tr>
+          <td class="td-left bold">부정 리뷰 비율</td>
+          <td class="td-left">1% (1,745건)</td>
+          <td class="td-left">1% (1,010건)</td>
+          <td class="td-left"><span class="badge-confirm">확인 불가</span></td>
+        </tr>
+        <tr>
+          <td class="td-left bold">포지셔닝</td>
+          <td class="td-left">전통 + 선물 + 프리미엄</td>
+          <td class="td-left">건강 + 전통 + 가성비</td>
+          <td class="td-left">전통 + 대중 + SNS 바이럴</td>
+        </tr>
+        <tr>
+          <td class="td-left bold">위협 수준</td>
+          <td class="td-left">—</td>
+          <td class="td-left"><span class="tag tag-red">높음 (리뷰 속도 역전)</span></td>
+          <td class="td-left"><span class="tag tag-yellow">중간 (바이럴 일시적 가능성)</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="insight-box">
+      <strong>경쟁사 핵심 위협:</strong> 명가삼대떡집의 주간 리뷰 속도(1,270건/주)가 백년화편(608건/주)을 2.1배 상회한다. 명가삼대는 자사몰 단일 채널에서만 이 수치를 기록 중으로, 채널 확장 없이도 구매 전환이 강함을 의미한다. 창억떡의 Q1 SNS 바이럴이 Q2 판매로 이어질 경우 추가 위협이 될 수 있으나, 바이럴 지속성은 불확실하다 (추정).
     </div>
-  </div>
+  </section>
 
-  <!-- ══════════════ 시장 동향 ══════════════ -->
-  <div class="section">
-    <div class="section-title"><span class="sec-num">3</span>시장 동향 — 2026년 Q1~Q2</div>
+  <!-- ========== SECTION 5: 자사 현황 ========== -->
+  <section class="section" id="self">
+    <div class="section-title"><span class="icon">🏠</span> 자사 현황 — 채널별 리뷰 분석</div>
 
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">📦 이커머스 채널 변화</div>
-        <table>
-          <thead><tr><th>항목</th><th>내용</th></tr></thead>
-          <tbody>
-            <tr><td>2026년 Q1 온라인쇼핑 거래액</td><td class="num"><strong>72조원</strong> (+9.2% YoY)</td></tr>
-            <tr><td>쿠팡 사태 영향</td><td>개인정보 유출 → 이탈자 발생</td></tr>
-            <tr><td>네이버 반사이익</td><td>커머스 매출 +26.2%, 5,400억 흑자</td></tr>
-            <tr><td>탈팡족 이동</td><td>네이버쇼핑 40.7%, 컬리 19.8%</td></tr>
-            <tr><td>식품 1회 지출(네이버)</td><td>63,600원 (3개 플랫폼 중 최고)</td></tr>
-            <tr><td>전문몰 성장</td><td>+14.2% YoY, 비중 46.2%로 확대</td></tr>
-          </tbody>
-        </table>
-        <p style="font-size:11px;color:var(--accent);margin-top:8px">→ 백년화편 네이버 스마트스토어 채널 강화의 최적 타이밍.</p>
-      </div>
+    <table style="margin-bottom:24px">
+      <thead>
+        <tr>
+          <th>채널</th>
+          <th>전체 리뷰</th>
+          <th>평균 별점</th>
+          <th>부정 리뷰</th>
+          <th>최근 7일</th>
+          <th>비고</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bold">자사몰 (직접)</td>
+          <td>117,238건</td>
+          <td><span class="stars">★★★★★</span> 5.0</td>
+          <td>819건</td>
+          <td>—</td>
+          <td><span class="tag tag-green">주력 채널</span></td>
+        </tr>
+        <tr>
+          <td class="bold">자사몰 (카카오)</td>
+          <td>46,514건</td>
+          <td><span class="stars">★★★★★</span> 5.0</td>
+          <td>344건</td>
+          <td>—</td>
+          <td><span class="tag tag-purple">2위 채널</span></td>
+        </tr>
+        <tr>
+          <td class="bold">자사몰 (네이버)</td>
+          <td>25,726건</td>
+          <td><span class="stars">★★★★</span> 4.9</td>
+          <td>582건</td>
+          <td>334건</td>
+          <td><span class="tag tag-yellow">성장 채널</span></td>
+        </tr>
+        <tr>
+          <td class="bold">전체 합산</td>
+          <td class="bold">189,478건</td>
+          <td><span class="stars">★★★★</span> 4.9</td>
+          <td class="bold">1,745건 (1%)</td>
+          <td>608건</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
 
-      <div class="card">
-        <div class="card-title">📱 SNS & 소비 트렌드</div>
-        <table>
-          <thead><tr><th>항목</th><th>내용</th></tr></thead>
-          <tbody>
-            <tr><td>2026년 식품 유행 주기</td><td>약 2주 단위 초단기 교체 (두쫀쿠 → 버터떡 → 창억떡)</td></tr>
-            <tr><td>바이럴 동력</td><td>인스타그램 릴스, 유튜브 쇼츠, 아이돌 언급</td></tr>
-            <tr><td>소비 심리</td><td>"필코노미" — 기분 전환 소비, 놓치기 싫은 심리</td></tr>
-            <tr><td>MZ세대 떡 소비</td><td>오프라인 오픈런 + SNS 인증 → 온라인 주문</td></tr>
-            <tr><td>핵심 마케팅 채널</td><td>라이브커머스, 숏폼, 인플루언서 협업</td></tr>
-          </tbody>
-        </table>
-        <p style="font-size:11px;color:var(--danger);margin-top:8px">→ 백년화편은 SNS 바이럴 전략 부재. 유행 주기에 올라타지 못함.</p>
-      </div>
+    <h4 style="margin-bottom:12px; color:var(--primary)">📦 상품별 리뷰 TOP 3</h4>
+    <table style="margin-bottom:20px">
+      <thead>
+        <tr><th>순위</th><th>상품명</th><th>전체 리뷰</th><th>평균 별점</th><th>부정 리뷰</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🥇 1위</td>
+          <td class="td-left">밥알찹쌀떡 32개 (팥 앙금)</td>
+          <td>78,314건</td>
+          <td><span class="stars">★★★★★</span> 5.0</td>
+          <td>470건 (0.6%)</td>
+        </tr>
+        <tr>
+          <td>🥈 2위</td>
+          <td class="td-left">밥알흑임자 32개 (흑임자 앙금)</td>
+          <td>16,307건</td>
+          <td><span class="stars">★★★★★</span> 5.0</td>
+          <td>128건 (0.8%)</td>
+        </tr>
+        <tr>
+          <td>🥉 3위</td>
+          <td class="td-left">옛날밥알쑥떡 32개 (앙금 없음)</td>
+          <td>12,055건</td>
+          <td><span class="stars">★★★★★</span> 5.0</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4 style="margin-bottom:12px; color:var(--primary)">💬 긍정/부정 키워드 분석</h4>
+    <table>
+      <thead>
+        <tr><th>구분</th><th>1위</th><th>2위</th><th>3위</th><th>4위</th><th>5위</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag tag-green">긍정</span></td>
+          <td>맛있어요 (27,874)</td>
+          <td>맛있다고 (11,808)</td>
+          <td>선물로 (10,511)</td>
+          <td>맛있게 (9,801)</td>
+          <td>먹고 (8,645)</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-red">부정</span></td>
+          <td>떡이 (214)</td>
+          <td>많이 (143)</td>
+          <td>맛이 (124)</td>
+          <td>떡은 (98)</td>
+          <td>바로 (93)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="insight-box" style="margin-top:16px">
+      <strong>자사 현황 핵심:</strong> 긍정 키워드 3위가 '선물로(10,511회)'로, 선물 구매 포지션이 리뷰에서도 명확히 확인된다. 부정 키워드는 절대량이 낮아 품질 관리는 양호하다. 단, 네이버스토어의 부정 비율(3%)이 자사몰 대비 높고, 주간 리뷰 334건 중 부정 8건(2.4%)으로 상대적으로 높다는 점을 모니터링해야 한다.
     </div>
+  </section>
 
-    <div class="card">
-      <div class="card-title">🏬 떡 시장 구조적 변화</div>
-      <table>
-        <thead><tr><th>트렌드</th><th>내용</th><th>백년화편 영향</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>SNS 초단기 유행화</td>
-            <td>2주 주기로 핫한 떡 브랜드 교체. 창억떡이 이번 분기 주인공</td>
-            <td style="color:var(--danger)">부정적 — 진입 못함</td>
-          </tr>
-          <tr>
-            <td>건강·무설탕 수요</td>
-            <td>파파공방 같은 건강 특화 브랜드 성장</td>
-            <td style="color:var(--warn)">위험 — 대응 부재</td>
-          </tr>
-          <tr>
-            <td>선물 시장 확대</td>
-            <td>명절 외 일상 선물 문화 정착</td>
-            <td style="color:var(--positive)">긍정 — 선물 키워드 TOP 3</td>
-          </tr>
-          <tr>
-            <td>네이버 스마트스토어 성장</td>
-            <td>쿠팡 이탈자 흡수, 식품 1인당 지출 최고</td>
-            <td style="color:var(--positive)">기회 — 채널 강화 필요</td>
-          </tr>
-          <tr>
-            <td>프리미엄화</td>
-            <td>고가 선물 세트 수요 증가, 품질 포장 차별화</td>
-            <td style="color:var(--warn)">중립 — 기존 강점이나 적극 활용 안 됨</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <!-- ========== SECTION 6: SWOT ========== -->
+  <section class="section" id="swot">
+    <div class="section-title"><span class="icon">🔍</span> SWOT 분석</div>
 
-  <!-- ══════════════ SWOT ══════════════ -->
-  <div class="section">
-    <div class="section-title"><span class="sec-num">4</span>비교 분석 — SWOT</div>
-
-    <div class="grid-2">
-      <div class="card positive">
-        <div class="card-title">💪 강점 (Strength)</div>
-        <ul style="padding-left:16px;font-size:13px;line-height:2">
-          <li>누적 후기 189,478건 — 업계 최대 규모</li>
-          <li>자사몰 평균 별점 4.9, 일관된 고품질 인식</li>
-          <li>긍정 키워드 '선물로' — 선물 목적 강력 고객층</li>
-          <li>재구매 고객 확실 (장기 충성 고객 존재)</li>
-          <li>카카오·네이버 다채널 자사몰 운영</li>
+    <div class="swot-grid">
+      <div class="swot-card swot-s">
+        <h4>💪 강점 (Strength)</h4>
+        <ul>
+          <li>누적 리뷰 189,478건, 평균 ★4.9 — 압도적 사회적 증거</li>
+          <li>'선물로'가 긍정 키워드 3위 — 선물 포지셔닝 고착화</li>
+          <li>밥알찹쌀떡 78,314건 — 단일 상품 시장 지배력</li>
+          <li>3개 채널(자사몰/카카오/네이버) 운영으로 분산 리스크</li>
+          <li>대한명인 인증 — 품질 권위 확보</li>
         </ul>
       </div>
-      <div class="card danger">
-        <div class="card-title">⚠️ 약점 (Weakness)</div>
-        <ul style="padding-left:16px;font-size:13px;line-height:2">
-          <li>SNS 바이럴 전략 부재 — 창억떡 대비 완전 소외</li>
-          <li>스마트스토어 부정률 2.5% — 자사몰(0.92%) 대비 높음</li>
-          <li>장기 고객의 품질 변화 인식 ('공장떡화' 우려)</li>
-          <li>배송/CS 불만 리뷰 반복 등장</li>
-          <li>건강 포지셔닝 미흡 (파파공방에 뒤처짐)</li>
-          <li>명가삼대떡집 대비 주간 후기 볼륨 절반 수준</li>
+      <div class="swot-card swot-w">
+        <h4>⚠️ 약점 (Weakness)</h4>
+        <ul>
+          <li>주간 신규 리뷰 속도(608건)가 명가삼대(1,270건)의 절반 — 신규 구매 유입 둔화 신호</li>
+          <li>성장 정체 국면 지속 (추정) — 매출 150억 유지이나 성장 없음</li>
+          <li>SNS 바이럴 사례 없음 — 창억떡 대비 디지털 화제성 부재</li>
+          <li>쿠팡 채널 비중 낮음 — 시장 점유율 23% 쿠팡 활용 미흡</li>
+          <li>주 타겟이 고령층·여성으로 한정 — 2030 신규 고객 유입 약함</li>
         </ul>
       </div>
-      <div class="card">
-        <div class="card-title">🌱 기회 (Opportunity)</div>
-        <ul style="padding-left:16px;font-size:13px;line-height:2">
-          <li>쿠팡 이탈 → 네이버쇼핑 유입 급증 (채널 수혜)</li>
-          <li>일상 선물 문화 확대 → 핵심 고객층과 정합</li>
-          <li>MZ세대 전통 먹거리 관심 증가</li>
-          <li>라이브커머스 / 숏폼 콘텐츠 미진입 상태 → 선점 가능</li>
-          <li>인플루언서 협업을 통한 바이럴 진입 여지</li>
+      <div class="swot-card swot-o">
+        <h4>🎯 기회 (Opportunity)</h4>
+        <ul>
+          <li>쿠팡 이탈 소비자 40.7%가 네이버쇼핑으로 이동 — 네이버스토어 강화 최적 타이밍</li>
+          <li>어버이날·스승의날(5월) 선물 수요 집중 구간 — 전통 선물 트래픽 증가</li>
+          <li>1인 가구 증가 → 소포장·개별포장 수요 증가 (밥알 시리즈 개별포장 적합)</li>
+          <li>건강·전통 트렌드 지속 — 브랜드 가치 부합</li>
+          <li>네이버 쇼핑 카테고리 개편(4월) → 전통과자 세분화로 노출 재편 기회</li>
         </ul>
       </div>
-      <div class="card warn">
-        <div class="card-title">🚨 위협 (Threat)</div>
-        <ul style="padding-left:16px;font-size:13px;line-height:2">
-          <li>창억떡 SNS 바이럴 — 브랜드 인지도 격차 확대</li>
-          <li>파파공방 건강 포지셔닝 성장 가속</li>
-          <li>SNS 유행 주기 2주 — 진입 타이밍 놓치면 무력</li>
-          <li>스마트스토어 경쟁 심화 (동일 카테고리 브랜드 증가)</li>
-          <li>장기 고객 이탈 위험 (품질 변화 인식 지속 시)</li>
+      <div class="swot-card swot-t">
+        <h4>🚨 위협 (Threat)</h4>
+        <ul>
+          <li>명가삼대떡집 주간 리뷰 속도 2.1배 초과 — 구매량 격차 벌어질 가능성</li>
+          <li>창억떡 SNS 바이럴 (Q1) — Q2 판매 전환 시 시장 점유율 잠식 리스크</li>
+          <li>버터떡 등 신유형 트렌드 확산 — 전통 카테고리 내 경쟁 다양화</li>
+          <li>고물가 지속 → 42,000원 가격대 저항감 증가 가능성</li>
+          <li>Z세대 중심 SNS 떡 문화 확산 — 기존 중장년층 타겟 시장 잠식</li>
         </ul>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ══════════════ 전략적 시사점 ══════════════ -->
-  <div class="section">
-    <div class="section-title"><span class="sec-num">5</span>전략적 시사점 및 액션 제안</div>
+  <!-- ========== SECTION 7: 다음 분기 전략 ========== -->
+  <section class="section" id="strategy">
+    <div class="section-title"><span class="icon">🚀</span> Q2 잔여 + Q3 전략 액션</div>
 
-    <div class="card danger" style="margin-bottom:12px">
-      <div class="card-title">🚨 긴급 — 즉시 대응 필요</div>
-      <div class="insight-box danger">
-        <strong>1. 품질 일관성 점검 (즉시)</strong>
-        <p>1성 리뷰에서 '밥알 없음', '공장떡화', '쑥향 없음' 패턴 반복. 브랜드 핵심 정체성(밥알 식감)이 훼손되고 있다는 장기 고객 신호. 제조 공정·원재료·배합 즉시 검토 필요. 방치 시 충성 고객 이탈 시작.</p>
+    <div class="insight-box" style="margin-bottom:20px">
+      <strong>전략 방향:</strong> 현재 Q2 진행 중(~35%). 5월 선물 시즌을 최대한 활용하고, Q3(7~9월) 비수기 대비 신규 고객층 확보 전략을 병행해야 한다. 명가삼대 대비 주간 리뷰 속도 격차 해소가 단기 최우선 목표.
+    </div>
+
+    <div class="action-grid">
+      <div class="action-card">
+        <div class="action-type">🔴 단기 (Q2 내 / ~6월)</div>
+        <h4>① 5월 선물 시즌 전환율 최적화</h4>
+        <p>어버이날(5/8)·스승의날(5/15) 전후 네이버스토어 타겟 광고 집중 집행. '선물로' 키워드가 리뷰 3위인 점을 활용해 "선물용 1위 떡" 포지셔닝 메시지 강화. 네이버 쇼핑 카테고리 재편 이후 노출 점검 및 상품 태그 최적화 필수.</p>
       </div>
-      <div class="insight-box danger">
-        <strong>2. 스마트스토어 CS 강화 (즉시)</strong>
-        <p>부정률 2.5%는 자사몰(0.92%) 대비 이상. 네이버 채널 신규 유입 고객 대응 강화. 배송 지연·오배송 처리 프로세스 점검.</p>
+      <div class="action-card">
+        <div class="action-type">🔴 단기 (Q2 내 / ~6월)</div>
+        <h4>② 리뷰 수집 속도 제고</h4>
+        <p>구매 후 리뷰 유도 자동화(문자/카카오톡 알림) 강화. 현재 주간 608건인 리뷰 속도를 단기 목표 800건/주로 끌어올려 명가삼대 격차 축소. 리뷰 작성 인센티브(소액 적립금 등) 검토.</p>
+      </div>
+      <div class="action-card mid">
+        <div class="action-type">🟡 중기 (Q3 대비 / 6~9월)</div>
+        <h4>③ 쿠팡 채널 강화 및 신규 고객층 공략</h4>
+        <p>쿠팡 시장 점유율 23% 대비 현재 채널 비중이 낮음. 쿠팡 로켓배송 입점 및 여름 시즌용 소포장 기획 상품 출시 검토. 쿠팡 이탈자 네이버 유입 트렌드를 활용해 네이버 단독 기획전 기획. 2030 신규 유입을 위한 인스타그램 브랜드 콘텐츠(비하인드·제조 과정 등) 최소 월 4회 운영.</p>
       </div>
     </div>
 
-    <div class="card warn" style="margin-bottom:12px">
-      <div class="card-title">📅 단기 (2026년 Q2, ~2개월)</div>
-      <div class="insight-box warn">
-        <strong>3. 네이버 스마트스토어 채널 강화</strong>
-        <p>쿠팡 이탈 고객 40.7%가 네이버로 이동. 현재 스마트스토어 주간 334건 vs 자사몰 608건. 네이버 스마트스토어 상품 구성 최적화, 네이버 플러스 멤버십 혜택 연동 검토.</p>
-      </div>
-      <div class="insight-box warn">
-        <strong>4. SNS 숏폼 콘텐츠 파일럿 시작</strong>
-        <p>창억떡 사례: 유튜버 한 번 언급 → 검색량 지수 100. 백년화편은 인스타 팔로워·콘텐츠 현황조차 파악 안 됨. 최소한 인스타그램 릴스 5~10개 실험 콘텐츠 제작 시작.</p>
-      </div>
-      <div class="insight-box warn">
-        <strong>5. 선물 시즌 프로모션 강화</strong>
-        <p>6월 가정의 달 시즌. 긍정 키워드 '선물로'가 3위. 선물 세트 패키지 강화, 메시지카드 동봉, 선물하기 카카오 채널 CTA 강화.</p>
-      </div>
+    <div style="margin-top:20px; padding:16px; background:#f8f4ff; border-radius:8px; border:1px solid var(--primary-bg)">
+      <p style="font-size:13px; color:var(--text-muted)">
+        <strong style="color:var(--primary)">분석 기준일:</strong> 2026-05-06<br>
+        <strong style="color:var(--primary)">데이터 출처:</strong> 백년화편 리뷰 대시보드 (web-production-ce7ca1.up.railway.app), 웹 검색 (오픈서베이, marqvision, 식품음료신문, careet 등)<br>
+        <strong style="color:var(--primary)">주의사항:</strong> "(추정)" 표기 항목은 공개 데이터 부재로 판단한 추정치이며, "확인 불가" 항목은 검색 결과에서 확인되지 않은 수치입니다. 경쟁사(창억떡) 리뷰 데이터는 대시보드에 미수집 상태입니다.
+      </p>
     </div>
-
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-title">📈 중기 (2026년 Q3~Q4)</div>
-      <div class="insight-box">
-        <strong>6. 인플루언서 협업 전략 수립</strong>
-        <p>창억떡 사례를 역방향 분석: 유튜버 '하말넘많' → Young K → 전국구. 백년화편이 먼저 접근할 수 있는 음식 전문 인플루언서 10인 리스트업. 협찬 후기보다 자연스러운 노출 방식 우선.</p>
-      </div>
-      <div class="insight-box">
-        <strong>7. 건강 라인 강화 또는 명확화</strong>
-        <p>파파공방이 '무설탕·현미·건강한'으로 성장 중. 백년화편 기존 제품 중 건강 포지셔닝 가능한 SKU(쑥떡, 흑임자 등)를 재포지셔닝하거나 건강 라인 신제품 검토.</p>
-      </div>
-      <div class="insight-box">
-        <strong>8. 창억떡 모니터링 시스템 구축</strong>
-        <p>현재 대시보드에서 창억떡 데이터 수집 불가. 네이버 스마트스토어 / 쿠팡 / SNS 리뷰 자동 수집 방법 구축 필요. 경쟁사 바이럴 조기 감지 체계 마련.</p>
-      </div>
-    </div>
-
-    <!-- 성장 정체 원인 가설 -->
-    <div class="card">
-      <div class="card-title">🔍 성장 정체 원인 가설 (기존 문제 재확인)</div>
-      <table>
-        <thead><tr><th>가설</th><th>근거 (이번 분기 확인)</th><th>신뢰도</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>제품 품질 변화로 장기 고객 이탈 시작</td>
-            <td>1성 리뷰 '밥알 없음', '공장떡' 반복. 5~6년 고객의 실망 리뷰</td>
-            <td><span class="tag tag-red">높음</span></td>
-          </tr>
-          <tr>
-            <td>SNS 채널 부재로 신규 고객 유입 감소</td>
-            <td>창억떡 사례 대조. SNS 팔로워·콘텐츠 현황 미파악</td>
-            <td><span class="tag tag-red">높음</span></td>
-          </tr>
-          <tr>
-            <td>주간 후기 볼륨 감소 (명가 대비 절반)</td>
-            <td>명가 1,270건 vs 백년화편 608건 (2026년 5월 초)</td>
-            <td><span class="tag tag-warn">중간</span></td>
-          </tr>
-          <tr>
-            <td>스마트스토어 채널 미최적화</td>
-            <td>부정률 2.5%, 상품명 키워드 광고성 나열</td>
-            <td><span class="tag tag-warn">중간</span></td>
-          </tr>
-          <tr>
-            <td>경쟁 심화 (명가·창억떡 상승)</td>
-            <td>명가 주간 볼륨 우위. 창억떡 바이럴 집중</td>
-            <td><span class="tag tag-warn">중간</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ══════════════ 데이터 신뢰도 ══════════════ -->
-  <div class="section">
-    <div class="section-title"><span class="sec-num">6</span>데이터 신뢰도 및 주의사항</div>
-    <div class="card">
-      <table>
-        <thead><tr><th>항목</th><th>출처</th><th>신뢰도</th><th>주의사항</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>백년화편 자사몰 리뷰 지표</td>
-            <td>리뷰 대시보드 API (2026-05-06)</td>
-            <td><span class="tag tag-green">높음</span></td>
-            <td>리뷰 작성자 편향 가능성 (긍정 편향)</td>
-          </tr>
-          <tr>
-            <td>명가삼대떡집 / 파파공방 지표</td>
-            <td>리뷰 대시보드 API (2026-05-06)</td>
-            <td><span class="tag tag-green">높음</span></td>
-            <td>수집 플랫폼 한계 있을 수 있음</td>
-          </tr>
-          <tr>
-            <td>창억떡 지표</td>
-            <td>대시보드 미수집 / 웹 리서치</td>
-            <td><span class="tag tag-warn">낮음</span></td>
-            <td>수동 조사 필요. 수치 모두 추정</td>
-          </tr>
-          <tr>
-            <td>시장 규모·이커머스 수치</td>
-            <td>뉴스프림, 서울신문, 오픈서베이 (2026년)</td>
-            <td><span class="tag tag-warn">중간</span></td>
-            <td>전체 시장 기준. 떡 카테고리 단독 통계 없음</td>
-          </tr>
-          <tr>
-            <td>창억떡 바이럴 규모</td>
-            <td>차임미디어, 여행픽, 다음뉴스 기사 (2026)</td>
-            <td><span class="tag tag-green">높음</span></td>
-            <td>검색량 지수 데이터 출처 검증됨</td>
-          </tr>
-          <tr>
-            <td>경쟁사 SNS 팔로워</td>
-            <td>인스타그램 공식 계정 (웹 검색 확인)</td>
-            <td><span class="tag tag-warn">중간</span></td>
-            <td>접속 시점 기준. 변동 가능</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ══════════════ 푸터 ══════════════ -->
-  <div class="report-footer">
-    <div>📋 백년화편 2026년 Q2 분기 리서치 리포트 | 생성: 2026-05-06 | 분석: Claude (Cowork)</div>
-    <div class="source-list">
-      <strong>참고 출처:</strong><br>
-      · <a href="https://web-production-ce7ca1.up.railway.app/dashboard" target="_blank">백년화편 리뷰 대시보드</a> (API 데이터, 2026-05-06T06:05:28 기준)<br>
-      · <a href="https://www.chimemedia.co.kr/news/articleView.html?idxno=238" target="_blank">창억떡 호박인절미 전국구 등극 (차임미디어)</a><br>
-      · <a href="https://v.daum.net/v/20260318191802471" target="_blank">호박인절미 사러 광주 가는 MZ들 (다음뉴스)</a><br>
-      · <a href="https://www.newspim.com/news/view/20260504000457" target="_blank">1분기 온라인쇼핑 72조 (뉴스프림)</a><br>
-      · <a href="https://www.seoul.co.kr/news/economy/distribution/2026/02/06/20260206500143" target="_blank">네이버 쇼핑 매출 26% 상승 (서울신문)</a><br>
-      · <a href="https://www.mt.co.kr/living/2026/05/06/2026050609182830360" target="_blank">쿠팡 3500억 적자, 네이버 5400억 흑자 (머니투데이)</a><br>
-      · <a href="https://myeonggashop.com/" target="_blank">명가삼대떡집 공식몰</a><br>
-      · <a href="https://changeok.co.kr/" target="_blank">창억떡 공식몰</a>
-    </div>
-  </div>
+  </section>
 
 </div>
+
+<div class="report-footer">
+  백년화편 분기별 전략 리포트 · 2026-Q2 · 자동 생성: 2026-05-06
+</div>
+
 </body>
 </html>
