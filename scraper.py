@@ -34,10 +34,10 @@ JASAOL_HEADERS = {
     "Referer": "https://shop.100yearshop.co.kr/",
 }
 JASAOL_DELAY = 0.1
-JASAOL_CONCURRENT = 5   # 10 → 5로 줄임 (서버 부하 감소)
-GOODS_CONCURRENT = 3    # 5 → 3으로 줄임
-JASAOL_PAGE_TIMEOUT = 8  # 페이지당 timeout (초)
-JASAOL_TOTAL_TIMEOUT = 600  # 전체 자사몰 수집 최대 10분
+JASAOL_CONCURRENT = 5
+GOODS_CONCURRENT = 3
+JASAOL_PAGE_TIMEOUT = 8
+JASAOL_TOTAL_TIMEOUT = 600
 
 def safe_save(path: Path, data):
     path.parent.mkdir(exist_ok=True)
@@ -65,6 +65,13 @@ def get_jasaol_since_date() -> str:
         data = load_json(path, [])
         if isinstance(data, list):
             dates.extend(r["date"] for r in data if r.get("date"))
+    return max(dates) if dates else "2000-01-01"
+
+def get_brand_since_date(brand_key: str) -> str:
+    """reviews.json에서 특정 브랜드의 마지막 수집 날짜 반환"""
+    data = load_json(DATA_PATH, {})
+    reviews = data.get(brand_key, {}).get("jasa", [])
+    dates = [r["date"] for r in reviews if r.get("date")]
     return max(dates) if dates else "2000-01-01"
 
 # ─────────────────────────── 명가삼대떡집 ──────────────────────────────────────
@@ -98,43 +105,49 @@ async def fetch_offset(client, offset, sem):
             print(f"  offset={offset} 실패: {e}")
             return offset, []
 
-async def scrape_myeongga(progress_cb=None) -> list:
-    print("  [명가삼대떡집] vreview API 수집 시작")
+async def scrape_myeongga(progress_cb=None, since_date: str = "2000-01-01") -> list:
+    """since_date 이후 신규만 수집해서 기존 데이터에 병합 반환"""
+    print(f"  [명가삼대떡집] vreview API 수집 시작 (since={since_date})")
+    existing = load_json(DATA_PATH, {}).get("myeongga", {}).get("jasa", [])
+
+    new_reviews = []
     async with httpx.AsyncClient(timeout=20.0) as client:
         resp = await client.get(f"{API_BASE}?limit=1&offset=0")
         total = resp.json().get("count", 0)
         offsets = list(range(0, total, LIMIT))
         sem = asyncio.Semaphore(CONCURRENT)
-        tmp_path = DATA_PATH.parent / "myeongga_tmp.jsonl"
-        tmp_path.parent.mkdir(exist_ok=True)
-        tmp_f = open(tmp_path, "w", encoding="utf-8")
-        count = 0
         done = 0
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        stop_fetching = False
+
+        async with httpx.AsyncClient(timeout=20.0) as client2:
             for i in range(0, len(offsets), CONCURRENT):
+                if stop_fetching:
+                    break
                 batch = offsets[i:i+CONCURRENT]
-                results = await asyncio.gather(*[fetch_offset(client, off, sem) for off in batch])
+                results = await asyncio.gather(*[fetch_offset(client2, off, sem) for off in batch])
                 for _, items in results:
                     for r in items:
-                        tmp_f.write(json.dumps(parse_myeongga_review(r), ensure_ascii=False) + "\n")
-                        count += 1
+                        parsed = parse_myeongga_review(r)
+                        if parsed["date"] < since_date:
+                            stop_fetching = True
+                            break
+                        new_reviews.append(parsed)
+                    if stop_fetching:
+                        break
                 done += len(batch)
                 pct = int(done / len(offsets) * 40)
                 if progress_cb:
                     progress_cb({"phase": "detail", "done": done, "total": len(offsets),
-                                 "collected": count, "brand": "명가삼대떡집", "progress_pct": pct,
-                                 "progress_msg": f"명가삼대떡집 {count:,}/{total:,}건 ({int(done/len(offsets)*100)}%)"})
+                                 "collected": len(new_reviews), "brand": "명가삼대떡집",
+                                 "progress_pct": pct,
+                                 "progress_msg": f"명가삼대떡집 신규 {len(new_reviews):,}건 수집 중..."})
                 await asyncio.sleep(0.05)
-        tmp_f.close()
-    all_reviews = []
-    with open(tmp_path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                all_reviews.append(json.loads(line))
-    tmp_path.unlink(missing_ok=True)
-    print(f"  [명가삼대떡집] 최종 {len(all_reviews):,}건")
-    return all_reviews
+
+    # 기존 데이터에서 since_date 이전 것 + 신규 병합
+    old = [r for r in existing if r.get("date", "") < since_date]
+    merged = new_reviews + old
+    print(f"  [명가삼대떡집] 신규 {len(new_reviews):,}건 + 기존 {len(old):,}건 = {len(merged):,}건")
+    return merged
 
 # ─────────────────────────── 파파공방 Crema ─────────────────────────────────────
 def parse_crema_review(r: dict) -> dict:
@@ -152,7 +165,8 @@ def parse_crema_review(r: dict) -> dict:
             "title": "", "content": content, "platform": platform,
             "author": (r.get("user_display_name") or "")[:20]}
 
-async def fetch_crema_product(client, prod_code, progress_cb=None, prod_idx=0, total_prods=6):
+async def fetch_crema_product(client, prod_code, since_date="2000-01-01",
+                               progress_cb=None, prod_idx=0, total_prods=6):
     all_reviews = []
     page = 1
     while True:
@@ -167,30 +181,42 @@ async def fetch_crema_product(client, prod_code, progress_cb=None, prod_idx=0, t
         reviews = d.get("reviews", [])
         if not reviews:
             break
+        stop = False
         for rv in reviews:
-            all_reviews.append(parse_crema_review(rv))
+            parsed = parse_crema_review(rv)
+            if parsed["date"] < since_date:
+                stop = True
+                break
+            all_reviews.append(parsed)
         next_page = d.get("pagy", {}).get("next")
         if progress_cb:
             pct = 40 + int(((prod_idx + 1) / total_prods) * 15)
             progress_cb({"phase": "detail", "done": prod_idx, "total": total_prods,
                          "collected": len(all_reviews), "brand": "파파공방", "progress_pct": pct,
-                         "progress_msg": f"파파공방 idx={prod_code} {len(all_reviews)}건 수집 중..."})
-        if not next_page or page >= 500:
+                         "progress_msg": f"파파공방 idx={prod_code} 신규 {len(all_reviews)}건 수집 중..."})
+        if stop or not next_page or page >= 500:
             break
         page = next_page
         await asyncio.sleep(0.2)
     return all_reviews
 
-async def scrape_papa(progress_cb=None) -> list:
-    print("  [파파공방] Crema API 수집 시작")
-    all_reviews = []
+async def scrape_papa(progress_cb=None, since_date: str = "2000-01-01") -> list:
+    """since_date 이후 신규만 수집해서 기존 데이터에 병합 반환"""
+    print(f"  [파파공방] Crema API 수집 시작 (since={since_date})")
+    existing = load_json(DATA_PATH, {}).get("papa", {}).get("jasa", [])
+
+    new_reviews = []
     async with httpx.AsyncClient(timeout=20, headers=CREMA_HEADERS, follow_redirects=True) as client:
         for i, prod_code in enumerate(PAPA_PRODUCTS):
-            reviews = await fetch_crema_product(client, prod_code, progress_cb, i, len(PAPA_PRODUCTS))
-            all_reviews.extend(reviews)
+            reviews = await fetch_crema_product(client, prod_code, since_date,
+                                                 progress_cb, i, len(PAPA_PRODUCTS))
+            new_reviews.extend(reviews)
             await asyncio.sleep(0.3)
-    print(f"  [파파공방] 최종 {len(all_reviews):,}건")
-    return all_reviews
+
+    old = [r for r in existing if r.get("date", "") < since_date]
+    merged = new_reviews + old
+    print(f"  [파파공방] 신규 {len(new_reviews):,}건 + 기존 {len(old):,}건 = {len(merged):,}건")
+    return merged
 
 # ─────────────────────────── 자사몰(고도몰) ─────────────────────────────────────
 def fetch_html_euckr(resp: httpx.Response) -> BeautifulSoup:
@@ -378,9 +404,9 @@ async def scrape_jasaol_incremental(progress_cb=None) -> list:
 
     _cb(f"자사몰 {since_date} 이후 신규 후기 수집 시작", 55)
     sem = asyncio.Semaphore(JASAOL_CONCURRENT)
+    all_new = []
 
     try:
-        # 전체 자사몰 수집에 JASAOL_TOTAL_TIMEOUT 제한
         async with asyncio.timeout(JASAOL_TOTAL_TIMEOUT):
             async with httpx.AsyncClient(headers=JASAOL_HEADERS, follow_redirects=True,
                                          timeout=JASAOL_PAGE_TIMEOUT) as client:
@@ -392,7 +418,6 @@ async def scrape_jasaol_incremental(progress_cb=None) -> list:
                 total = len(goods_list)
                 _cb(f"상품 {total}개, {since_date} 이후 수집 시작", 58, 0, total)
 
-                all_new = []
                 done = 0
                 for i in range(0, total, GOODS_CONCURRENT):
                     batch = goods_list[i:i+GOODS_CONCURRENT]
@@ -412,8 +437,6 @@ async def scrape_jasaol_incremental(progress_cb=None) -> list:
 
     except asyncio.TimeoutError:
         print(f"  [자사몰] 전체 타임아웃 ({JASAOL_TOTAL_TIMEOUT}초) — 수집된 것만 저장")
-        # all_new가 정의 안 됐을 수 있으므로 안전하게 처리
-        all_new = locals().get("all_new", [])
 
     print(f"  [자사몰] 신규 {len(all_new):,}건")
     return all_new
@@ -423,9 +446,10 @@ async def collect_all(progress_cb=None) -> dict:
     print("=" * 50)
     print(f"수집 시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # 명가 수집 → 저장
+    # 명가: since_date 이후 증분 + 기존 병합
     try:
-        reviews = await scrape_myeongga(progress_cb)
+        since = get_brand_since_date("myeongga")
+        reviews = await scrape_myeongga(progress_cb, since_date=since)
         data = load_json(DATA_PATH, {})
         data.setdefault("changeok", {"jasa": [], "smartstore": []})
         data.setdefault("myeongga", {"jasa": [], "smartstore": []})
@@ -438,9 +462,10 @@ async def collect_all(progress_cb=None) -> dict:
     except Exception as e:
         print(f"  [명가] 실패: {e}")
 
-    # 파파 수집 → 저장
+    # 파파: since_date 이후 증분 + 기존 병합
     try:
-        reviews = await scrape_papa(progress_cb)
+        since = get_brand_since_date("papa")
+        reviews = await scrape_papa(progress_cb, since_date=since)
         data = load_json(DATA_PATH, {})
         data["papa"]["jasa"] = reviews
         data["last_updated"] = datetime.now().isoformat()
@@ -450,12 +475,11 @@ async def collect_all(progress_cb=None) -> dict:
     except Exception as e:
         print(f"  [파파공방] 실패: {e}")
 
-    # 자사몰 증분 수집 → jasaol_new.json에만 저장
+    # 자사몰: 증분 → jasaol_new.json에 누적
     try:
-        since_before = get_jasaol_since_date()  # 수집 전 since_date 고정
+        since_before = get_jasaol_since_date()
         new_reviews = await scrape_jasaol_incremental(progress_cb)
         existing_new = load_json(JASAOL_NEW_PATH, [])
-        # since_before 기준으로 기존 데이터 유지 (수집 중 날짜 변경 방지)
         merged_new = [r for r in existing_new if r.get("date", "") >= since_before] + new_reviews
         safe_save(JASAOL_NEW_PATH, merged_new)
         del new_reviews, existing_new, merged_new
