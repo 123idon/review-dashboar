@@ -185,7 +185,7 @@ async def get_data():
         "changeok":   compute_stats(changeok),
         "myeongga":   compute_stats(myeongga),
         "papa":       compute_stats(papa),
-        "jasaol":     compute_stats(jasaol),
+        "jasaol":     compute_stats(jasaol + smartstore),  # 자사몰 + 네이버 합산
         "smartstore": compute_stats(smartstore),
     }
 
