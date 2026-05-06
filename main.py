@@ -173,6 +173,10 @@ async def health():
 
 @app.get("/")
 async def root():
+    return FileResponse("static/landing.html")
+
+@app.get("/dashboard")
+async def dashboard():
     return FileResponse("static/index.html")
 
 @app.get("/api/data")
