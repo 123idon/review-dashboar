@@ -236,8 +236,18 @@
     }
 
     function makeTitleFromFilename(filename) {
-      // 예: 2025-W20_weekly_report.html → 그대로 정제
-      return filename.replace('.html','').replace(/_/g,' ').replace(/-/g,' ');
+      const base = filename.replace('.html', '');
+      // 2026-W19_weekly  → 2026년 19주차 주간 리포트
+      const weekly = base.match(/^(\d{4})-W(\d{1,2})/);
+      if (weekly) return `${weekly[1]}년 ${weekly[2]}주차 주간 리포트`;
+      // 2026-05_monthly  → 2026년 5월 월간 리포트
+      const monthly = base.match(/^(\d{4})-(\d{2})/);
+      if (monthly) return `${monthly[1]}년 ${parseInt(monthly[2])}월 월간 리포트`;
+      // 2026-Q2_quarterly → 2026년 2분기 리포트
+      const quarterly = base.match(/^(\d{4})-Q(\d)/);
+      if (quarterly) return `${quarterly[1]}년 ${quarterly[2]}분기 리포트`;
+      // fallback
+      return base.replace(/_/g, ' ');
     }
 
     function render() {
