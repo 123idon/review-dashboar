@@ -290,6 +290,26 @@ async def smartstore_latest_date():
     return {"date": max(dates) if dates else datetime.now().strftime("%Y-%m-%d")}
 
 
+SMARTSTORE_STATUS = {"cookie_expired": False, "expired_at": None}
+
+@app.post("/api/smartstore-cookie-expired")
+async def smartstore_cookie_expired(request: Request):
+    body = await request.json()
+    SMARTSTORE_STATUS["cookie_expired"] = True
+    SMARTSTORE_STATUS["expired_at"] = body.get("expired_at")
+    return {"ok": True}
+
+@app.get("/api/smartstore-status")
+async def smartstore_status():
+    return SMARTSTORE_STATUS
+
+@app.post("/api/smartstore-cookie-ok")
+async def smartstore_cookie_ok():
+    SMARTSTORE_STATUS["cookie_expired"] = False
+    SMARTSTORE_STATUS["expired_at"] = None
+    return {"ok": True}
+
+
 @app.post("/api/import-smartstore-chunk")
 async def import_smartstore_chunk(request: Request):
     """집 PC에서 수집한 네이버 리뷰 청크 수신"""
