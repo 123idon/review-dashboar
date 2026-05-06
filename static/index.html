@@ -328,6 +328,52 @@ body {
 }
 .memo-empty { text-align: center; padding: 24px 0; color: var(--muted); font-size: 13px; }
 
+
+/* ── 기간 필터 ── */
+.date-filter-bar {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
+  flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 16px;
+}
+.date-filter-label { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing:.06em; text-transform:uppercase; margin-right:4px; white-space:nowrap; }
+.date-preset-btn {
+  font-size: 12px; padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; font-family: var(--font);
+  transition: all .15s; white-space: nowrap;
+}
+.date-preset-btn:hover { background: var(--bg); color: var(--text); }
+.date-preset-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+.date-filter-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+.date-range-inputs { display: flex; align-items: center; gap: 6px; }
+.date-input {
+  font-size: 12px; padding: 5px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--text); font-family: var(--mono); cursor: pointer;
+}
+.date-input:focus { outline: none; border-color: var(--text); }
+.date-range-sep { font-size: 12px; color: var(--muted); }
+.date-apply-btn {
+  font-size: 12px; padding: 5px 14px; border-radius: 8px;
+  border: 1px solid var(--text); background: var(--text);
+  color: #fff; cursor: pointer; font-family: var(--font); font-weight: 500;
+  transition: opacity .15s;
+}
+.date-apply-btn:hover { opacity: .8; }
+.date-reset-btn {
+  font-size: 12px; padding: 5px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; font-family: var(--font);
+  transition: all .15s;
+}
+.date-reset-btn:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+.date-filter-active-tag {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  background: var(--warn-bg); color: var(--warn); border: 1px solid #e6c84a40;
+  font-weight: 600; white-space: nowrap;
+}
+
 /* ── 반응형 ── */
 @media (max-width: 640px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -653,6 +699,182 @@ function switchShop(shop, el){
   render();
 }
 
+
+// ════════════════════════════════════════
+// 기간 필터
+// ════════════════════════════════════════
+let dateFilterStart = null;  // 'YYYY-MM-DD' or null
+let dateFilterEnd   = null;
+
+function renderDateFilterBar(){
+  const today = new Date();
+  const todayStr = fmtDate(today);
+  const startVal = dateFilterStart || '';
+  const endVal   = dateFilterEnd   || todayStr;
+  const isActive = dateFilterStart !== null;
+
+  const presets = [
+    {label:'3일', days:3},
+    {label:'1주일', days:7},
+    {label:'1개월', days:30},
+    {label:'1년', days:365},
+  ];
+  const presetBtns = presets.map(p=>{
+    const active = isActive && dateFilterStart === fmtDate(new Date(Date.now()-p.days*864e5)) && dateFilterEnd === todayStr;
+    return `<button class="date-preset-btn${active?' active':''}" onclick="applyPreset(${p.days})">${p.label}</button>`;
+  }).join('');
+
+  return `<div class="date-filter-bar" id="dateFilterBar">
+    <span class="date-filter-label">기간</span>
+    ${presetBtns}
+    <div class="date-filter-sep"></div>
+    <div class="date-range-inputs">
+      <input class="date-input" type="date" id="dateFrom" value="${startVal}" max="${todayStr}">
+      <span class="date-range-sep">~</span>
+      <input class="date-input" type="date" id="dateTo" value="${endVal}" max="${todayStr}">
+      <button class="date-apply-btn" onclick="applyDateRange()">적용</button>
+    </div>
+    <div class="date-filter-sep"></div>
+    <button class="date-reset-btn" onclick="resetDateFilter()">전체 초기화</button>
+    ${isActive ? `<span class="date-filter-active-tag">📅 ${dateFilterStart} ~ ${dateFilterEnd}</span>` : ''}
+  </div>`;
+}
+
+function fmtDate(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function applyPreset(days){
+  const today = new Date();
+  const from  = new Date(Date.now() - days*864e5);
+  dateFilterStart = fmtDate(from);
+  dateFilterEnd   = fmtDate(today);
+  render();
+}
+
+function applyDateRange(){
+  const from = document.getElementById('dateFrom')?.value;
+  const to   = document.getElementById('dateTo')?.value;
+  if(!from && !to){ resetDateFilter(); return; }
+  dateFilterStart = from || null;
+  dateFilterEnd   = to   || fmtDate(new Date());
+  render();
+}
+
+function resetDateFilter(){
+  dateFilterStart = null;
+  dateFilterEnd   = null;
+  render();
+}
+
+// reviews 배열을 날짜 필터로 자르고 통계 재계산
+function computeFilteredStats(d){
+  if(!dateFilterStart) return d;  // 필터 없으면 원본 그대로
+
+  const from = dateFilterStart;
+  const to   = dateFilterEnd || fmtDate(new Date());
+
+  // reviews 필터링
+  const reviews = (d.reviews||[]).filter(r=> r.date >= from && r.date <= to);
+
+  // 통계 재계산
+  const total    = reviews.length;
+  const negative = reviews.filter(r=>r.score>0&&r.score<=3).length;
+  const scores   = reviews.filter(r=>r.score>0).map(r=>r.score);
+  const avg      = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length*10)/10 : 0;
+
+  // 별점 분포
+  const dist = {'1':0,'2':0,'3':0,'4':0,'5':0};
+  reviews.forEach(r=>{ const s=String(Math.round(r.score)); if(dist[s]!==undefined)dist[s]++; });
+
+  // 주간 트렌드
+  const weekMap = {};
+  reviews.forEach(r=>{
+    if(!r.date)return;
+    const d2=new Date(r.date);
+    const dow=d2.getDay(); // 0=일
+    const mon=new Date(d2); mon.setDate(d2.getDate()-(dow===0?6:dow-1));
+    const key=fmtDate(mon);
+    if(!weekMap[key])weekMap[key]={week:key,count:0,neg:0,scoreSum:0,scoreCnt:0};
+    weekMap[key].count++;
+    if(r.score>0&&r.score<=3)weekMap[key].neg++;
+    if(r.score>0){weekMap[key].scoreSum+=r.score;weekMap[key].scoreCnt++;}
+  });
+  const trend = Object.values(weekMap).sort((a,b)=>a.week.localeCompare(b.week)).slice(-16).map(w=>({
+    week:w.week, count:w.count, negative:w.neg,
+    avg_score: w.scoreCnt?Math.round(w.scoreSum/w.scoreCnt*10)/10:0
+  }));
+
+  // 플랫폼별
+  const platMap = {};
+  reviews.forEach(r=>{
+    const p=r.platform||'direct';
+    if(!platMap[p])platMap[p]={count:0,negative:0,scoreSum:0,scoreCnt:0};
+    platMap[p].count++;
+    if(r.score>0&&r.score<=3)platMap[p].negative++;
+    if(r.score>0){platMap[p].scoreSum+=r.score;platMap[p].scoreCnt++;}
+  });
+  const platform_stats={};
+  Object.entries(platMap).forEach(([p,v])=>{
+    platform_stats[p]={count:v.count,negative:v.negative,avg_score:v.scoreCnt?Math.round(v.scoreSum/v.scoreCnt*10)/10:0};
+  });
+
+  // 상품별
+  const prodMap={};
+  reviews.forEach(r=>{
+    const name=r.product||'(상품명 없음)';
+    if(!prodMap[name])prodMap[name]={count:0,negative:0,scoreSum:0,scoreCnt:0};
+    prodMap[name].count++;
+    if(r.score>0&&r.score<=3)prodMap[name].negative++;
+    if(r.score>0){prodMap[name].scoreSum+=r.score;prodMap[name].scoreCnt++;}
+  });
+  const top_products_all=Object.entries(prodMap).map(([p,v])=>({
+    product:p,count:v.count,negative:v.negative,
+    avg_score:v.scoreCnt?Math.round(v.scoreSum/v.scoreCnt*10)/10:0
+  })).sort((a,b)=>b.count-a.count).slice(0,3);
+  const top_negative_products=Object.entries(prodMap).filter(([,v])=>v.negative>0).map(([p,v])=>({
+    product:p,count:v.count,negative:v.negative,
+    avg_score:v.scoreCnt?Math.round(v.scoreSum/v.scoreCnt*10)/10:0
+  })).sort((a,b)=>b.negative-a.negative).slice(0,3);
+
+  // 키워드 (간단 버전)
+  function extractKw(revs, positive){
+    const STOP=new Set(['이','가','은','는','을','를','의','도','로','에','와','과','한','그','좋은','좋아요','너무','정말','진짜','완전','아주','매우','좀','구매','주문','배송','상품','제품','포장','선물','가격','감사','합니다']);
+    const counter={};
+    revs.forEach(r=>{
+      const words=(r.content||'').match(/[가-힣]{2,6}/g)||[];
+      words.forEach(w=>{ if(!STOP.has(w)){counter[w]=(counter[w]||0)+1;} });
+    });
+    return Object.entries(counter).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([w,c])=>({word:w,count:c}));
+  }
+  const posRevs=reviews.filter(r=>r.score>=4);
+  const negRevs=reviews.filter(r=>r.score>0&&r.score<=3);
+
+  // 주간 필터용
+  const weekAgo=new Date(Date.now()-7*864e5);
+  const weekFrom=fmtDate(weekAgo);
+  const weekRevs=reviews.filter(r=>r.date>=weekFrom);
+
+  return {
+    ...d,
+    reviews,
+    total_count: total,
+    total_negative: negative,
+    avg_score: avg,
+    week_count: weekRevs.length,
+    week_negative: weekRevs.filter(r=>r.score>0&&r.score<=3).length,
+    score_distribution: dist,
+    weekly_trend: trend,
+    platform_stats,
+    top_products_all,
+    top_negative_products,
+    positive_keywords_all: extractKw(posRevs, true),
+    negative_keywords_all: extractKw(negRevs, false),
+    positive_keywords_week: extractKw(weekRevs.filter(r=>r.score>=4), true),
+    negative_keywords_week: extractKw(weekRevs.filter(r=>r.score>0&&r.score<=3), false),
+  };
+}
+
 // ════════════════════════════════════════
 // 전체 렌더
 // ════════════════════════════════════════
@@ -660,10 +882,12 @@ function render(){
   if(!allData) return;
   if(currentShop==='memo'){ renderMemo(); return; }
   if(currentShop==='log'){  renderLog();  return; }
-  const d = allData[currentShop];
-  if(!d) return;
+  const raw = allData[currentShop];
+  if(!raw) return;
+  const d = computeFilteredStats(raw);
   const mc = document.getElementById('mainContent');
   mc.innerHTML = `
+    ${renderDateFilterBar()}
     ${renderStatCards(d)}
     <div class="grid-2 section">
       <div>${renderScoreDist(d)}</div>
