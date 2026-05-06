@@ -171,7 +171,11 @@ body {
 .period-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
 
 /* ── 후기 목록 ── */
-.filter-row { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.filter-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.pagesize-tabs { display: flex; gap: 4px; flex-shrink: 0; }
+.ps-btn { padding: 4px 11px; border-radius: 7px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.ps-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.ps-btn:hover:not(.active) { border-color: var(--text); color: var(--text); }
 .filter-btn {
   font-size: 12px; padding: 5px 12px; border-radius: 20px;
   border: 1px solid var(--border); background: var(--card);
@@ -1162,16 +1166,23 @@ function setKwPeriod(period){
 // 후기 목록
 // ════════════════════════════════════════
 let currentPage=1, filteredReviews=[];
-const PAGE_SIZE=10;
+let PAGE_SIZE=20;
 
 function renderReviews(d){
   filteredReviews=d.reviews||[]; currentPage=1;
   return `<div class="card"><div class="card-title">후기 목록</div>
     <div class="filter-row">
-      <button class="filter-btn active" onclick="setFilter('all',this)">전체</button>
-      <button class="filter-btn" onclick="setFilter('low',this)">3점 이하</button>
-      <button class="filter-btn" onclick="setFilter('jasa',this)">자사몰</button>
-      <button class="filter-btn" onclick="setFilter('ss',this)">스마트스토어</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="filter-btn active" onclick="setFilter('all',this)">전체</button>
+        <button class="filter-btn" onclick="setFilter('low',this)">3점 이하</button>
+        <button class="filter-btn" onclick="setFilter('jasa',this)">자사몰</button>
+        <button class="filter-btn" onclick="setFilter('ss',this)">스마트스토어</button>
+      </div>
+      <div class="pagesize-tabs">
+        <button class="ps-btn \${PAGE_SIZE===20?'active':''}" onclick="setPageSize(20,this)">20개</button>
+        <button class="ps-btn \${PAGE_SIZE===50?'active':''}" onclick="setPageSize(50,this)">50개</button>
+        <button class="ps-btn \${PAGE_SIZE===100?'active':''}" onclick="setPageSize(100,this)">100개</button>
+      </div>
     </div>
     <div class="review-list" id="reviewList"></div>
     <div class="pagination" id="pagination"></div>
@@ -1205,6 +1216,7 @@ function renderReviewPage(){
   pagEl.innerHTML=btns;
 }
 function goPage(p){ currentPage=p; renderReviewPage(); document.getElementById('reviewList').scrollIntoView({behavior:'smooth',block:'start'}); }
+function setPageSize(n,el){ PAGE_SIZE=n; currentPage=1; document.querySelectorAll('.ps-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); renderReviewPage(); }
 function buildReviewCards(reviews){
   if(!reviews.length)return'<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">해당 후기가 없어요</div>';
   return reviews.map(r=>{
