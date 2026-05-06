@@ -157,6 +157,96 @@
     .swot-grid { grid-template-columns: 1fr; }
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   }
+
+  /* ══════════════════════════════════
+     모바일 최적화 (자동 주입)
+  ══════════════════════════════════ */
+  @media (max-width: 600px) {
+    /* 컨테이너 */
+    .container { padding: 14px 14px 48px !important; margin-top: 86px !important; }
+
+    /* 헤더 */
+    header, .header, .report-header {
+      padding: 10px 14px !important;
+      flex-wrap: wrap; gap: 6px;
+      min-height: auto !important;
+    }
+    .header-title, .report-title-text { font-size: 14px !important; }
+    .header-date, .report-meta { font-size: 11px !important; }
+
+    /* 탭 네비게이션 */
+    .tabs, .tab-bar, nav { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab, .nav-tab, .tab-item {
+      padding: 8px 11px !important;
+      font-size: 11px !important;
+      white-space: nowrap;
+    }
+
+    /* 그리드 → 1열 */
+    .grid-2, .grid-3, .grid-4,
+    .card-grid, .card-grid-2, .card-grid-3, .card-grid-4,
+    .kpi-grid, .swot-grid, .action-grid,
+    [class*="grid-"] { grid-template-columns: 1fr !important; }
+
+    /* 2열 허용 (KPI 숫자 카드) */
+    .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* 테이블 → 가로 스크롤 */
+    table {
+      display: block !important;
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+      white-space: nowrap;
+      font-size: 12px !important;
+      width: 100% !important;
+    }
+    th, td { padding: 8px 10px !important; font-size: 12px !important; }
+    .table-wrap, .kpi-table-wrap { overflow-x: auto; }
+
+    /* KPI 수치 */
+    .stat-val, .value, .kpi-value, .kpi .value,
+    .kpi-card .kpi-value, .big-num { font-size: 22px !important; }
+    .stat-label, .kpi-label { font-size: 11px !important; }
+
+    /* 제목 */
+    h1 { font-size: 18px !important; }
+    h2, .section-title, .card-title { font-size: 15px !important; }
+    h3 { font-size: 13px !important; }
+
+    /* 카드 패딩 */
+    .card, .report-card, .kpi-card,
+    .action-card, .swot-card { padding: 14px 14px !important; }
+
+    /* 뒤로가기 버튼 모바일 위치 */
+    #back-to-insights {
+      top: 8px !important; left: 8px !important;
+      font-size: 11px !important; padding: 6px 11px !important;
+    }
+
+    /* 차트 컨테이너 */
+    canvas { max-width: 100% !important; height: auto !important; }
+    .chart-wrap, .chart-container { overflow-x: auto; }
+
+    /* 인라인 flex → wrap */
+    .flex-row, .row, .summary-row {
+      flex-wrap: wrap !important; gap: 8px !important;
+    }
+
+    /* 텍스트 줄바꿈 */
+    .keyword-tag, .badge, .tag { white-space: normal !important; }
+
+    /* 여백 정리 */
+    .section { margin-bottom: 20px !important; }
+    p, .desc, .summary-text { font-size: 13px !important; line-height: 1.65 !important; }
+  }
+
+  /* 태블릿 보정 */
+  @media (max-width: 768px) and (min-width: 601px) {
+    .container { padding: 20px 20px 48px !important; }
+    .grid-3, .card-grid-3, .card-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+    table { font-size: 13px !important; }
+  }
+
 </style>
 </head>
 <body>
