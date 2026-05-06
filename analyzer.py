@@ -37,7 +37,6 @@ def parse_date(s: str) -> datetime | None:
 def extract_keywords(texts: list[str], top_n: int = 5) -> list[dict]:
     counter: Counter = Counter()
     for text in texts:
-        # 네이버페이 구매평 패턴 제거
         text = re.sub(r"\d{4}-\d{2}-\d{2}[^\n]*등록된[^\n]*구매평[^\n]*", "", text)
         text = re.sub(r"\(브이리뷰[^)]*\)", "", text)
         words = re.findall(r"[가-힣]{2,6}", text)
@@ -47,12 +46,31 @@ def extract_keywords(texts: list[str], top_n: int = 5) -> list[dict]:
     return [{"word": w, "count": c} for w, c in counter.most_common(top_n)]
 
 
-def compute_stats(reviews: list[dict]) -> dict:
+def compute_stats(reviews: list[dict], date_from: str = None, date_to: str = None) -> dict:
     now = datetime.now()
     yesterday_end = datetime(now.year, now.month, now.day) - timedelta(seconds=1)
     week_start = yesterday_end - timedelta(days=6)
 
-    all_reviews = [r for r in reviews if parse_date(r.get("date", ""))]
+    # 날짜 필터 적용
+    if date_from or date_to:
+        df = parse_date(date_from) if date_from else None
+        dt = parse_date(date_to) if date_to else None
+        if dt:
+            dt = dt.replace(hour=23, minute=59, second=59)
+        filtered = []
+        for r in reviews:
+            d = parse_date(r.get("date", ""))
+            if not d:
+                continue
+            if df and d < df:
+                continue
+            if dt and d > dt:
+                continue
+            filtered.append(r)
+        all_reviews = filtered
+    else:
+        all_reviews = [r for r in reviews if parse_date(r.get("date", ""))]
+
     week_reviews = [
         r for r in all_reviews
         if week_start <= parse_date(r["date"]) <= yesterday_end
@@ -87,7 +105,7 @@ def compute_stats(reviews: list[dict]) -> dict:
             "negative": sum(1 for r in v if 0 < r.get("score", 5) <= 3),
         }
         for k, v in weekly.items()
-    ], key=lambda x: x["week"])[-8:]
+    ], key=lambda x: x["week"])
 
     platforms: dict[str, list] = {}
     for r in all_reviews:
@@ -104,17 +122,17 @@ def compute_stats(reviews: list[dict]) -> dict:
 
     products: dict[str, list] = {}
     for r in all_reviews:
-        name = r.get("product", "").strip()
-        if name and "rights" not in name.lower() and "reserved" not in name.lower() and len(name) > 4:
-            products.setdefault(name, []).append(r)
+        name = (r.get("product") or "").strip() or "(상품명 없음)"
+        products.setdefault(name, []).append(r)
 
     week_products: dict[str, list] = {}
     for r in week_reviews:
-        name = r.get("product", "").strip()
-        if name and "rights" not in name.lower() and len(name) > 4:
-            week_products.setdefault(name, []).append(r)
+        name = (r.get("product") or "").strip() or "(상품명 없음)"
+        week_products.setdefault(name, []).append(r)
 
-    def top_products_by_count(prod_map, top_n=3):
+    top_n = 3
+
+    def top_products_by_count(prods, n=top_n):
         return sorted([
             {
                 "product": name,
@@ -122,10 +140,10 @@ def compute_stats(reviews: list[dict]) -> dict:
                 "avg_score": avg_score(lst),
                 "negative": sum(1 for r in lst if 0 < r.get("score", 5) <= 3),
             }
-            for name, lst in prod_map.items()
-        ], key=lambda x: -x["count"])[:top_n]
+            for name, lst in prods.items()
+        ], key=lambda x: -x["count"])[:n]
 
-    def top_products_by_negative(prod_map, top_n=3):
+    def top_products_by_negative(prods, n=top_n):
         return sorted([
             {
                 "product": name,
@@ -133,9 +151,9 @@ def compute_stats(reviews: list[dict]) -> dict:
                 "avg_score": avg_score(lst),
                 "negative": sum(1 for r in lst if 0 < r.get("score", 5) <= 3),
             }
-            for name, lst in prod_map.items()
+            for name, lst in prods.items()
             if sum(1 for r in lst if 0 < r.get("score", 5) <= 3) > 0
-        ], key=lambda x: -x["negative"])[:top_n]
+        ], key=lambda x: -x["negative"])[:n]
 
     valid_reviews = [r for r in all_reviews if r.get("score", 0) > 0]
     pos_texts = [(r.get("content") or "") for r in valid_reviews if r.get("score", 0) >= 4]
