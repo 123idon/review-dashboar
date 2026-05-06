@@ -11,6 +11,61 @@ from pydantic import BaseModel
 from scraper import collect_all, DATA_PATH
 from analyzer import compute_stats
 
+# ── 리뷰 데이터 메모리 캐시 ──
+_reviews_cache = None   # {'jasaol': [...], 'myeongga': [...], ...}
+_cache_mtime = {}       # 파일별 수정 시각
+
+def _get_mtime(path):
+    try: return path.stat().st_mtime
+    except: return 0
+
+def _load_reviews_cached():
+    """파일 변경 시에만 재로드, 아니면 캐시 반환"""
+    global _reviews_cache, _cache_mtime
+    from scraper import JASAOL_BASE_PATH, JASAOL_NEW_PATH, load_json
+    SMARTSTORE_PATH = DATA_PATH.parent / "smartstore.json"
+
+    paths = {
+        'reviews': DATA_PATH,
+        'jasaol_base': JASAOL_BASE_PATH,
+        'jasaol_new': JASAOL_NEW_PATH,
+        'smartstore': SMARTSTORE_PATH,
+    }
+    mtimes = {k: _get_mtime(v) for k, v in paths.items()}
+
+    if _reviews_cache is not None and mtimes == _cache_mtime:
+        return _reviews_cache  # 캐시 히트
+
+    # 캐시 미스 → 파일 로드
+    try:
+        raw = load_json(DATA_PATH, {})
+        changeok = raw.get("changeok", {}).get("jasa", []) + raw.get("changeok", {}).get("smartstore", [])
+        myeongga = raw.get("myeongga", {}).get("jasa", []) + raw.get("myeongga", {}).get("smartstore", [])
+        papa     = raw.get("papa", {}).get("jasa", []) + raw.get("papa", {}).get("smartstore", [])
+        jasaol_base = load_json(JASAOL_BASE_PATH, [])
+        jasaol_new  = load_json(JASAOL_NEW_PATH, [])
+        smartstore  = load_json(SMARTSTORE_PATH, [])
+        jasaol = jasaol_base + jasaol_new + smartstore
+
+        _reviews_cache = {
+            'raw_last_updated': raw.get("last_updated"),
+            'changeok':   changeok,
+            'myeongga':   myeongga,
+            'papa':       papa,
+            'jasaol':     jasaol,
+            'smartstore': smartstore,
+        }
+        _cache_mtime = mtimes
+    except Exception as e:
+        print(f"캐시 로드 실패: {e}")
+    return _reviews_cache
+
+def invalidate_cache():
+    """수집/임포트 완료 후 캐시 무효화"""
+    global _reviews_cache, _cache_mtime
+    _reviews_cache = None
+    _cache_mtime = {}
+
 app = FastAPI()
 Path("static").mkdir(exist_ok=True)
 Path("data").mkdir(exist_ok=True)
@@ -71,6 +126,7 @@ async def run_collect():
     try:
         await collect_all(progress_cb=progress_cb)
         collect_state["last_success"] = datetime.now().isoformat()
+        invalidate_cache()  # 수집 완료 → 캐시 무효화
         write_log(True, f"수집 완료 (총 {collect_state['collected']}건)")
         _append_live_log(f"✅ 수집 완료 (총 {collect_state['collected']}건)")
         print("✅ 수집 완료")
@@ -127,28 +183,18 @@ async def get_data(date_from: str = None, date_to: str = None):
             "collecting": collect_state["running"],
             "error": collect_state["last_error"],
         })
-    try:
-        raw = json.loads(DATA_PATH.read_text(encoding="utf-8"))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail={"message": f"파일 오류: {e}"})
-    from scraper import JASAOL_BASE_PATH, JASAOL_NEW_PATH, load_json
-    SMARTSTORE_PATH = DATA_PATH.parent / "smartstore.json"
-    changeok = raw.get("changeok", {}).get("jasa", []) + raw.get("changeok", {}).get("smartstore", [])
-    myeongga = raw.get("myeongga", {}).get("jasa", []) + raw.get("myeongga", {}).get("smartstore", [])
-    papa = raw.get("papa", {}).get("jasa", []) + raw.get("papa", {}).get("smartstore", [])
-    jasaol_base = load_json(JASAOL_BASE_PATH, [])
-    jasaol_new = load_json(JASAOL_NEW_PATH, [])
-    jasaol = jasaol_base + jasaol_new
-    del jasaol_base, jasaol_new
-    smartstore = load_json(SMARTSTORE_PATH, [])
+    import asyncio
+    cache = await asyncio.get_event_loop().run_in_executor(None, _load_reviews_cached)
+    if not cache:
+        raise HTTPException(status_code=500, detail={"message": "데이터 로드 실패"})
     return {
-        "last_updated": raw.get("last_updated"),
+        "last_updated": cache['raw_last_updated'],
         "collecting": collect_state["running"],
-        "changeok": compute_stats(changeok, date_from, date_to),
-        "myeongga": compute_stats(myeongga, date_from, date_to),
-        "papa": compute_stats(papa, date_from, date_to),
-        "jasaol": compute_stats(jasaol + smartstore, date_from, date_to),
-        "smartstore": compute_stats(smartstore, date_from, date_to),
+        "changeok":   compute_stats(cache['changeok'],   date_from, date_to),
+        "myeongga":   compute_stats(cache['myeongga'],   date_from, date_to),
+        "papa":       compute_stats(cache['papa'],       date_from, date_to),
+        "jasaol":     compute_stats(cache['jasaol'],     date_from, date_to),
+        "smartstore": compute_stats(cache['smartstore'], date_from, date_to),
     }
 
 @app.get("/api/status")
@@ -345,6 +391,7 @@ async def import_jasaol_done():
         data.setdefault("papa", {"jasa": [], "smartstore": []})
         data["last_updated"] = datetime.now().isoformat()
         sc_save(DATA_PATH, data)
+        invalidate_cache()  # 임포트 완료 → 캐시 무효화
         return {"ok": True, "imported": len(reviews)}
     except HTTPException:
         raise
