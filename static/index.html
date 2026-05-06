@@ -63,6 +63,8 @@ body {
 .shop-tab.active-b { background: var(--accent-b); color: #fff; }
 .shop-tab.active-c { background: var(--accent-c); color: #fff; }
 .shop-tab.active-d { background: var(--accent-d); color: #fff; }
+.home-tab { margin-left: 6px; border-left: 1px solid var(--border); padding-left: 14px; color: var(--muted); text-decoration: none; letter-spacing: -0.2px; }
+.home-tab:hover { color: var(--text) !important; background: rgba(255,255,255,0.06); }
 .header-right { display: flex; align-items: center; gap: 10px; }
 .last-updated { font-size: 11px; color: var(--muted); font-family: var(--mono); }
 .refresh-btn {
@@ -467,7 +469,6 @@ body {
 </div>
 <header class="header">
   <div class="header-left">
-    <a href="/" title="메인으로" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.08);color:#ccc;text-decoration:none;font-size:16px;flex-shrink:0;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,0.16)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">🏠</a>
     <span class="logo">후기 대시보드</span>
     <div class="shop-tabs">
       <button class="shop-tab active-d" onclick="switchShop('jasaol', this)" style="font-weight:700;">백년화편</button>
@@ -477,6 +478,7 @@ body {
       <button class="shop-tab" onclick="switchShop('smartstore', this)">네이버</button>
       <button class="shop-tab" onclick="switchShop('memo', this)">메모장</button>
       <button class="shop-tab" onclick="switchShop('log', this)">수집로그</button>
+      <a href="/" class="shop-tab home-tab">← 메인</a>
     </div>
   </div>
   <div class="header-right">
