@@ -120,7 +120,7 @@ async def root():
     return FileResponse("static/index.html")
 
 @app.get("/api/data")
-async def get_data():
+async def get_data(date_from: str = None, date_to: str = None):
     if not DATA_PATH.exists():
         raise HTTPException(status_code=503, detail={
             "message": "수집 중입니다.",
@@ -144,11 +144,11 @@ async def get_data():
     return {
         "last_updated": raw.get("last_updated"),
         "collecting": collect_state["running"],
-        "changeok": compute_stats(changeok),
-        "myeongga": compute_stats(myeongga),
-        "papa": compute_stats(papa),
-        "jasaol": compute_stats(jasaol + smartstore),
-        "smartstore": compute_stats(smartstore),
+        "changeok": compute_stats(changeok, date_from, date_to),
+        "myeongga": compute_stats(myeongga, date_from, date_to),
+        "papa": compute_stats(papa, date_from, date_to),
+        "jasaol": compute_stats(jasaol + smartstore, date_from, date_to),
+        "smartstore": compute_stats(smartstore, date_from, date_to),
     }
 
 @app.get("/api/status")
