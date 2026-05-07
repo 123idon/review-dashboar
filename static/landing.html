@@ -168,6 +168,10 @@
 
     .card.purple { border-color: rgba(139,92,246,0.2); }
     .card.yellow { border-color: rgba(234,179,8,0.2); }
+    .card.yellow::before { background: linear-gradient(135deg, rgba(234,179,8,0.06), transparent); }
+    .card.yellow:hover { border-color: rgba(234,179,8,0.5); box-shadow: 0 12px 40px rgba(234,179,8,0.15); }
+    .card.yellow:hover::before { opacity: 1; }
+    .card.yellow .card-icon { background: rgba(234,179,8,0.15); }
     .card.indigo { border-color: rgba(99,102,241,0.2); }
     .card.indigo::before { background: linear-gradient(135deg, rgba(99,102,241,0.06), transparent); }
     .card.indigo:hover { border-color: rgba(99,102,241,0.5); box-shadow: 0 12px 40px rgba(99,102,241,0.15); }
@@ -506,7 +510,7 @@
 
   <!-- 푸터 -->
   <footer>
-    © 2025 백년화편 &nbsp;·&nbsp; 내부 관리용
+    © 2026 백년화편 &nbsp;·&nbsp; 내부 관리용
   </footer>
 
 
