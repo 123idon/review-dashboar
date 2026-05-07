@@ -350,7 +350,7 @@ body { display:flex; flex-direction:column; }
 .menu-card {
   position:relative; display:flex; flex-direction:column;
   background:var(--surface); border:1.5px solid var(--border); border-radius:20px; padding:24px;
-  text-decoration:none; color:inherit; overflow:hidden;
+  text-decoration:none; color:inherit; 
   transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 220ms ease, border-color 200ms ease;
   animation:fadeUp 320ms cubic-bezier(0.16,1,0.3,1) both;
 }
@@ -378,8 +378,8 @@ body { display:flex; flex-direction:column; }
 .menu-card:hover .card-arrow svg { stroke:var(--mc); }
 
 .card-name  { font-size:15px; font-weight:800; letter-spacing:-.4px; margin-bottom:6px; position:relative; z-index:1; }
-.card-desc  { font-size:12px; color:var(--text3); line-height:1.65; position:relative; z-index:1;  flex:1;}
-.card-badges { display:flex; align-items:center; gap:7px; margin-top:auto; padding-top:14px; position:relative; z-index:1; flex-wrap:wrap; flex-direction:row; }
+.card-desc  { font-size:12px; color:var(--text3); line-height:1.65; position:relative; z-index:1;  flex-grow:1;}
+.card-badges { display:flex; align-items:center; gap:7px; margin-top:auto; padding-top:12px; position:relative; z-index:1; flex-wrap:wrap; flex-direction:row; min-height:30px; }
 
 .live-badge { display:inline-flex; align-items:center; gap:5px; height:22px; padding:0 9px; border-radius:50px; background:var(--green-bg); color:var(--green); font-size:10px; font-weight:700; letter-spacing:.4px; }
 .live-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green); animation:pulseDot 2s ease-in-out infinite; }
