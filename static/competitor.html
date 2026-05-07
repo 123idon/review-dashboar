@@ -7,64 +7,99 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
   <style>
+
+  :root, html.day {
+    --bg:      #f7f3ee;
+    --surface: #fffdf9;
+    --border:  #e8e0d4;
+    --border2: #d4c9b8;
+    --text:    #2c2416;
+    --text2:   #5c4e3a;
+    --text3:   #8a7a65;
+    --text4:   #a89880;
+  }
+  html.night {
+    --bg:      #1e1a14;
+    --surface: #2a2318;
+    --border:  #3d3326;
+    --border2: #5a4d38;
+    --text:    #f0e8d8;
+    --text2:   #c8b89a;
+    --text3:   #8a7a65;
+    --text4:   #6b5c48;
+  }
+  .theme-toggle {
+    position: fixed; bottom: 20px; left: 20px;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--border2);
+    background: var(--surface); color: var(--text3);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; z-index: 999;
+    box-shadow: 0 2px 12px rgba(44,36,22,.1);
+    transition: transform .15s, opacity .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .theme-toggle:active { transform: scale(.9); }
+  .theme-toggle:hover  { opacity: .85; }
+
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{min-height:100vh;background:#0f1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;color:#e2e8f0;}
+    body{min-height:100vh;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;color:var(--text);}
 
     /* 헤더 */
-    .top-bar{padding:16px 24px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #1e293b;position:sticky;top:0;background:rgba(15,17,23,.96);backdrop-filter:blur(12px);z-index:200;}
-    .back-btn{width:34px;height:34px;border-radius:10px;background:#1a1f2e;border:1px solid #2d3748;color:#94a3b8;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;font-size:16px;transition:background .2s;}
-    .back-btn:hover{background:#2d3748;}
+    .top-bar{padding:16px 24px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(247,243,238,.97);backdrop-filter:blur(12px);z-index:200;}
+    .back-btn{width:34px;height:34px;border-radius:10px;background:var(--surface);border:1px solid var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;font-size:16px;transition:background .2s;}
+    .back-btn:hover{background:var(--border);}
     .page-title{font-size:17px;font-weight:700;}
-    .page-sub{font-size:12px;color:#475569;margin-top:1px;}
+    .page-sub{font-size:12px;color:var(--text4);margin-top:1px;}
     .header-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
-    .last-upd{font-size:11px;color:#475569;}
+    .last-upd{font-size:11px;color:var(--text4);}
 
     /* 필터 */
-    .filter-bar{padding:12px 24px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #1e293b;background:#0f1117;}
-    .pb{padding:5px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #2d3748;background:#1a1f2e;color:#64748b;transition:all .2s;}
-    .pb.active{background:rgba(99,102,241,.18);border-color:rgba(99,102,241,.5);color:#a78bfa;}
+    .filter-bar{padding:12px 24px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg);}
+    .pb{padding:5px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text3);transition:all .2s;}
+    .pb.active{background:rgba(181,101,29,.12);border-color:rgba(181,101,29,.4);color:#b5651d;}
 
     /* 레이아웃 */
     .content{padding:24px;max-width:1140px;margin:0 auto;}
 
     /* 경고 배너 */
-    .alert-banner{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#f87171;display:none;}
+    .alert-banner{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#c0392b;display:none;}
     .alert-banner.show{display:block;}
 
     /* 섹션 */
     .section{margin-bottom:30px;}
-    .section-title{font-size:11px;font-weight:700;color:#475569;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-    .tip{font-size:10px;font-weight:400;color:#334155;letter-spacing:0;text-transform:none;background:#1e293b;padding:2px 8px;border-radius:4px;}
+    .section-title{font-size:11px;font-weight:700;color:var(--text4);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+    .tip{font-size:10px;font-weight:400;color:var(--text4);letter-spacing:0;text-transform:none;background:var(--border);padding:2px 8px;border-radius:4px;}
 
     /* KPI 카드 */
     .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:26px;}
-    .kpi-card{background:#1a1f2e;border:1px solid #1e293b;border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;}
+    .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;}
     .kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0;}
     .kpi-card.orange::after{background:#f97316;}
     .kpi-card.indigo::after{background:#6366f1;}
     .kpi-card.pink::after{background:#ec4899;}
-    .kpi-brand{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+    .kpi-brand{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
     .brand-dot{width:8px;height:8px;border-radius:50%;}
     .kpi-score{font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;}
-    .kpi-score small{font-size:13px;color:#475569;font-weight:500;}
-    .kpi-sub{font-size:12px;color:#475569;margin-top:5px;}
+    .kpi-score small{font-size:13px;color:var(--text4);font-weight:500;}
+    .kpi-sub{font-size:12px;color:var(--text4);margin-top:5px;}
     .kpi-delta{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;margin-top:7px;}
-    .up{background:rgba(34,197,94,.12);color:#4ade80;}
-    .dn{background:rgba(239,68,68,.12);color:#f87171;}
-    .fl{background:rgba(100,116,139,.1);color:#94a3b8;}
-    .est-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#64748b;background:#1e293b;border:1px solid #2d3748;padding:2px 7px;border-radius:5px;margin-top:6px;}
+    .up{background:rgba(74,154,90,.1);color:#5a9a5a;}
+    .dn{background:rgba(192,57,43,.1);color:#c0392b;}
+    .fl{background:rgba(168,152,128,.1);color:var(--text3);}
+    .est-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--text3);background:var(--border);border:1px solid var(--border2);padding:2px 7px;border-radius:5px;margin-top:6px;}
 
     /* 차트 */
-    .chart-card{background:#1a1f2e;border:1px solid #1e293b;border-radius:16px;padding:22px;margin-bottom:14px;}
+    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:14px;}
     .chart-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:8px;flex-wrap:wrap;}
-    .chart-title{font-size:14px;font-weight:700;color:#cbd5e1;}
-    .chart-title small{font-size:11px;color:#475569;font-weight:400;display:block;margin-top:2px;}
+    .chart-title{font-size:14px;font-weight:700;color:var(--text2);}
+    .chart-title small{font-size:11px;color:var(--text4);font-weight:400;display:block;margin-top:2px;}
     .chart-legend{display:flex;gap:12px;flex-wrap:wrap;}
-    .leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b;font-weight:600;}
+    .leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-weight:600;}
     .leg-dot{width:10px;height:10px;border-radius:50%;}
     .chart-wrap{position:relative;height:240px;}
     .chart-wrap.tall{height:280px;}
-    .chart-note{font-size:11px;color:#334155;text-align:right;margin-top:6px;}
+    .chart-note{font-size:11px;color:var(--text4);text-align:right;margin-top:6px;}
 
     /* 2열 */
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -72,9 +107,9 @@
 
     /* 이벤트 목록 */
     .ev-timeline{position:relative;padding-left:18px;}
-    .ev-timeline::before{content:'';position:absolute;left:5px;top:0;bottom:0;width:1px;background:#1e293b;}
+    .ev-timeline::before{content:'';position:absolute;left:5px;top:0;bottom:0;width:1px;background:var(--border);}
     .ev-item{position:relative;padding:10px 0 10px 16px;}
-    .ev-item::before{content:'';position:absolute;left:-13px;top:15px;width:8px;height:8px;border-radius:50%;background:#2d3748;border:1.5px solid #475569;}
+    .ev-item::before{content:'';position:absolute;left:-13px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--border2);border:1.5px solid var(--text4);}
     .ev-item.season::before{background:#f97316;border-color:#f97316;}
     .ev-item.holiday::before{background:#6366f1;border-color:#6366f1;}
     .ev-item.marketing::before{background:#ec4899;border-color:#ec4899;}
@@ -85,35 +120,35 @@
     .tag-holiday{background:rgba(99,102,241,.15);color:#a78bfa;}
     .tag-marketing{background:rgba(236,72,153,.15);color:#f472b6;}
     .tag-external{background:rgba(34,211,238,.15);color:#67e8f9;}
-    .ev-date{font-size:11px;color:#475569;font-weight:600;}
-    .ev-name{font-size:13px;font-weight:700;color:#cbd5e1;}
-    .ev-desc{font-size:12px;color:#64748b;line-height:1.5;margin-top:2px;}
+    .ev-date{font-size:11px;color:var(--text4);font-weight:600;}
+    .ev-name{font-size:13px;font-weight:700;color:var(--text2);}
+    .ev-desc{font-size:12px;color:var(--text3);line-height:1.5;margin-top:2px;}
     .ev-foot{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;}
     .impact-chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;}
-    .impact-high{background:rgba(34,197,94,.12);color:#4ade80;}
-    .impact-med{background:rgba(234,179,8,.12);color:#fbbf24;}
-    .impact-low{background:rgba(100,116,139,.1);color:#94a3b8;}
+    .impact-high{background:rgba(74,154,90,.1);color:#5a9a5a;}
+    .impact-med{background:rgba(181,101,29,.1);color:#b5651d;}
+    .impact-low{background:rgba(168,152,128,.1);color:var(--text3);}
     .uplift-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;margin-left:2px;}
-    .uplift-boom{background:rgba(249,115,22,.18);color:#fb923c;}
-    .uplift-up{background:rgba(34,197,94,.12);color:#4ade80;}
-    .uplift-dn{background:rgba(239,68,68,.12);color:#f87171;}
+    .uplift-boom{background:rgba(181,101,29,.15);color:#b5651d;}
+    .uplift-up{background:rgba(74,154,90,.1);color:#5a9a5a;}
+    .uplift-dn{background:rgba(192,57,43,.1);color:#c0392b;}
     .brand-chip{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;}
 
     /* 키워드 */
     .kw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
-    .kw-card{background:#1a1f2e;border:1px solid #1e293b;border-radius:14px;padding:16px 18px;}
-    .kw-brand{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+    .kw-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;}
+    .kw-brand{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
     .kw-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
-    .kw-word{font-size:13px;font-weight:600;flex:1;color:#e2e8f0;}
-    .kw-bar-wrap{flex:2;height:5px;background:#2d3748;border-radius:3px;overflow:hidden;}
+    .kw-word{font-size:13px;font-weight:600;flex:1;color:var(--text);}
+    .kw-bar-wrap{flex:2;height:5px;background:var(--border2);border-radius:3px;overflow:hidden;}
     .kw-bar{height:100%;border-radius:3px;}
-    .kw-cnt{font-size:11px;color:#475569;width:28px;text-align:right;}
+    .kw-cnt{font-size:11px;color:var(--text4);width:28px;text-align:right;}
 
     /* 로딩 */
-    .loading-overlay{position:fixed;inset:0;background:rgba(15,17,23,.85);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
-    .spinner{width:36px;height:36px;border:3px solid #2d3748;border-top-color:#a78bfa;border-radius:50%;animation:spin .8s linear infinite;}
+    .loading-overlay{position:fixed;inset:0;background:rgba(247,243,238,.88);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
+    .spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:#b5651d;border-radius:50%;animation:spin .8s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
-    .ld-txt{font-size:13px;color:#64748b;}
+    .ld-txt{font-size:13px;color:var(--text3);}
 
     @media(max-width:600px){.content{padding:14px;}.chart-wrap{height:190px;}.chart-wrap.tall{height:220px;}}
   
@@ -236,6 +271,28 @@
   </style>
 </head>
 <body>
+<script>
+(function() {
+  var DAY_START = 7, DAY_END = 19;
+  function getAutoTheme() { var h = new Date().getHours(); return (h >= DAY_START && h < DAY_END) ? 'day' : 'night'; }
+  function applyTheme(mode, manual) {
+    document.documentElement.classList.remove('day','night');
+    document.documentElement.classList.add(mode);
+    var btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = mode === 'night' ? '☀️' : '🌙';
+    if (manual) { try { localStorage.setItem('bnh_theme', mode); } catch(e){} }
+  }
+  window.__toggleTheme = function() {
+    var cur = document.documentElement.classList.contains('day') ? 'day' : 'night';
+    applyTheme(cur === 'day' ? 'night' : 'day', true);
+  };
+  (function init() {
+    var manual = null;
+    try { manual = localStorage.getItem('bnh_theme'); } catch(e){}
+    applyTheme(manual || getAutoTheme(), false);
+  })();
+})();
+</script>
 
 <div class="loading-overlay" id="loading">
   <div class="spinner"></div><div class="ld-txt">데이터 분석 중...</div>
@@ -472,7 +529,7 @@ function buildAnnotations(months, monthList, type='month') {
         position: 'start',
         color: '#94a3b8',
         font: { size: 9 },
-        backgroundColor: 'rgba(15,17,23,.85)',
+        backgroundColor: 'rgba(247,243,238,.9)',
         padding: { x:3, y:2 },
         yAdjust: i % 3 === 0 ? 0 : i % 3 === 1 ? 30 : 60,
       },
@@ -488,13 +545,13 @@ function commonOpts(annotations, extra={}) {
     maintainAspectRatio: false,
     interaction: { mode:'index', intersect:false },
     plugins: {
-      legend: { labels:{ color:'#94a3b8', font:{size:11}, boxWidth:10 } },
-      tooltip: { backgroundColor:'#1e293b', titleColor:'#e2e8f0', bodyColor:'#94a3b8', borderColor:'#2d3748', borderWidth:1 },
+      legend: { labels:{ color:'var(--text3)', font:{size:11}, boxWidth:10 } },
+      tooltip: { backgroundColor:'var(--surface)', titleColor:'var(--text)', bodyColor:'var(--text3)', borderColor:'var(--border2)', borderWidth:1 },
       annotation: { annotations },
     },
     scales: {
-      x: { ticks:{ color:'#475569', font:{size:10}, maxTicksLimit:14 }, grid:{ color:'#1e293b' } },
-      y: { ticks:{ color:'#475569', font:{size:10} }, grid:{ color:'#1e293b' }, ...extra },
+      x: { ticks:{ color:'var(--text4)', font:{size:10}, maxTicksLimit:14 }, grid:{ color:'var(--border)' } },
+      y: { ticks:{ color:'var(--text4)', font:{size:10} }, grid:{ color:'var(--border)' }, ...extra },
     },
   };
 }
@@ -617,12 +674,12 @@ function renderSalesChart(data, months) {
       plugins: {
         ...commonOpts(annotations).plugins,
         tooltip: {
-          backgroundColor:'#1e293b', titleColor:'#e2e8f0', bodyColor:'#94a3b8', borderColor:'#2d3748', borderWidth:1,
+          backgroundColor:'var(--surface)', titleColor:'var(--text)', bodyColor:'var(--text3)', borderColor:'var(--border2)', borderWidth:1,
           callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw!=null?ctx.raw.toLocaleString()+'백만원':'-'}` }
         },
       },
       scales: { ...commonOpts(annotations).scales,
-        y: { ticks:{ color:'#475569', font:{size:10}, callback:v=>`${v}M` }, grid:{ color:'#1e293b' } }
+        y: { ticks:{ color:'var(--text4)', font:{size:10}, callback:v=>`${v}M` }, grid:{ color:'var(--border)' } }
       },
     },
   });
@@ -650,8 +707,8 @@ function renderShareChart(data, months) {
     options: {
       responsive:true, maintainAspectRatio:false, cutout:'65%',
       plugins: {
-        legend:{ position:'bottom', labels:{ color:'#94a3b8', font:{size:11}, boxWidth:10, padding:10 } },
-        tooltip:{ backgroundColor:'#1e293b', titleColor:'#e2e8f0', bodyColor:'#94a3b8', borderColor:'#2d3748', borderWidth:1,
+        legend:{ position:'bottom', labels:{ color:'var(--text3)', font:{size:11}, boxWidth:10, padding:10 } },
+        tooltip:{ backgroundColor:'var(--surface)', titleColor:'var(--text)', bodyColor:'var(--text3)', borderColor:'var(--border2)', borderWidth:1,
           callbacks:{ label:ctx=>` ${ctx.label}: ${ctx.raw}%` } },
         annotation:{ annotations:{} },
       },
@@ -685,7 +742,7 @@ function renderNegChart(data, months) {
     },
     options: { ...commonOpts(annotations),
       scales:{ ...commonOpts(annotations).scales,
-        y:{ min:0, ticks:{ color:'#475569', font:{size:10}, callback:v=>v+'%' }, grid:{ color:'#1e293b' } } }
+        y:{ min:0, ticks:{ color:'var(--text4)', font:{size:10}, callback:v=>v+'%' }, grid:{ color:'var(--border)' } } }
     },
   });
 }
@@ -716,7 +773,7 @@ function renderScoreChart(data, months) {
     },
     options: { ...commonOpts(annotations),
       scales:{ ...commonOpts(annotations).scales,
-        y:{ min:4.0, max:5.1, ticks:{ color:'#475569', font:{size:10}, stepSize:.2 }, grid:{ color:'#1e293b' } } }
+        y:{ min:4.0, max:5.1, ticks:{ color:'var(--text4)', font:{size:10}, stepSize:.2 }, grid:{ color:'var(--border)' } } }
     },
   });
 }
@@ -751,7 +808,7 @@ function renderCntChart(data, months) {
     },
     options: { ...commonOpts(annotations),
       scales:{ ...commonOpts(annotations).scales,
-        y:{ ticks:{ color:'#475569', font:{size:10}, callback:v=>v>=1000?Math.round(v/1000)+'k':v }, grid:{ color:'#1e293b' } } }
+        y:{ ticks:{ color:'var(--text4)', font:{size:10}, callback:v=>v>=1000?Math.round(v/1000)+'k':v }, grid:{ color:'var(--border)' } } }
     },
   });
 }
@@ -796,7 +853,7 @@ function renderFiveChart(data, months) {
     },
     options: { ...commonOpts(annotations),
       scales:{ ...commonOpts(annotations).scales,
-        y:{ min:0, max:100, ticks:{ color:'#475569', font:{size:10}, callback:v=>v+'%' }, grid:{ color:'#1e293b' } } }
+        y:{ min:0, max:100, ticks:{ color:'var(--text4)', font:{size:10}, callback:v=>v+'%' }, grid:{ color:'var(--border)' } } }
     },
   });
 }
