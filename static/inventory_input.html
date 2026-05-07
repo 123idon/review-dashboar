@@ -354,6 +354,70 @@ body {
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 @media(max-width:400px){.content{padding:16px 14px 80px;}}
 
+
+/* ─── inventory_input 동적 렌더 ─── */
+
+/* 상품 행 */
+.product-row {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.product-row:last-child { border-bottom:none; }
+.product-row.low-stock .prow-name { color:var(--red); }
+
+.prow-name  { font-size:13px; font-weight:600; color:var(--text2); }
+.prow-stock { font-size:11px; color:var(--text4); margin-top:2px; font-variant-numeric:tabular-nums; }
+
+/* 수량 입력 */
+.qty-input {
+  width:72px; height:38px; padding:0 10px; text-align:center;
+  border:1.5px solid var(--border); border-radius:10px;
+  background:var(--surface); color:var(--text);
+  font-family:inherit; font-size:14px; font-weight:700;
+  outline:none; flex-shrink:0;
+  transition:border-color 150ms ease, box-shadow 150ms ease;
+  font-variant-numeric:tabular-nums;
+}
+.qty-input:focus { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-bg); }
+
+/* 적용 버튼 */
+.apply-btn {
+  height:38px; padding:0 16px; border-radius:50px; border:none;
+  font-family:inherit; font-size:12px; font-weight:700;
+  cursor:pointer; transition:all 150ms ease; white-space:nowrap; flex-shrink:0;
+}
+.apply-btn.add { background:var(--green); color:#fff; box-shadow:0 2px 8px rgba(0,168,107,.25); }
+.apply-btn.add:hover { filter:brightness(1.08); }
+.apply-btn.set { background:var(--blue); color:#fff; box-shadow:0 2px 8px rgba(49,130,246,.25); }
+.apply-btn.set:hover { filter:brightness(1.08); }
+.apply-btn:active { transform:scale(.97); }
+
+/* 매진 임박 아이템 */
+.soldout-item {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.soldout-item:last-child { border-bottom:none; }
+.soldout-name  { font-size:13px; font-weight:600; color:var(--text2); }
+.soldout-stock { font-size:11px; font-weight:700; margin-top:2px; }
+.soldout-stock.danger  { color:var(--red); }
+.soldout-stock.warning { color:var(--amber); }
+
+/* 매진 처리 버튼 */
+.btn-soldout {
+  height:32px; padding:0 14px; border-radius:50px;
+  border:1.5px solid rgba(240,68,82,.3); background:var(--red-bg);
+  font-family:inherit; font-size:11px; font-weight:700; color:var(--red);
+  cursor:pointer; transition:all 150ms ease; flex-shrink:0;
+}
+.btn-soldout:hover { background:var(--red); color:#fff; border-color:var(--red); }
+.btn-soldout:active { transform:scale(.97); }
+
+/* 공통 반응형 */
+@media(max-width:420px) {
+  .qty-input { width:60px; }
+  .apply-btn { padding:0 12px; font-size:11px; }
+}
 </style>
 <script>
 (function(){var DS=6,DE=20;function auto(){var h=new Date().getHours();return(h>=DS&&h<DE)?'day':'night';}function apply(m,save){document.documentElement.setAttribute('data-theme',m);var b=document.getElementById('themeToggle');if(b)b.textContent=m==='night'?'☀️':'🌙';if(save){try{localStorage.setItem('bnh_theme',m);}catch(e){}}}window.__toggleTheme=function(){var c=document.documentElement.getAttribute('data-theme')||'day';apply(c==='day'?'night':'day',true);};setInterval(function(){try{if(!localStorage.getItem('bnh_theme'))apply(auto(),false);}catch(e){}},60000);(function(){var m=null;try{m=localStorage.getItem('bnh_theme');}catch(e){}apply(m||auto(),false);})();})();})();
