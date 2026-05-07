@@ -23,29 +23,7 @@
   --sh-xl:0 20px 56px rgba(0,0,0,.13);
   --sh-brand:0 4px 14px rgba(245,130,13,.28);--sh-blue:0 4px 14px rgba(49,130,246,.25);
 }
-[data-theme="night"]{
-  --bg:#111111;--bg2:#1C1C1E;--surface:#1C1C1E;--surface2:#2C2C2E;
-  --border:#3A3A3C;--border2:#48484A;
-  --text:#F5F5F5;--text2:#EBEBF0;--text3:#8E8E93;--text4:#48484A;
-  --brand:#FF9A30;--brand-bg:rgba(255,154,48,.18);--brand-dark:#FFB558;--brand-rgb:255,154,48;
-  --blue:#4D9BFF;--blue-bg:rgba(77,155,255,.2);--blue-rgb:77,155,255;
-  --red:#FF6B75;--red-bg:rgba(255,107,117,.18);
-  --green:#1FC791;--green-bg:rgba(31,199,145,.2);
-  --purple:#8B6FFF;--purple-bg:rgba(139,111,255,.2);
-  --teal:#22D3EE;--teal-bg:rgba(34,211,238,.18);
-  --amber:#FBB928;--amber-bg:rgba(251,185,40,.18);
-  --muted:#8E8E93;--r-pill:50px;
-  --sh-xs:0 1px 3px rgba(0,0,0,.4);--sh-sm:0 2px 10px rgba(0,0,0,.5);
-  --sh-md:0 4px 20px rgba(0,0,0,.6);--sh-lg:0 8px 32px rgba(0,0,0,.7);
-  --sh-xl:0 20px 56px rgba(0,0,0,.8);
-  --sh-brand:0 4px 14px rgba(255,154,48,.28);--sh-blue:0 4px 14px rgba(77,155,255,.28);
-  --shadow-xs:0 1px 3px rgba(0,0,0,.4);--shadow-sm:0 2px 10px rgba(0,0,0,.5);
-  --shadow-md:0 4px 20px rgba(0,0,0,.6);--shadow-xl:0 20px 56px rgba(0,0,0,.8);
-  --shadow-brand:0 4px 14px rgba(255,154,48,.28);--shadow-blue:0 4px 14px rgba(77,155,255,.28);
-  --danger:#FF6B75;--danger-bg:rgba(255,107,117,.18);
-  --positive:#1FC791;--positive-bg:rgba(31,199,145,.2);
-  --bg2:#1C1C1E;--accent-d:#FF9A30;
-}
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
@@ -188,8 +166,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .mp-toast{position:fixed;bottom:88px;right:80px;z-index:902;background:var(--text);color:var(--bg);font-size:12px;font-weight:700;padding:8px 16px;border-radius:50px;opacity:0;transform:translateY(8px);pointer-events:none;transition:all 200ms ease}
 .mp-toast.show{opacity:1;transform:translateY(0)}
 
-.theme-toggle{position:fixed;bottom:22px;left:20px;z-index:999;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-sm);transition:transform 220ms cubic-bezier(.34,1.56,.64,1),box-shadow 150ms ease;-webkit-tap-highlight-color:transparent}
-.theme-toggle:hover{transform:scale(1.1);box-shadow:var(--sh-md)}
+
+
 
 @media(max-width:700px){.two-col{grid-template-columns:1fr}.kw-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.content{padding:4px 14px 80px}.chart-wrap{height:180px}.chart-wrap.tall{height:210px}.page-sub{display:none}}
@@ -309,22 +287,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
   </div>
 </div>
 <div id="mpToast" class="mp-toast"></div>
-<button class="theme-toggle" id="themeToggle" onclick="__toggleTheme()" title="주간/야간 전환">🌙</button>
+
 
 <script>
 // ── 테마 ──────────────────────────────────────────────
 (function(){
-  var DS=6,DE=20;
-  function auto(){var h=new Date().getHours();return(h>=DS&&h<DE)?'day':'night';}
-  function apply(m,save){
-    document.documentElement.setAttribute('data-theme',m);
-    var b=document.getElementById('themeToggle');
-    if(b)b.textContent=m==='night'?'☀️':'🌙';
-    if(save){try{localStorage.setItem('bnh_theme',m);}catch(e){}}
-  }
-  window.__toggleTheme=function(){var c=document.documentElement.getAttribute('data-theme')||'day';apply(c==='day'?'night':'day',true);};
-  setInterval(function(){try{if(!localStorage.getItem('bnh_theme'))apply(auto(),false);}catch(e){}},60000);
-  (function(){var m=null;try{m=localStorage.getItem('bnh_theme');}catch(e){}apply(m||auto(),false);})();
+  document.documentElement.setAttribute('data-theme','day');
+})();
 })();
 </script>
 
