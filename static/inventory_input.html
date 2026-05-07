@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>재고 입력 — 백년화편</title>
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#0f1117; --surface:#1a1f2e; --border:#1e293b; --border2:#334155;
+      --text:#e2e8f0; --text2:#94a3b8; --text3:#64748b; --text4:#475569;
+      --orange:#f97316; --green:#4ade80; --green-bg:rgba(34,197,94,.1);
+      --red:#f87171; --red-bg:rgba(239,68,68,.1); --yellow:#fbbf24;
+    }
+    body {
+      min-height: 100vh; background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      color: var(--text);
+    }
+
+    header {
+      padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top:0; background: var(--bg); z-index:100;
+    }
+    .header-info .title { font-size:16px; font-weight:700; }
+    .header-info .sub { font-size:11px; color:var(--text3); margin-top:1px; }
+
+    .content { padding: 20px; max-width: 600px; margin: 0 auto; padding-bottom: 40px; }
+
+    /* ── 빠른 입력 섹션 ── */
+    .section { background: var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px; }
+    .section-title { font-size:14px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+
+    .product-grid { display:flex; flex-direction:column; gap:10px; }
+    .product-row {
+      display:grid; grid-template-columns:1fr auto auto;
+      gap:8px; align-items:center;
+      background: var(--bg); border:1px solid var(--border);
+      border-radius:10px; padding:10px 12px;
+    }
+    .product-row.no-stock { border-color:rgba(239,68,68,.2); background:rgba(239,68,68,.03); }
+    .product-row.low-stock { border-color:rgba(251,191,36,.2); background:rgba(251,191,36,.03); }
+
+    .prow-name { font-size:13px; font-weight:600; }
+    .prow-stock { font-size:11px; color:var(--text3); margin-top:2px; }
+    .qty-input {
+      width:70px; background:var(--surface); border:1px solid var(--border2);
+      border-radius:8px; padding:7px 10px; color:var(--text);
+      font-size:14px; font-weight:700; text-align:center;
+      outline:none; -webkit-appearance:none; inputmode:numeric;
+    }
+    .qty-input:focus { border-color:var(--orange); }
+    .apply-btn {
+      padding:7px 14px; border-radius:8px; border:none;
+      font-size:12px; font-weight:700; cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .apply-btn.add { background:var(--green-bg); color:var(--green); }
+    .apply-btn.set { background:rgba(249,115,22,.12); color:var(--orange); }
+    .apply-btn:active { opacity:.7; }
+
+    /* ── 일괄 설정 ── */
+    .bulk-row { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
+    .form-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:100px; }
+    .form-label { font-size:11px; color:var(--text3); font-weight:600; letter-spacing:.3px; }
+    .form-input {
+      background:var(--bg); border:1px solid var(--border);
+      border-radius:9px; padding:10px 12px; color:var(--text);
+      font-size:14px; outline:none; -webkit-appearance:none;
+      transition:border-color .15s;
+    }
+    .form-input:focus { border-color:var(--border2); }
+    .btn-primary {
+      padding:10px 20px; border-radius:9px;
+      background:var(--orange); color:#fff; border:none;
+      font-size:13px; font-weight:700; cursor:pointer;
+      -webkit-tap-highlight-color:transparent; white-space:nowrap;
+      height:42px;
+    }
+    .btn-primary:active { opacity:.85; }
+
+    /* ── 매진 처리 ── */
+    .soldout-grid { display:flex; flex-direction:column; gap:8px; }
+    .soldout-item {
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; background:var(--bg); border:1px solid var(--border);
+      border-radius:10px; padding:10px 14px;
+    }
+    .soldout-name { font-size:13px; font-weight:600; }
+    .soldout-stock { font-size:11px; margin-top:2px; }
+    .soldout-stock.danger { color:var(--red); }
+    .soldout-stock.warning { color:var(--yellow); }
+    .btn-soldout {
+      padding:6px 14px; border-radius:8px; border:none;
+      background:var(--red-bg); color:var(--red);
+      font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;
+      -webkit-tap-highlight-color:transparent; flex-shrink:0;
+    }
+    .btn-soldout:active { opacity:.7; }
+
+    /* ── 신규 상품 ── */
+    .new-product-form { display:flex; flex-direction:column; gap:10px; }
+
+    /* ── 빈 상태 ── */
+    .empty { text-align:center; padding:32px; color:var(--text4); font-size:13px; }
+
+    /* ── 토스트 ── */
+    .toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:#2d3748; color:var(--text); padding:9px 18px;
+      border-radius:20px; font-size:12px; font-weight:600;
+      z-index:400; opacity:0; transition:opacity .25s;
+      pointer-events:none; white-space:nowrap;
+      box-shadow:0 4px 16px rgba(0,0,0,.3);
+    }
+    .toast.show { opacity:1; }
+
+    @media (max-width:400px) {
+      .product-row { grid-template-columns:1fr; }
+      .qty-input { width:100%; }
+      .apply-btn { width:100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-info">
+    <div class="title">📝 재고 입력</div>
+    <div class="sub">수량 입력 후 적용 버튼을 눌러주세요</div>
+  </div>
+</header>
+
+<div class="content">
+
+  <!-- 빠른 추가 입력 -->
+  <div class="section">
+    <div class="section-title">⚡ 빠른 추가 입력</div>
+    <div class="product-grid" id="quickGrid">
+      <div class="empty">상품을 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 재고 직접 설정 (초기화/덮어쓰기) -->
+  <div class="section">
+    <div class="section-title">🔧 재고 직접 설정 <span style="font-size:11px;color:var(--text3);font-weight:400">현재 수량을 해당 숫자로 교체</span></div>
+    <div class="product-grid" id="setGrid">
+      <div class="empty">상품을 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 매진 임박 상품 -->
+  <div class="section" id="alertSection" style="display:none">
+    <div class="section-title">⚠️ 매진 임박 / 매진 상품</div>
+    <div class="soldout-grid" id="alertGrid"></div>
+  </div>
+
+  <!-- 신규 상품 등록 -->
+  <div class="section">
+    <div class="section-title">➕ 신규 상품 등록</div>
+    <div class="new-product-form">
+      <div class="form-group">
+        <label class="form-label">상품명 *</label>
+        <input class="form-input" id="np-name" placeholder="예: 백설기" autocomplete="off" />
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="form-group">
+          <label class="form-label">상품 코드 (선택)</label>
+          <input class="form-input" id="np-code" placeholder="EasyPOS 코드" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">초기 재고</label>
+          <input class="form-input" type="number" id="np-stock" placeholder="0" min="0" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">매진 임박 기준 (개) — 비우면 기본값</label>
+        <input class="form-input" type="number" id="np-threshold" placeholder="기본값 사용" min="1" inputmode="numeric" />
+      </div>
+      <button class="btn-primary" onclick="addNewProduct()">상품 등록</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function nowStr() {
+  const d = new Date(), pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const DEFAULT_STATE = () => ({ products:[], history:[], settings:{ hd_code:'HYW', sp_code:'', alert_threshold:10, warning_threshold:20 } });
+let state = DEFAULT_STATE();
+
+function getPid(p) { return p.item_code || p._id; }
+
+async function loadData() {
+  try {
+    const r = await fetch('/api/inventory');
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    (d.products||[]).forEach((p,i) => { if (!p._id) p._id='p_'+Date.now()+'_'+i; });
+    state = { ...DEFAULT_STATE(), ...d };
+    state.settings = { ...DEFAULT_STATE().settings, ...(d.settings||{}) };
+  } catch(e) {}
+}
+
+async function saveData() {
+  try {
+    await fetch('/api/inventory', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(state) });
+  } catch(e) {}
+}
+
+function addHistory(entry) {
+  if (!state.history) state.history=[];
+  state.history.push({...entry, datetime:nowStr()});
+  if (state.history.length>500) state.history=state.history.slice(-500);
+}
+
+function renderAll() {
+  const def = state.settings.alert_threshold||10;
+  const warn = state.settings.warning_threshold||(def*2);
+
+  // 빠른 추가 입력
+  const qg = document.getElementById('quickGrid');
+  if (!state.products.length) {
+    qg.innerHTML = '<div class="empty">등록된 상품이 없습니다. 아래에서 신규 상품을 등록해주세요.</div>';
+  } else {
+    qg.innerHTML = state.products.map(p => {
+      const pid = getPid(p);
+      const th = p.threshold!=null?p.threshold:def;
+      const cls = p.current_stock<=0?'no-stock':p.current_stock<=th?'low-stock':'';
+      const pid_esc = pid.replace(/'/g,"\\'");
+      return `<div class="product-row ${cls}">
+        <div>
+          <div class="prow-name">${p.item_name}</div>
+          <div class="prow-stock">현재: ${p.current_stock}개</div>
+        </div>
+        <input class="qty-input" type="number" id="qadd-${pid_esc}" placeholder="수량" min="1" inputmode="numeric" />
+        <button class="apply-btn add" onclick="quickAdd('${pid_esc}')">추가</button>
+      </div>`;
+    }).join('');
+  }
+
+  // 직접 설정
+  const sg = document.getElementById('setGrid');
+  if (!state.products.length) {
+    sg.innerHTML = '<div class="empty">등록된 상품이 없습니다.</div>';
+  } else {
+    sg.innerHTML = state.products.map(p => {
+      const pid = getPid(p);
+      const pid_esc = pid.replace(/'/g,"\\'");
+      return `<div class="product-row">
+        <div>
+          <div class="prow-name">${p.item_name}</div>
+          <div class="prow-stock">현재: ${p.current_stock}개</div>
+        </div>
+        <input class="qty-input" type="number" id="qset-${pid_esc}" placeholder="${p.current_stock}" min="0" inputmode="numeric" />
+        <button class="apply-btn set" onclick="quickSet('${pid_esc}')">설정</button>
+      </div>`;
+    }).join('');
+  }
+
+  // 매진 임박
+  const alertItems = state.products.filter(p => p.current_stock >= 0 && p.current_stock <= (p.threshold!=null?p.threshold:def)*2);
+  const as = document.getElementById('alertSection');
+  const ag = document.getElementById('alertGrid');
+  if (alertItems.length) {
+    as.style.display='block';
+    ag.innerHTML = alertItems.map(p => {
+      const pid = getPid(p);
+      const th = p.threshold!=null?p.threshold:def;
+      const cls = p.current_stock<=th?'danger':'warning';
+      const pid_esc = pid.replace(/'/g,"\\'");
+      return `<div class="soldout-item">
+        <div>
+          <div class="soldout-name">${p.item_name}</div>
+          <div class="soldout-stock ${cls}">${p.current_stock<=0?'매진':`${p.current_stock}개 남음`}</div>
+        </div>
+        <button class="btn-soldout" onclick="markSoldout('${pid_esc}')">매진 처리</button>
+      </div>`;
+    }).join('');
+  } else { as.style.display='none'; }
+}
+
+async function quickAdd(pid) {
+  const inp = document.getElementById('qadd-' + pid);
+  const qty = parseInt(inp?.value);
+  if (!qty||qty<=0) { showToast('수량을 입력해주세요'); return; }
+  const p = state.products.find(p => getPid(p)===pid);
+  if (!p) return;
+  p.current_stock += qty;
+  if (p.current_stock>0) p.soldout_at=null;
+  addHistory({ type:'add', _id:getPid(p), item_code:p.item_code, item_name:p.item_name, qty, note:'입력 페이지' });
+  await saveData();
+  renderAll();
+  showToast(`${p.item_name} +${qty}개 추가됨`);
+}
+
+async function quickSet(pid) {
+  const inp = document.getElementById('qset-' + pid);
+  const qty = parseInt(inp?.value);
+  if (qty===undefined||isNaN(qty)||qty<0) { showToast('수량을 입력해주세요'); return; }
+  const p = state.products.find(p => getPid(p)===pid);
+  if (!p) return;
+  const prev = p.current_stock;
+  p.current_stock = qty;
+  if (qty>0) p.soldout_at=null;
+  const diff = qty - prev;
+  addHistory({ type: diff>=0?'add':'minus', _id:getPid(p), item_code:p.item_code, item_name:p.item_name, qty:Math.abs(diff), note:`직접 설정 (${prev}→${qty})` });
+  await saveData();
+  renderAll();
+  showToast(`${p.item_name} → ${qty}개로 설정됨`);
+}
+
+async function markSoldout(pid) {
+  const p = state.products.find(p => getPid(p)===pid);
+  if (!p) return;
+  p.current_stock = 0;
+  p.soldout_at = nowStr();
+  addHistory({ type:'soldout', _id:getPid(p), item_code:p.item_code, item_name:p.item_name, qty:0, note:'매진 처리' });
+  await saveData();
+  renderAll();
+  showToast(`${p.item_name} 매진 처리됨`);
+}
+
+async function addNewProduct() {
+  const name = document.getElementById('np-name').value.trim();
+  const code = document.getElementById('np-code').value.trim();
+  const stock = parseInt(document.getElementById('np-stock').value)||0;
+  const thVal = document.getElementById('np-threshold').value;
+  const threshold = thVal!==''?parseInt(thVal):null;
+  if (!name) { showToast('상품명을 입력해주세요'); return; }
+  if (code && state.products.find(p => p.item_code&&p.item_code===code)) {
+    showToast('이미 등록된 상품 코드입니다'); return;
+  }
+  const newP = { _id:'p_'+Date.now(), item_code:code, item_name:name, current_stock:stock, threshold, soldout_at:null };
+  state.products.push(newP);
+  addHistory({ type:'init', _id:newP._id, item_code:code, item_name:name, qty:stock, note:'신규 등록' });
+  await saveData();
+  ['np-name','np-code','np-threshold'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('np-stock').value='';
+  renderAll();
+  showToast(`'${name}' 등록 완료`);
+}
+
+let toastTimer=null;
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+async function init() { await loadData(); renderAll(); }
+init();
+</script>
+</body>
+</html>
