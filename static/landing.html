@@ -9,7 +9,7 @@
 
     body {
       min-height: 100vh;
-      background: #0f1117;
+      background: var(--th-bg, #0f1117);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
       color: #e2e8f0;
       display: flex;
@@ -119,7 +119,7 @@
     /* ── 개별 카드 ── */
     .card {
       position: relative;
-      background: #1a1f2e;
+      background: var(--th-surface, #1a1f2e);
       border: 1px solid #1e293b;
       border-radius: 20px;
       padding: 28px;
@@ -298,7 +298,73 @@
       .updates-section { padding-left: 20px; padding-right: 20px; }
       .hero h2 { font-size: 26px; }
     }
+  
+  /* ── 주간/야간 자동 테마 ── */
+  html.night {
+    --th-bg:      #0f1117;
+    --th-surface: #1a1f2e;
+    --th-border:  #1e293b;
+    --th-border2: #334155;
+    --th-text:    #e2e8f0;
+    --th-text2:   #94a3b8;
+    --th-text3:   #64748b;
+    --th-text4:   #475569;
+  }
+  html.day {
+    --th-bg:      #f8f5f0;
+    --th-surface: #ffffff;
+    --th-border:  #e2d9cf;
+    --th-border2: #c8b9a8;
+    --th-text:    #1e1a14;
+    --th-text2:   #5c4e3a;
+    --th-text3:   #8a7a65;
+    --th-text4:   #a8998a;
+  }
+  .theme-toggle {
+    position: fixed; bottom: 20px; left: 20px;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--th-border, #1e293b);
+    background: var(--th-surface, #1a1f2e);
+    color: var(--th-text2, #94a3b8);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; z-index: 999;
+    box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    transition: transform .15s, opacity .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .theme-toggle:active { transform: scale(.9); }
+  .theme-toggle:hover  { opacity: .85; }
+
   </style>
+<script>
+(function() {
+  var DAY_START = 7, DAY_END = 19;
+  function getAutoTheme() {
+    var h = new Date().getHours();
+    return (h >= DAY_START && h < DAY_END) ? 'day' : 'night';
+  }
+  function applyTheme(mode, manual) {
+    document.documentElement.classList.remove('day','night');
+    document.documentElement.classList.add(mode);
+    var btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = mode === 'night' ? '☀️' : '🌙';
+    if (manual) { try { localStorage.setItem('bnh_theme', mode); } catch(e){} }
+  }
+  window.__toggleTheme = function() {
+    var cur = document.documentElement.classList.contains('day') ? 'day' : 'night';
+    var next = cur === 'day' ? 'night' : 'day';
+    applyTheme(next, true);
+  };
+  setInterval(function() {
+    try { if (!localStorage.getItem('bnh_theme')) applyTheme(getAutoTheme(), false); } catch(e){}
+  }, 60000);
+  (function init() {
+    var manual = null;
+    try { manual = localStorage.getItem('bnh_theme'); } catch(e){}
+    applyTheme(manual || getAutoTheme(), false);
+  })();
+})();
+</script>
 </head>
 <body>
 
@@ -423,5 +489,7 @@
     © 2025 백년화편 &nbsp;·&nbsp; 내부 관리용
   </footer>
 
+
+<button class="theme-toggle" id="themeToggle" onclick="__toggleTheme()" title="주간/야간 전환">🌙</button>
 </body>
 </html>
