@@ -373,10 +373,13 @@
     <div class="header-sub" id="lastSync">로딩 중...</div>
   </div>
   <div class="header-actions">
+    <button class="icon-btn" onclick="copyInputUrl(this)" title="입력 페이지 주소 복사">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
     <button class="icon-btn" id="refreshBtn" onclick="handleRefresh(this)" title="새로고침">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     </button>
-    <a href="/inventory/input" class="icon-btn" title="재고 입력">
+    <a href="/100yearinventory" class="icon-btn" title="재고 입력">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </a>
     <span class="api-pill off" id="apiPill">● 미연결</span>
@@ -907,6 +910,31 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 function overlayClose(el) { el.classList.remove('open'); }
 
 // ── 토스트 ──
+
+function copyInputUrl(btn) {
+  const url = window.location.origin + '/100yearinventory';
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = 'rgba(74,222,128,.4)';
+    showToast('입력 페이지 주소가 복사됐습니다');
+    setTimeout(() => {
+      btn.innerHTML = orig;
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 2000);
+  }).catch(() => {
+    // clipboard API 실패 시 fallback
+    const ta = document.createElement('textarea');
+    ta.value = window.location.origin + '/100yearinventory';
+    document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('입력 페이지 주소가 복사됐습니다');
+  });
+}
+
 let toastTimer = null;
 function showToast(msg) {
   const t = document.getElementById('toast');
