@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>경쟁사 추이 모니터링 — 백년화편</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #0f1117;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      color: #e2e8f0;
+    }
+
+    /* ── 헤더 ── */
+    .top-bar {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid #1e293b;
+      position: sticky;
+      top: 0;
+      background: rgba(15,17,23,0.95);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    .back-btn {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      color: #94a3b8;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; text-decoration: none;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+    .back-btn:hover { background: #2d3748; }
+    .page-title { font-size: 17px; font-weight: 700; }
+    .page-sub { font-size: 12px; color: #475569; margin-top: 1px; }
+
+    /* ── 필터 바 ── */
+    .filter-bar {
+      padding: 16px 24px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #1e293b;
+      background: #0f1117;
+    }
+    .period-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #2d3748;
+      background: #1a1f2e;
+      color: #94a3b8;
+      transition: all 0.2s;
+    }
+    .period-btn.active {
+      background: rgba(99,102,241,0.2);
+      border-color: rgba(99,102,241,0.5);
+      color: #a78bfa;
+    }
+
+    /* ── 메인 컨텐츠 ── */
+    .content { padding: 24px; max-width: 1100px; margin: 0 auto; }
+
+    /* ── 브랜드 범례 ── */
+    .brand-legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .legend-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+    }
+
+    /* ── 섹션 ── */
+    .section { margin-bottom: 32px; }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    /* ── 요약 카드 ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .summary-card {
+      background: #1a1f2e;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+    .summary-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+    .summary-score {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+    .summary-score span {
+      font-size: 13px;
+      color: #475569;
+      font-weight: 500;
+    }
+    .summary-meta {
+      font-size: 12px;
+      color: #475569;
+      margin-top: 6px;
+    }
+    .summary-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin-top: 6px;
+    }
+    .delta-up { background: rgba(34,197,94,0.1); color: #4ade80; }
+    .delta-down { background: rgba(239,68,68,0.1); color: #f87171; }
+    .delta-flat { background: rgba(100,116,139,0.1); color: #94a3b8; }
+
+    /* ── 차트 카드 ── */
+    .chart-card {
+      background: #1a1f2e;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+    .chart-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #cbd5e1;
+    }
+    .chart-title small {
+      font-size: 11px;
+      color: #475569;
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    .chart-wrap {
+      position: relative;
+      height: 240px;
+    }
+
+    /* ── 키워드 비교 ── */
+    .keyword-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .keyword-card {
+      background: #1a1f2e;
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .keyword-brand-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+    .kw-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+    .kw-word {
+      font-size: 13px;
+      font-weight: 600;
+      flex: 1;
+      color: #e2e8f0;
+    }
+    .kw-bar-wrap {
+      flex: 2;
+      height: 6px;
+      background: #2d3748;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .kw-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    .kw-count {
+      font-size: 11px;
+      color: #475569;
+      width: 28px;
+      text-align: right;
+    }
+
+    /* ── 최근 리뷰 비교 ── */
+    .review-cols {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .review-col-card {
+      background: #1a1f2e;
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .review-col-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+    .review-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #1e293b;
+    }
+    .review-item:last-child { border-bottom: none; }
+    .review-stars { font-size: 12px; margin-bottom: 4px; }
+    .review-text {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .review-date { font-size: 11px; color: #475569; margin-top: 4px; }
+
+    /* ── 로딩 ── */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,17,23,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #2d3748;
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: #64748b; }
+
+    /* ── 모바일 ── */
+    @media (max-width: 640px) {
+      .content { padding: 16px; }
+      .chart-wrap { height: 190px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">데이터 불러오는 중...</div>
+</div>
+
+<!-- 헤더 -->
+<div class="top-bar">
+  <a href="/" class="back-btn">←</a>
+  <div>
+    <div class="page-title">🔍 경쟁사 추이 모니터링</div>
+    <div class="page-sub">백년화편 vs 명가삼대떡집 vs 파파공방</div>
+  </div>
+</div>
+
+<!-- 필터 -->
+<div class="filter-bar">
+  <button class="period-btn" data-months="1">1개월</button>
+  <button class="period-btn active" data-months="3">3개월</button>
+  <button class="period-btn" data-months="6">6개월</button>
+  <button class="period-btn" data-months="12">1년</button>
+  <button class="period-btn" data-months="0">전체</button>
+</div>
+
+<!-- 메인 -->
+<div class="content">
+
+  <!-- 브랜드 범례 -->
+  <div class="brand-legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#f97316"></div>
+      <span>백년화편</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#6366f1"></div>
+      <span>명가삼대떡집</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#ec4899"></div>
+      <span>파파공방</span>
+    </div>
+  </div>
+
+  <!-- 요약 카드 -->
+  <div class="section">
+    <div class="section-title">현재 현황</div>
+    <div class="summary-grid" id="summaryGrid"></div>
+  </div>
+
+  <!-- 월별 평점 추이 -->
+  <div class="section">
+    <div class="section-title">평점 추이</div>
+    <div class="chart-card">
+      <div class="chart-title">월별 평균 별점 <small>최근 기간 기준</small></div>
+      <div class="chart-wrap">
+        <canvas id="scoreChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 월별 리뷰 수 추이 -->
+  <div class="section">
+    <div class="section-title">리뷰량 추이</div>
+    <div class="chart-card">
+      <div class="chart-title">월별 리뷰 수 <small>신규 등록 기준</small></div>
+      <div class="chart-wrap">
+        <canvas id="countChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 긍정 키워드 비교 -->
+  <div class="section">
+    <div class="section-title">긍정 키워드 비교</div>
+    <div class="keyword-grid" id="posKeywordGrid"></div>
+  </div>
+
+  <!-- 부정 키워드 비교 -->
+  <div class="section">
+    <div class="section-title">부정 키워드 비교</div>
+    <div class="keyword-grid" id="negKeywordGrid"></div>
+  </div>
+
+  <!-- 최근 리뷰 샘플 -->
+  <div class="section">
+    <div class="section-title">최근 리뷰 샘플</div>
+    <div class="review-cols" id="reviewCols"></div>
+  </div>
+
+</div>
+
+<script>
+const BRANDS = [
+  { key: 'jasaol',   label: '백년화편', color: '#f97316' },
+  { key: 'myeongga', label: '명가삼대떡집', color: '#6366f1' },
+  { key: 'papa',     label: '파파공방', color: '#ec4899' },
+];
+
+let scoreChart = null;
+let countChart = null;
+let currentMonths = 3;
+
+function getDateRange(months) {
+  if (!months) return { date_from: null, date_to: null };
+  const to = new Date();
+  const from = new Date();
+  from.setMonth(from.getMonth() - months);
+  const fmt = d => d.toISOString().slice(0, 10);
+  return { date_from: fmt(from), date_to: fmt(to) };
+}
+
+async function fetchData(months) {
+  const { date_from, date_to } = getDateRange(months);
+  const params = new URLSearchParams();
+  if (date_from) params.set('date_from', date_from);
+  if (date_to) params.set('date_to', date_to);
+  const res = await fetch('/api/data?' + params);
+  if (!res.ok) throw new Error('데이터 로드 실패');
+  return res.json();
+}
+
+// 주별 트렌드를 월별로 집계
+function weeklyToMonthly(weeklyTrend) {
+  const monthly = {};
+  for (const w of weeklyTrend) {
+    const month = w.week.slice(0, 7); // YYYY-MM
+    if (!monthly[month]) monthly[month] = { scores: [], count: 0 };
+    if (w.avg_score > 0) monthly[month].scores.push(w.avg_score);
+    monthly[month].count += w.count;
+  }
+  return Object.entries(monthly).sort(([a], [b]) => a.localeCompare(b)).map(([month, v]) => ({
+    month,
+    avg_score: v.scores.length ? +(v.scores.reduce((s, x) => s + x, 0) / v.scores.length).toFixed(2) : 0,
+    count: v.count,
+  }));
+}
+
+function mergeMonths(allData) {
+  // 모든 브랜드에서 등장하는 월 모아서 정렬
+  const monthSet = new Set();
+  const brandMonthly = {};
+  for (const b of BRANDS) {
+    const trend = allData[b.key]?.weekly_trend || [];
+    const monthly = weeklyToMonthly(trend);
+    brandMonthly[b.key] = {};
+    for (const m of monthly) {
+      monthSet.add(m.month);
+      brandMonthly[b.key][m.month] = m;
+    }
+  }
+  const months = [...monthSet].sort();
+  return { months, brandMonthly };
+}
+
+function renderSummary(data) {
+  const grid = document.getElementById('summaryGrid');
+  grid.innerHTML = '';
+  for (const b of BRANDS) {
+    const d = data[b.key];
+    if (!d) continue;
+    const score = d.avg_score || 0;
+    const count = d.total_count || 0;
+    const neg = d.total_negative || 0;
+    const negPct = count ? Math.round(neg / count * 100) : 0;
+
+    // 최근 4주 vs 이전 4주 평점 delta 계산
+    const trend = d.weekly_trend || [];
+    const recent4 = trend.slice(-4);
+    const prev4 = trend.slice(-8, -4);
+    const avg = arr => arr.length ? arr.reduce((s, w) => s + w.avg_score, 0) / arr.length : 0;
+    const r = avg(recent4), p = avg(prev4);
+    let deltaClass = 'delta-flat', deltaText = '─';
+    if (p > 0 && Math.abs(r - p) >= 0.05) {
+      if (r > p) { deltaClass = 'delta-up'; deltaText = `▲ ${(r-p).toFixed(2)}`; }
+      else { deltaClass = 'delta-down'; deltaText = `▼ ${(p-r).toFixed(2)}`; }
+    }
+
+    grid.innerHTML += `
+      <div class="summary-card">
+        <div class="summary-brand">
+          <div class="legend-dot" style="background:${b.color};width:9px;height:9px;"></div>
+          ${b.label}
+        </div>
+        <div class="summary-score" style="color:${b.color}">${score.toFixed(1)}<span> / 5.0</span></div>
+        <div class="summary-meta">리뷰 ${count.toLocaleString()}건 · 부정 ${negPct}%</div>
+        <div class="summary-delta ${deltaClass}">${deltaText} <span style="font-weight:400;opacity:.7">vs 4주 전</span></div>
+      </div>
+    `;
+  }
+}
+
+function renderScoreChart(months, brandMonthly) {
+  const ctx = document.getElementById('scoreChart').getContext('2d');
+  const labels = months.map(m => {
+    const [y, mo] = m.split('-');
+    return `${y.slice(2)}/${mo}`;
+  });
+  const datasets = BRANDS.map(b => ({
+    label: b.label,
+    data: months.map(m => brandMonthly[b.key][m]?.avg_score || null),
+    borderColor: b.color,
+    backgroundColor: b.color + '20',
+    borderWidth: 2,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0.35,
+    fill: false,
+    spanGaps: true,
+  }));
+
+  if (scoreChart) scoreChart.destroy();
+  scoreChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#94a3b8', font: { size: 12 }, boxWidth: 12 } },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+          borderColor: '#2d3748',
+          borderWidth: 1,
+        },
+      },
+      scales: {
+        x: { ticks: { color: '#475569', font: { size: 11 } }, grid: { color: '#1e293b' } },
+        y: {
+          min: 3.5, max: 5.0,
+          ticks: { color: '#475569', font: { size: 11 }, stepSize: 0.5 },
+          grid: { color: '#1e293b' },
+        },
+      },
+    }
+  });
+}
+
+function renderCountChart(months, brandMonthly) {
+  const ctx = document.getElementById('countChart').getContext('2d');
+  const labels = months.map(m => {
+    const [y, mo] = m.split('-');
+    return `${y.slice(2)}/${mo}`;
+  });
+  const datasets = BRANDS.map(b => ({
+    label: b.label,
+    data: months.map(m => brandMonthly[b.key][m]?.count || 0),
+    borderColor: b.color,
+    backgroundColor: b.color + '18',
+    borderWidth: 2,
+    pointRadius: 3,
+    tension: 0.3,
+    fill: true,
+    spanGaps: true,
+  }));
+
+  if (countChart) countChart.destroy();
+  countChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#94a3b8', font: { size: 12 }, boxWidth: 12 } },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+          borderColor: '#2d3748',
+          borderWidth: 1,
+        },
+      },
+      scales: {
+        x: { ticks: { color: '#475569', font: { size: 11 } }, grid: { color: '#1e293b' } },
+        y: {
+          min: 0,
+          ticks: { color: '#475569', font: { size: 11 } },
+          grid: { color: '#1e293b' },
+        },
+      },
+    }
+  });
+}
+
+function renderKeywords(data, type) {
+  const gridId = type === 'pos' ? 'posKeywordGrid' : 'negKeywordGrid';
+  const kwKey = type === 'pos' ? 'positive_keywords_all' : 'negative_keywords_all';
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+
+  for (const b of BRANDS) {
+    const kws = data[b.key]?.[kwKey] || [];
+    const maxCount = kws[0]?.count || 1;
+    const barColor = type === 'pos' ? '#4ade80' : '#f87171';
+
+    let rowsHtml = kws.length
+      ? kws.map(k => `
+          <div class="kw-row">
+            <div class="kw-word">${k.word}</div>
+            <div class="kw-bar-wrap">
+              <div class="kw-bar" style="width:${Math.round(k.count/maxCount*100)}%;background:${barColor}40;"></div>
+            </div>
+            <div class="kw-count">${k.count}</div>
+          </div>
+        `).join('')
+      : '<div style="font-size:12px;color:#475569;">데이터 없음</div>';
+
+    grid.innerHTML += `
+      <div class="keyword-card">
+        <div class="keyword-brand-label">
+          <div class="legend-dot" style="background:${b.color};width:9px;height:9px;"></div>
+          ${b.label}
+        </div>
+        ${rowsHtml}
+      </div>
+    `;
+  }
+}
+
+function renderReviews(data) {
+  const cols = document.getElementById('reviewCols');
+  cols.innerHTML = '';
+
+  for (const b of BRANDS) {
+    const reviews = (data[b.key]?.reviews || []).slice(0, 5);
+    const starsHtml = s => '★'.repeat(Math.max(0, Math.min(5, Math.round(s)))) +
+                           '☆'.repeat(Math.max(0, 5 - Math.min(5, Math.round(s))));
+
+    const itemsHtml = reviews.length
+      ? reviews.map(r => `
+          <div class="review-item">
+            <div class="review-stars" style="color:#f59e0b">${starsHtml(r.score || 0)}</div>
+            <div class="review-text">${(r.content || '(내용 없음)').replace(/</g,'&lt;')}</div>
+            <div class="review-date">${r.date || ''}</div>
+          </div>
+        `).join('')
+      : '<div style="font-size:12px;color:#475569;padding:8px 0;">리뷰 없음</div>';
+
+    cols.innerHTML += `
+      <div class="review-col-card">
+        <div class="review-col-header">
+          <div class="legend-dot" style="background:${b.color};width:9px;height:9px;"></div>
+          ${b.label}
+        </div>
+        ${itemsHtml}
+      </div>
+    `;
+  }
+}
+
+async function loadAll(months) {
+  document.getElementById('loading').style.display = 'flex';
+  try {
+    const data = await fetchData(months);
+    const { months: mList, brandMonthly } = mergeMonths(data);
+
+    renderSummary(data);
+    renderScoreChart(mList, brandMonthly);
+    renderCountChart(mList, brandMonthly);
+    renderKeywords(data, 'pos');
+    renderKeywords(data, 'neg');
+    renderReviews(data);
+  } catch (e) {
+    console.error(e);
+    document.querySelector('.content').innerHTML =
+      '<div style="text-align:center;padding:60px;color:#475569;">데이터를 불러오지 못했습니다.<br><small>' + e.message + '</small></div>';
+  } finally {
+    document.getElementById('loading').style.display = 'none';
+  }
+}
+
+// 필터 버튼
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMonths = +btn.dataset.months;
+    loadAll(currentMonths);
+  });
+});
+
+loadAll(currentMonths);
+</script>
+</body>
+</html>
