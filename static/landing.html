@@ -448,7 +448,10 @@
         </div>
         <div class="card-title">재고 현황</div>
         <div class="card-desc">상품별 재고 조회 및 관리. 매진 임박 알림, 판매 추이 분석.</div>
-        <div class="status-badge live">LIVE</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap;">
+          <div class="status-badge live">LIVE</div>
+          <a href="/100yearinventory" onclick="event.stopPropagation()" style="font-size:11px;font-weight:600;color:rgba(20,184,166,0.9);text-decoration:none;padding:3px 9px;border:1px solid rgba(20,184,166,0.3);border-radius:100px;transition:background .15s;" onmouseover="this.style.background='rgba(20,184,166,0.1)'" onmouseout="this.style.background=''">+ 재고 입력</a>
+        </div>
       </a>
 
       <!-- 메모장 -->
