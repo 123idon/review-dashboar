@@ -387,6 +387,87 @@ body {
 @media(max-width:600px){.content{padding:4px 14px 80px;}.chart-wrap{height:170px;}.kw-grid{grid-template-columns:1fr;}.tb-sub,.page-sub{display:none;}}
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr 1fr;}}
 
+
+/* ─── competitor 동적 렌더 클래스 ─── */
+
+/* KPI 서브텍스트 */
+.kpi-sub { font-size:11px; color:var(--text3); margin-top:3px; font-variant-numeric:tabular-nums; }
+
+/* 추정치 배지 */
+.est-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:10px; font-weight:700; padding:2px 7px; border-radius:50px;
+  background:var(--amber-bg); color:var(--amber); margin-top:5px;
+}
+
+/* 브랜드 칩 */
+.brand-chip {
+  display:inline-flex; align-items:center;
+  font-size:10px; font-weight:700; padding:2px 8px; border-radius:50px;
+  transition:transform 150ms ease;
+}
+.brand-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+
+/* 이벤트 아이템 */
+.ev-item {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:12px; padding:12px 14px; margin-bottom:8px;
+  transition:border-color 150ms ease, box-shadow 150ms ease;
+  animation:fadeUp 220ms ease both;
+}
+.ev-item:hover { border-color:var(--border2); box-shadow:var(--sh-sm); }
+.ev-item:last-child { margin-bottom:0; }
+.ev-head { display:flex; align-items:center; gap:7px; margin-bottom:6px; flex-wrap:wrap; }
+.ev-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:5px; letter-spacing:-.2px; }
+.ev-date { font-size:11px; color:var(--text4); font-variant-numeric:tabular-nums; }
+.ev-foot { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:5px; }
+
+/* 이벤트 태그 */
+.ev-tag {
+  display:inline-flex; font-size:10px; font-weight:700;
+  padding:2px 8px; border-radius:50px; letter-spacing:.3px;
+}
+.tag-season    { background:var(--amber-bg);  color:var(--amber); }
+.tag-holiday   { background:var(--blue-bg);   color:var(--blue); }
+.tag-marketing { background:var(--brand-bg);  color:var(--brand); }
+.tag-external  { background:var(--teal-bg);   color:var(--teal); }
+
+/* 영향 칩 */
+.impact-chip {
+  display:inline-flex; font-size:10px; font-weight:700;
+  padding:2px 8px; border-radius:50px;
+}
+.impact-high { background:var(--red-bg);    color:var(--red); }
+.impact-med  { background:var(--amber-bg);  color:var(--amber); }
+.impact-low  { background:var(--surface2);  color:var(--text3); }
+
+/* 상승/하락 칩 */
+.uplift-chip {
+  display:inline-flex; font-size:11px; font-weight:800;
+  padding:2px 9px; border-radius:50px; letter-spacing:-.2px;
+}
+.uplift-boom { background:var(--red-bg);   color:var(--red); }
+.uplift-up   { background:var(--green-bg); color:var(--green); }
+.uplift-dn   { background:var(--surface2); color:var(--text3); }
+
+/* 키워드 행 */
+.kw-brand {
+  display:flex; align-items:center; gap:7px;
+  font-size:12px; font-weight:700; color:var(--text2);
+  margin-bottom:10px; padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.kw-row {
+  display:flex; align-items:center; gap:8px;
+  padding:5px 0; border-bottom:1px solid var(--border);
+}
+.kw-row:last-child { border-bottom:none; }
+.kw-word     { font-size:12px; font-weight:600; color:var(--text2); width:70px; flex-shrink:0; }
+.kw-bar-wrap { flex:1; background:var(--surface2); border-radius:50px; height:5px; overflow:hidden; }
+.kw-bar      { height:100%; border-radius:50px; transition:width .5s cubic-bezier(0.16,1,0.3,1); }
+.kw-cnt      { font-size:11px; color:var(--text3); width:28px; text-align:right; font-variant-numeric:tabular-nums; }
 </style>
 </head>
 <body>
