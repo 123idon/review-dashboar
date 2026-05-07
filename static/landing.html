@@ -348,7 +348,7 @@ body { display:flex; flex-direction:column; }
 .menu-grid    { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
 
 .menu-card {
-  position:relative; display:block;
+  position:relative; display:flex; flex-direction:column;
   background:var(--surface); border:1.5px solid var(--border); border-radius:20px; padding:24px;
   text-decoration:none; color:inherit; overflow:hidden;
   transition: transform 260ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 220ms ease, border-color 200ms ease;
@@ -379,7 +379,7 @@ body { display:flex; flex-direction:column; }
 
 .card-name  { font-size:15px; font-weight:800; letter-spacing:-.4px; margin-bottom:6px; position:relative; z-index:1; }
 .card-desc  { font-size:12px; color:var(--text3); line-height:1.65; position:relative; z-index:1; }
-.card-badges { display:flex; align-items:center; gap:7px; margin-top:14px; position:relative; z-index:1; flex-wrap:wrap; }
+.card-badges { display:flex; align-items:center; gap:7px; margin-top:auto; padding-top:14px; position:relative; z-index:1; flex-wrap:wrap; flex-direction:row; }
 
 .live-badge { display:inline-flex; align-items:center; gap:5px; height:22px; padding:0 9px; border-radius:50px; background:var(--green-bg); color:var(--green); font-size:10px; font-weight:700; letter-spacing:.4px; }
 .live-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green); animation:pulseDot 2s ease-in-out infinite; }
@@ -460,7 +460,7 @@ footer { text-align:center; padding:0 28px 32px; font-size:11px; color:var(--tex
       <div class="card-icon">🔍</div>
       <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
       <div class="card-name">경쟁사 모니터링</div>
-      <div class="card-desc">명가삼대떡집·파파공방 별점·리뷰량·키워드를 백년화편과 비교.</div>
+      <div class="card-desc">명가삼대떡집 별점·리뷰량·키워드를 백년화편과 비교.</div>
       <div class="card-badges"><span class="live-dot">LIVE</span></div>
     </a>
 
@@ -469,7 +469,7 @@ footer { text-align:center; padding:0 28px 32px; font-size:11px; color:var(--tex
       <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
       <div class="card-name">재고 현황</div>
       <div class="card-desc">상품별 재고 조회·관리. 매진 임박 알림, 판매 추이 분석.</div>
-      <div class="card-badges">
+      <div class="card-badges" style="flex-direction:row;align-items:center;flex-wrap:wrap;gap:7px">
         <span class="live-dot">LIVE</span>
         <a href="/100yearinventory" onclick="event.stopPropagation()" class="sub-link">+ 재고 입력</a>
       </div>
