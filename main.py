@@ -372,6 +372,7 @@ async def import_smartstore_done():
         data = load_json(DATA_PATH, {})
         data["last_updated"] = datetime.now().isoformat()
         safe_save(DATA_PATH, data)
+        invalidate_cache()  # 임포트 완료 → 캐시 무효화
         return {"ok": True, "imported": len(reviews)}
     except HTTPException:
         raise
