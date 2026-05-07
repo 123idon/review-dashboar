@@ -89,6 +89,123 @@
   .theme-toggle:active { transform: scale(.9); }
   .theme-toggle:hover  { opacity: .85; }
 
+  
+  /* ── 공통 메모 패널 ── */
+  #memoFab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 900;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, #eab308, #f59e0b);
+    border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(234,179,8,.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; transition: transform .2s, box-shadow .2s;
+  }
+  #memoFab:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(234,179,8,.55); }
+  #memoFab .fab-badge {
+    position: absolute; top: -4px; right: -4px;
+    min-width: 18px; height: 18px; border-radius: 9px;
+    background: #ef4444; color: #fff; font-size: 10px; font-weight: 700;
+    display: none; align-items: center; justify-content: center; padding: 0 4px;
+  }
+  #memoFab .fab-badge.show { display: flex; }
+
+  #memoPanel {
+    position: fixed; bottom: 88px; right: 24px; z-index: 901;
+    width: 340px; max-height: 520px;
+    background: #1a1f2e; border: 1px solid #2d3748;
+    border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    display: flex; flex-direction: column;
+    transform: scale(.9) translateY(16px); opacity: 0;
+    pointer-events: none; transition: transform .22s ease, opacity .22s ease;
+    transform-origin: bottom right;
+  }
+  #memoPanel.open {
+    transform: scale(1) translateY(0); opacity: 1; pointer-events: all;
+  }
+  .mp-header {
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid #1e293b;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .mp-title {
+    font-size: 14px; font-weight: 700; color: #e2e8f0;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .mp-title small { font-size: 10px; color: #475569; font-weight: 400; }
+  .mp-close {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: #2d3748; border: none; color: #94a3b8;
+    cursor: pointer; font-size: 14px; display: flex;
+    align-items: center; justify-content: center; transition: background .15s;
+  }
+  .mp-close:hover { background: #374151; color: #e2e8f0; }
+  .mp-input-area {
+    padding: 12px 14px; border-bottom: 1px solid #1e293b; flex-shrink: 0;
+  }
+  .mp-textarea {
+    width: 100%; background: #0f1117; border: 1px solid #2d3748;
+    border-radius: 10px; color: #e2e8f0; font-size: 13px;
+    font-family: inherit; resize: none; outline: none;
+    padding: 10px 12px; line-height: 1.6; min-height: 72px;
+    transition: border-color .15s;
+  }
+  .mp-textarea:focus { border-color: rgba(234,179,8,.5); }
+  .mp-textarea::placeholder { color: #334155; }
+  .mp-input-footer {
+    display: flex; align-items: center; justify-content: flex-end;
+    margin-top: 8px; gap: 8px;
+  }
+  .mp-hint { font-size: 11px; color: #334155; flex: 1; }
+  .mp-save-btn {
+    padding: 6px 16px; border-radius: 8px;
+    background: linear-gradient(135deg, #eab308, #f59e0b);
+    border: none; color: #0f1117; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: opacity .15s;
+  }
+  .mp-save-btn:hover { opacity: .85; }
+  .mp-save-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .mp-list {
+    overflow-y: auto; flex: 1; padding: 10px 12px;
+  }
+  .mp-list::-webkit-scrollbar { width: 4px; }
+  .mp-list::-webkit-scrollbar-track { background: transparent; }
+  .mp-list::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 2px; }
+  .mp-empty {
+    text-align: center; padding: 28px 0; color: #334155; font-size: 13px;
+  }
+  .mp-card {
+    background: #0f1117; border: 1px solid #1e293b;
+    border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+    position: relative;
+  }
+  .mp-card-text {
+    font-size: 13px; color: #cbd5e1; line-height: 1.6;
+    white-space: pre-wrap; word-break: break-all;
+    margin-right: 20px;
+  }
+  .mp-card-date { font-size: 11px; color: #334155; margin-top: 5px; }
+  .mp-del-btn {
+    position: absolute; top: 8px; right: 8px;
+    width: 20px; height: 20px; border-radius: 5px;
+    background: transparent; border: none; color: #475569;
+    cursor: pointer; font-size: 14px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+  }
+  .mp-del-btn:hover { background: rgba(239,68,68,.15); color: #f87171; }
+  .mp-toast {
+    position: fixed; bottom: 88px; right: 82px; z-index: 902;
+    background: #1e293b; border: 1px solid #2d3748;
+    color: #94a3b8; font-size: 12px; font-weight: 600;
+    padding: 7px 14px; border-radius: 9px;
+    opacity: 0; transition: opacity .2s; pointer-events: none;
+  }
+  .mp-toast.show { opacity: 1; }
+  @media (max-width: 480px) {
+    #memoPanel { width: calc(100vw - 32px); right: 16px; bottom: 82px; }
+    #memoFab { bottom: 20px; right: 16px; }
+  }
+
   </style>
 <script>
 (function() {
@@ -235,5 +352,119 @@
 </div>
 
 <button class="theme-toggle" id="themeToggle" onclick="__toggleTheme()" title="주간/야간 전환">🌙</button>
+
+<script>
+
+// ── 공통 메모 패널 JS ──
+(function() {
+  var _memos = [];
+  var _open = false;
+
+  function mpToggle() {
+    _open = !_open;
+    document.getElementById('memoPanel').classList.toggle('open', _open);
+    if (_open) { mpLoad(); document.getElementById('mpInput').focus(); }
+  }
+  window.mpToggle = mpToggle;
+
+  function mpToast(msg) {
+    var t = document.getElementById('mpToast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 2200);
+  }
+
+  function mpFmt(id) {
+    var d = new Date(id);
+    if (isNaN(d)) return id;
+    return d.getFullYear() + '.' +
+      String(d.getMonth()+1).padStart(2,'0') + '.' +
+      String(d.getDate()).padStart(2,'0') + ' ' +
+      String(d.getHours()).padStart(2,'0') + ':' +
+      String(d.getMinutes()).padStart(2,'0');
+  }
+
+  function mpRender() {
+    var list = document.getElementById('mpList');
+    var badge = document.getElementById('mpBadge');
+    if (!_memos.length) {
+      list.innerHTML = '<div class="mp-empty">아직 메모가 없어요</div>';
+      badge.classList.remove('show');
+      return;
+    }
+    badge.textContent = _memos.length > 99 ? '99+' : _memos.length;
+    badge.classList.add('show');
+    list.innerHTML = [..._memos].reverse().map(function(m) {
+      return '<div class="mp-card">' +
+        '<div class="mp-card-text">' + m.content.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
+        '<div class="mp-card-date">' + mpFmt(m.id) + '</div>' +
+        '<button class="mp-del-btn" onclick="mpDel('' + m.id + '')" title="삭제">×</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  async function mpLoad() {
+    try {
+      var r = await fetch('/api/memo');
+      var d = await r.json();
+      _memos = d.memos || [];
+      mpRender();
+    } catch(e) {
+      document.getElementById('mpList').innerHTML = '<div class="mp-empty">⚠️ 불러오기 실패</div>';
+    }
+  }
+
+  async function mpSave() {
+    var inp = document.getElementById('mpInput');
+    var content = inp.value.trim();
+    if (!content) return;
+    var btn = document.getElementById('mpSaveBtn');
+    btn.disabled = true;
+    try {
+      await fetch('/api/memo', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: content})
+      });
+      inp.value = '';
+      await mpLoad();
+      mpToast('저장됐어요 ✓');
+    } catch(e) { mpToast('저장 실패'); }
+    finally { btn.disabled = false; }
+  }
+  window.mpSave = mpSave;
+
+  async function mpDel(id) {
+    if (!confirm('삭제할까요?')) return;
+    try {
+      await fetch('/api/memo/' + id, {method: 'DELETE'});
+      await mpLoad();
+      mpToast('삭제됐어요');
+    } catch(e) { mpToast('삭제 실패'); }
+  }
+  window.mpDel = mpDel;
+
+  // Ctrl+Enter 저장
+  document.addEventListener('keydown', function(e) {
+    if (document.activeElement === document.getElementById('mpInput')) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault(); mpSave();
+      }
+    }
+  });
+
+  // 패널 외부 클릭 시 닫기
+  document.addEventListener('click', function(e) {
+    var panel = document.getElementById('memoPanel');
+    var fab = document.getElementById('memoFab');
+    if (_open && !panel.contains(e.target) && !fab.contains(e.target)) {
+      _open = false; panel.classList.remove('open');
+    }
+  });
+
+  // 초기 로드 (뱃지 표시용)
+  mpLoad();
+})();
+
+</script>
 </body>
 </html>
