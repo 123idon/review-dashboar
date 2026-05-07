@@ -493,6 +493,10 @@ def save_inventory(data):
     tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     tmp.replace(INVENTORY_PATH)
 
+
+@app.get("/inventory/input")
+async def inventory_input_page():
+    return FileResponse("static/inventory_input.html")
 @app.get("/inventory")
 async def inventory_page():
     return FileResponse("static/inventory.html")
