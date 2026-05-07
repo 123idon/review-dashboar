@@ -222,6 +222,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
   </div>
 
   <!-- 예상 매출 -->
+  <!-- 오차율 카드 -->
+  <div style="margin-bottom:16px;background:#fff;border:1.5px solid #E5E8EB;border-radius:16px;padding:18px 20px">
+    <div style="font-size:11px;font-weight:700;color:#B0B8C1;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">추정 매출 오차율 <span style="font-size:9px;font-weight:400;letter-spacing:0">리뷰수 역산 기준</span></div>
+    <div id="errorCards" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start"></div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #E5E8EB;font-size:11px;color:#6B7684">
+      평균 절대 오차 <strong id="avgError" style="color:#F5820D;font-size:14px;font-weight:800"></strong>
+      <span style="color:#B0B8C1;margin-left:6px">추정 = 후기수 ÷ 리뷰율(17.5%) × 객단가(5.4만원)</span>
+    </div>
+  </div>
+
   <div class="section">
     <div class="section-title">예상 매출 추이 <span class="tip">명가는 리뷰율(≈17.5%) 역산 추정 | 이벤트 세로선</span></div>
     <div class="chart-card"><div class="chart-wrap tall"><canvas id="salesChart"></canvas></div></div>
@@ -229,14 +239,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 
   <!-- 2×2 차트 -->
   <div class="two-col" style="margin-bottom:24px">
-    <div class="chart-card">
-      <div class="chart-header"><div class="chart-title">월별 리뷰 수<small>weekly_trend 전체 기반</small></div></div>
-      <div class="chart-wrap"><canvas id="cntChart"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-header"><div class="chart-title">월별 평균 별점<small>리뷰 수 가중 평균</small></div></div>
-      <div class="chart-wrap"><canvas id="scoreChart"></canvas></div>
-    </div>
+    
     <div class="chart-card">
       <div class="chart-header"><div class="chart-title">부정 리뷰 비율<small>1~3점 비율 추이</small></div></div>
       <div class="chart-wrap"><canvas id="negChart"></canvas></div>
@@ -247,29 +250,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
     </div>
   </div>
 
-  <!-- 주간 달력 -->
-  <div class="section">
-    <div class="section-title">주간 캘린더 <span class="tip">일별 추정 매출(리뷰수 비례) · 이벤트</span></div>
-    <div class="cal-nav">
-      <div class="cal-nav-title" id="calTitle"></div>
-      <div class="cal-nav-btns">
-        <button class="cal-nav-btn" onclick="moveMonth(-1)">←</button>
-        <button class="cal-nav-btn" onclick="moveMonth(0)">●</button>
-        <button class="cal-nav-btn" onclick="moveMonth(1)">→</button>
+  <!-- 일별 매출 슬라이더 -->
+  <div class="section" style="margin-bottom:24px">
+    <div class="section-title">일별 추정 매출 &amp; 이슈 <span class="tip">백년화편 리뷰수 비례 추정 · 슬라이드바로 기간 이동</span></div>
+    <div style="background:#fff;border:1.5px solid #E5E8EB;border-radius:16px;padding:18px">
+      <!-- 슬라이더 컨트롤 -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <div style="display:flex;gap:6px">
+          <button class="pb active" data-range="30" onclick="setDailyRange(30,this)">1개월</button>
+          <button class="pb" data-range="90" onclick="setDailyRange(90,this)">3개월</button>
+          <button class="pb" data-range="150" onclick="setDailyRange(150,this)">전체</button>
+        </div>
+        <span id="dailyRangeLabel" style="font-size:11px;color:#B0B8C1;margin-left:4px"></span>
       </div>
-    </div>
-    <div class="cal-wrap">
-      <div class="cal-dow-row">
-        <div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div>
-        <div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div>
-        <div class="cal-dow">토</div>
+      <!-- 슬라이더 -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <span style="font-size:10px;color:#B0B8C1;white-space:nowrap">이동</span>
+        <input type="range" id="dailySlider" min="0" max="100" value="100"
+          style="flex:1;accent-color:#F5820D;height:4px;cursor:pointer"
+          oninput="onDailySlide()">
       </div>
-      <div class="cal-grid" id="calGrid"></div>
+      <!-- 차트 -->
+      <div style="position:relative;height:280px"><canvas id="dailyChart"></canvas></div>
     </div>
-    <div class="week-summary" id="weekSummary"></div>
   </div>
 
   <!-- 키워드 -->
+
   <div class="two-col">
     <div class="section">
       <div class="section-title">긍정 키워드</div>
@@ -485,6 +492,58 @@ function commonOpts(annotations={}) {
       y:{ ticks:{ color:'#B0B8C1', font:tf }, grid:{ color:'#E5E8EB' } },
     },
   };
+}
+
+
+// ── 오차율 카드 ────────────────────────────────────────
+function renderErrorCards() {
+  const REVIEW_RATE = 0.175, AVG_PRICE = 54000;
+  const moData = [
+    {mo:'2026-01', label:'1월', real:1949773003},
+    {mo:'2026-02', label:'2월', real:3457339234},
+    {mo:'2026-03', label:'3월', real:1297704252},
+    {mo:'2026-04', label:'4월', real:1176284097},
+    {mo:'2026-05', label:'5월', real:472595216},
+  ];
+  // 월별 리뷰수 집계
+  const moCnt = {};
+  for (const [wk, cnt] of Object.entries(BAEK_WEEKLY)) {
+    const mo = wk.slice(0,7);
+    moCnt[mo] = (moCnt[mo]||0) + cnt;
+  }
+
+  let totalAbsErr = 0, count = 0;
+  const cards = moData.map(({mo, label, real}) => {
+    const cnt = moCnt[mo] || 0;
+    const est = cnt / REVIEW_RATE * AVG_PRICE;
+    if (!est) return '';
+    const errPct = (est - real) / real * 100;
+    const absErr = Math.abs(errPct);
+    totalAbsErr += absErr; count++;
+    const isOver  = errPct > 0;
+    const color   = absErr > 30 ? '#F04452' : absErr > 15 ? '#F59E0B' : '#00A86B';
+    const bgColor = absErr > 30 ? '#FFF0F0' : absErr > 15 ? '#FFFAEB' : '#E8FAF4';
+    const sign    = isOver ? '과대' : '과소';
+    return `<div style="flex:1;min-width:100px;background:${bgColor};border:1.5px solid ${color}33;border-radius:12px;padding:12px 14px">
+      <div style="font-size:11px;font-weight:700;color:#6B7684;margin-bottom:6px">${label}</div>
+      <div style="font-size:24px;font-weight:900;color:${color};letter-spacing:-1px;line-height:1">${errPct>0?'+':''}${errPct.toFixed(1)}%</div>
+      <div style="font-size:10px;color:#6B7684;margin-top:4px">${sign} 추정</div>
+      <div style="font-size:10px;color:#B0B8C1;margin-top:2px;font-variant-numeric:tabular-nums">
+        실측 ${(real/1e6).toFixed(0)}M · 추정 ${(est/1e6).toFixed(0)}M
+      </div>
+    </div>`;
+  }).join('');
+
+  const el = document.getElementById('errorCards');
+  if (el) el.innerHTML = cards;
+
+  const avg = count ? totalAbsErr/count : 0;
+  const avgEl = document.getElementById('avgError');
+  if (avgEl) {
+    const avgColor = avg > 30 ? '#F04452' : avg > 15 ? '#F59E0B' : '#00A86B';
+    avgEl.style.color = avgColor;
+    avgEl.textContent = avg.toFixed(1) + '%';
+  }
 }
 
 // ── 렌더 ───────────────────────────────────────────────
@@ -787,11 +846,10 @@ async function loadAll(months) {
     renderAlerts(data);
     renderKPI(data);
     renderSalesChart(data, months);
-    renderCntChart(data, months);
-    renderScoreChart(data, months);
     renderNegChart(data, months);
     renderGrowthChart(data, months);
-    renderCalendar();
+    renderErrorCards();
+    renderDailyChart();
     renderKeywords(data);
   } catch(e) {
     console.error(e);
@@ -812,6 +870,295 @@ document.querySelectorAll('.pb').forEach(btn=>{
 });
 
 loadAll(currentMonths);
+// ── 일별 슬라이더 차트 ────────────────────────────────
+const DAILY_DATA = [
+  {date:"2026-01-01",sales:26025391,issues:[{type:"holiday",name:"신년/설 early-bird",label:"+55%"}]},
+  {date:"2026-01-02",sales:26025391,issues:[]},
+  {date:"2026-01-03",sales:26025391,issues:[]},
+  {date:"2026-01-04",sales:26025391,issues:[]},
+  {date:"2026-01-05",sales:67643583,issues:[{type:"marketing",name:"네이버 설 선물대첩",label:"+31%"}]},
+  {date:"2026-01-06",sales:67643583,issues:[]},
+  {date:"2026-01-07",sales:67643583,issues:[]},
+  {date:"2026-01-08",sales:67643583,issues:[]},
+  {date:"2026-01-09",sales:67643583,issues:[]},
+  {date:"2026-01-10",sales:67643583,issues:[]},
+  {date:"2026-01-11",sales:67643583,issues:[]},
+  {date:"2026-01-12",sales:64109963,issues:[]},
+  {date:"2026-01-13",sales:64109963,issues:[]},
+  {date:"2026-01-14",sales:64109963,issues:[{type:"holiday",name:"구정 전 주문 마감",label:"시즌"}]},
+  {date:"2026-01-15",sales:64109963,issues:[{type:"marketing",name:"백년특가·친구추천 이벤트",label:"자사"}]},
+  {date:"2026-01-16",sales:64109963,issues:[]},
+  {date:"2026-01-17",sales:64109963,issues:[]},
+  {date:"2026-01-18",sales:64109963,issues:[]},
+  {date:"2026-01-19",sales:58052328,issues:[]},
+  {date:"2026-01-20",sales:58052328,issues:[]},
+  {date:"2026-01-21",sales:58052328,issues:[]},
+  {date:"2026-01-22",sales:58052328,issues:[]},
+  {date:"2026-01-23",sales:58052328,issues:[]},
+  {date:"2026-01-24",sales:58052328,issues:[]},
+  {date:"2026-01-25",sales:58052328,issues:[]},
+  {date:"2026-01-26",sales:88733124,issues:[{type:"season",name:"설 선물 피크 시작",label:"+189%"}]},
+  {date:"2026-01-27",sales:88733124,issues:[]},
+  {date:"2026-01-28",sales:88733124,issues:[]},
+  {date:"2026-01-29",sales:88733124,issues:[{type:"season",name:"설 D-3 피크",label:"극성수기"}]},
+  {date:"2026-01-30",sales:88733124,issues:[]},
+  {date:"2026-01-31",sales:88733124,issues:[]},
+  {date:"2026-02-01",sales:111368111,issues:[{type:"marketing",name:"명가 역대최대할인",label:"경쟁사"}]},
+  {date:"2026-02-02",sales:141920424,issues:[{type:"season",name:"설 최성수기",label:"+480%"}]},
+  {date:"2026-02-03",sales:141920424,issues:[]},
+  {date:"2026-02-04",sales:141920424,issues:[]},
+  {date:"2026-02-05",sales:141920424,issues:[]},
+  {date:"2026-02-06",sales:141920424,issues:[]},
+  {date:"2026-02-07",sales:141920424,issues:[{type:"season",name:"설날 전날 피크",label:"극성수기"}]},
+  {date:"2026-02-08",sales:141920424,issues:[{type:"holiday",name:"설날",label:"공휴일"}]},
+  {date:"2026-02-09",sales:214288577,issues:[{type:"season",name:"설날 다음날",label:"연휴"}]},
+  {date:"2026-02-10",sales:214288577,issues:[]},
+  {date:"2026-02-11",sales:214288577,issues:[]},
+  {date:"2026-02-12",sales:214288577,issues:[]},
+  {date:"2026-02-13",sales:214288577,issues:[]},
+  {date:"2026-02-14",sales:214288577,issues:[]},
+  {date:"2026-02-15",sales:214288577,issues:[]},
+  {date:"2026-02-16",sales:66877184,issues:[]},
+  {date:"2026-02-17",sales:66877184,issues:[{type:"holiday",name:"설 연휴 종료·급감",label:"-57%"}]},
+  {date:"2026-02-18",sales:66877184,issues:[]},
+  {date:"2026-02-19",sales:66877184,issues:[]},
+  {date:"2026-02-20",sales:66877184,issues:[]},
+  {date:"2026-02-21",sales:66877184,issues:[]},
+  {date:"2026-02-22",sales:66877184,issues:[]},
+  {date:"2026-02-23",sales:70819418,issues:[]},
+  {date:"2026-02-24",sales:70819418,issues:[]},
+  {date:"2026-02-25",sales:70819418,issues:[]},
+  {date:"2026-02-26",sales:70819418,issues:[]},
+  {date:"2026-02-27",sales:70819418,issues:[]},
+  {date:"2026-02-28",sales:70819418,issues:[]},
+  {date:"2026-03-01",sales:30483595,issues:[{type:"holiday",name:"삼일절",label:"공휴일"}]},
+  {date:"2026-03-02",sales:37362101,issues:[]},
+  {date:"2026-03-03",sales:37362101,issues:[]},
+  {date:"2026-03-04",sales:37362101,issues:[]},
+  {date:"2026-03-05",sales:37362101,issues:[]},
+  {date:"2026-03-06",sales:37362101,issues:[]},
+  {date:"2026-03-07",sales:37362101,issues:[]},
+  {date:"2026-03-08",sales:37362101,issues:[]},
+  {date:"2026-03-09",sales:41149824,issues:[]},
+  {date:"2026-03-10",sales:41149824,issues:[{type:"marketing",name:"봄 시즌 상품 출시",label:"신제품"}]},
+  {date:"2026-03-11",sales:41149824,issues:[]},
+  {date:"2026-03-12",sales:41149824,issues:[]},
+  {date:"2026-03-13",sales:41149824,issues:[]},
+  {date:"2026-03-14",sales:41149824,issues:[]},
+  {date:"2026-03-15",sales:41149824,issues:[]},
+  {date:"2026-03-16",sales:31998685,issues:[]},
+  {date:"2026-03-17",sales:31998685,issues:[]},
+  {date:"2026-03-18",sales:31998685,issues:[]},
+  {date:"2026-03-19",sales:31998685,issues:[]},
+  {date:"2026-03-20",sales:31998685,issues:[{type:"season",name:"춘분",label:"절기"}]},
+  {date:"2026-03-21",sales:31998685,issues:[]},
+  {date:"2026-03-22",sales:31998685,issues:[]},
+  {date:"2026-03-23",sales:34847052,issues:[]},
+  {date:"2026-03-24",sales:34847052,issues:[]},
+  {date:"2026-03-25",sales:34847052,issues:[]},
+  {date:"2026-03-26",sales:34847052,issues:[]},
+  {date:"2026-03-27",sales:34847052,issues:[]},
+  {date:"2026-03-28",sales:34847052,issues:[]},
+  {date:"2026-03-29",sales:34847052,issues:[]},
+  {date:"2026-03-30",sales:40028658,issues:[{type:"season",name:"청명·한식 시작",label:"+19%"}]},
+  {date:"2026-03-31",sales:40028658,issues:[]},
+  {date:"2026-04-01",sales:51587639,issues:[]},
+  {date:"2026-04-02",sales:51587639,issues:[]},
+  {date:"2026-04-03",sales:51587639,issues:[]},
+  {date:"2026-04-04",sales:51587639,issues:[{type:"holiday",name:"청명",label:"절기"}]},
+  {date:"2026-04-05",sales:51587639,issues:[{type:"holiday",name:"한식·식목일",label:"공휴일"},{type:"marketing",name:"SNS 이벤트",label:"+23%"}]},
+  {date:"2026-04-06",sales:55375679,issues:[]},
+  {date:"2026-04-07",sales:55375679,issues:[]},
+  {date:"2026-04-08",sales:55375679,issues:[]},
+  {date:"2026-04-09",sales:55375679,issues:[]},
+  {date:"2026-04-10",sales:55375679,issues:[]},
+  {date:"2026-04-11",sales:55375679,issues:[]},
+  {date:"2026-04-12",sales:55375679,issues:[]},
+  {date:"2026-04-13",sales:46862352,issues:[]},
+  {date:"2026-04-14",sales:46862352,issues:[{type:"season",name:"봄 선물 수요",label:"시즌"}]},
+  {date:"2026-04-15",sales:46862352,issues:[]},
+  {date:"2026-04-16",sales:46862352,issues:[]},
+  {date:"2026-04-17",sales:46862352,issues:[]},
+  {date:"2026-04-18",sales:46862352,issues:[]},
+  {date:"2026-04-19",sales:46862352,issues:[]},
+  {date:"2026-04-20",sales:34014257,issues:[{type:"season",name:"곡우",label:"절기"}]},
+  {date:"2026-04-21",sales:34014257,issues:[]},
+  {date:"2026-04-22",sales:34014257,issues:[]},
+  {date:"2026-04-23",sales:34014257,issues:[]},
+  {date:"2026-04-24",sales:34014257,issues:[]},
+  {date:"2026-04-25",sales:34014257,issues:[]},
+  {date:"2026-04-26",sales:34014257,issues:[]},
+  {date:"2026-04-27",sales:31788295,issues:[]},
+  {date:"2026-04-28",sales:31788295,issues:[]},
+  {date:"2026-04-29",sales:31788295,issues:[]},
+  {date:"2026-04-30",sales:31788295,issues:[]},
+  {date:"2026-05-01",sales:63828190,issues:[{type:"holiday",name:"노동절",label:"+19%"}]},
+  {date:"2026-05-02",sales:63828190,issues:[]},
+  {date:"2026-05-03",sales:63828190,issues:[]},
+  {date:"2026-05-04",sales:67513602,issues:[]},
+  {date:"2026-05-05",sales:67513602,issues:[{type:"season",name:"어린이날",label:"+137%"}]},
+  {date:"2026-05-06",sales:67513602,issues:[]},
+  {date:"2026-05-07",sales:67513602,issues:[]},
+  {date:"2026-05-08",sales:67513602,issues:[{type:"holiday",name:"어버이날",label:"+147%"}]},
+  {date:"2026-05-09",sales:67513602,issues:[]},
+  {date:"2026-05-10",sales:67513602,issues:[]},
+  {date:"2026-05-11",sales:15753173,issues:[]},
+  {date:"2026-05-12",sales:15753173,issues:[{type:"season",name:"어버이날 후 수요",label:"시즌"}]},
+  {date:"2026-05-13",sales:15753173,issues:[]},
+  {date:"2026-05-14",sales:15753173,issues:[]},
+  {date:"2026-05-15",sales:15753173,issues:[{type:"holiday",name:"스승의날",label:"+20%"}]},
+  {date:"2026-05-16",sales:15753173,issues:[]},
+  {date:"2026-05-17",sales:15753173,issues:[]},
+  {date:"2026-05-18",sales:15753173,issues:[]},
+  {date:"2026-05-19",sales:15753173,issues:[]},
+  {date:"2026-05-20",sales:15753173,issues:[]},
+  {date:"2026-05-21",sales:15753173,issues:[{type:"season",name:"소만",label:"절기"}]},
+  {date:"2026-05-22",sales:15753173,issues:[]},
+  {date:"2026-05-23",sales:15753173,issues:[]},
+  {date:"2026-05-24",sales:15753173,issues:[{type:"holiday",name:"부처님오신날",label:"+10%"}]},
+  {date:"2026-05-25",sales:15753173,issues:[]},
+  {date:"2026-05-26",sales:15753173,issues:[]},
+  {date:"2026-05-27",sales:15753173,issues:[]},
+  {date:"2026-05-28",sales:15753173,issues:[]},
+  {date:"2026-05-29",sales:15753173,issues:[]},
+  {date:"2026-05-30",sales:15753173,issues:[]},
+  {date:"2026-05-31",sales:15753173,issues:[{type:"season",name:"5월 마감",label:"월말"}]}
+];
+let dailyRangeDays = 30;
+let dailyOffset = 0; // 끝에서부터의 오프셋 (0=최신)
+
+function getDailyWindow() {
+  const total = DAILY_DATA.length;
+  const end = Math.max(0, total - dailyOffset);
+  const start = Math.max(0, end - dailyRangeDays);
+  return DAILY_DATA.slice(start, end);
+}
+
+function updateDailyLabel(slice) {
+  const el = document.getElementById('dailyRangeLabel');
+  if (!el || !slice.length) return;
+  const first = slice[0].date, last = slice[slice.length-1].date;
+  const fmt = s => s.slice(5).replace('-','/');
+  el.textContent = fmt(first) + ' ~ ' + fmt(last);
+}
+
+function renderDailyChart() {
+  const slice = getDailyWindow();
+  updateDailyLabel(slice);
+
+  const labels = slice.map(d => d.date.slice(5).replace('-','/'));
+  const values = slice.map(d => Math.round(d.sales / 10000)); // 만원 단위
+  const issueDates = new Set(slice.filter(d=>d.issues.length>0).map(d=>d.date));
+
+  // annotation: 이슈 있는 날 세로선
+  const annotations = {};
+  slice.forEach((d,i) => {
+    if (!d.issues.length) return;
+    const typeColors = {holiday:'#3182F6',season:'#F5820D',marketing:'#F59E0B',external:'#00BCD4'};
+    const col = typeColors[d.issues[0].type] || '#888';
+    annotations[`ev_${i}`] = {
+      type:'line', xMin:i, xMax:i,
+      borderColor: col + '88', borderWidth:1.5, borderDash:[3,3],
+      label:{ display:false }
+    };
+  });
+
+  const ctx = document.getElementById('dailyChart').getContext('2d');
+  if (charts.daily) charts.daily.destroy();
+
+  charts.daily = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label:'백년화편 일별 추정매출',
+        data: values,
+        borderColor:'#F5820D',
+        backgroundColor:'rgba(245,130,13,.08)',
+        borderWidth:2,
+        pointRadius: slice.map(d => d.issues.length ? 5 : 2),
+        pointBackgroundColor: slice.map(d => {
+          if (!d.issues.length) return '#F5820D';
+          const tc = {holiday:'#3182F6',season:'#F5820D',marketing:'#F59E0B',external:'#00BCD4'};
+          return tc[d.issues[0].type] || '#F5820D';
+        }),
+        pointBorderColor:'#fff',
+        pointBorderWidth: slice.map(d => d.issues.length ? 2 : 0),
+        tension:.3, fill:true, spanGaps:true,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          backgroundColor:'#fff', titleColor:'#191F28', bodyColor:'#6B7684',
+          borderColor:'#CDD1D8', borderWidth:1,
+          titleFont:{ size:11, family:'-apple-system,BlinkMacSystemFont,sans-serif' },
+          bodyFont:{ size:11, family:'-apple-system,BlinkMacSystemFont,sans-serif' },
+          callbacks:{
+            title: items => items[0].label + '일',
+            label: item => '추정 ' + item.raw.toLocaleString() + '만원',
+            afterBody: items => {
+              const idx = items[0].dataIndex;
+              const issues = slice[idx]?.issues || [];
+              if (!issues.length) return [];
+              return ['', ...issues.map(iv => '  ⚡ ' + iv.name + '  ' + iv.label)];
+            }
+          }
+        },
+        annotation:{ annotations },
+      },
+      scales:{
+        x:{
+          ticks:{ color:'#B0B8C1', font:{ size:9, family:'-apple-system,BlinkMacSystemFont,sans-serif' }, maxRotation:0, maxTicksLimit:10 },
+          grid:{ color:'#E5E8EB' }
+        },
+        y:{
+          ticks:{ color:'#B0B8C1', font:{ size:10, family:'-apple-system,BlinkMacSystemFont,sans-serif' }, callback:v=>v+'만' },
+          grid:{ color:'#E5E8EB' }
+        },
+      },
+    }
+  });
+}
+
+window.setDailyRange = function(days, btn) {
+  dailyRangeDays = days;
+  // 슬라이더 max 재설정
+  const slider = document.getElementById('dailySlider');
+  const total = DAILY_DATA.length;
+  const maxOffset = Math.max(0, total - days);
+  if (slider) { slider.max = maxOffset; slider.value = 0; }
+  dailyOffset = 0;
+  document.querySelectorAll('[data-range]').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderDailyChart();
+};
+
+window.onDailySlide = function() {
+  const slider = document.getElementById('dailySlider');
+  if (!slider) return;
+  const total = DAILY_DATA.length;
+  const maxOffset = Math.max(0, total - dailyRangeDays);
+  // 슬라이더 값 0 = 최신, max = 가장 오래된
+  dailyOffset = +slider.value;
+  renderDailyChart();
+};
+
+// 슬라이더 초기 설정
+(function() {
+  const total = DAILY_DATA.length;
+  const slider = document.getElementById('dailySlider');
+  if (slider) {
+    slider.max = Math.max(0, total - dailyRangeDays);
+    slider.value = 0;
+  }
+})();
+
+
+
 </script>
 
 <script>
