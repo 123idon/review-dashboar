@@ -173,22 +173,22 @@ async def health():
 
 @app.get("/")
 async def root():
-    return FileResponse("static/landing.html")
+    return FileResponse("static/landing.html", headers={"Cache-Control":"no-store, no-cache, must-revalidate"})
 
 @app.get("/dashboard")
 async def dashboard():
-    return FileResponse("static/index.html")
+    return FileResponse("static/index.html", headers={"Cache-Control":"no-store, no-cache, must-revalidate"})
 @app.get("/insights")
 async def insights():
-    return FileResponse("static/insights.html")
+    return FileResponse("static/insights.html", headers={"Cache-Control":"no-store, no-cache, must-revalidate"})
 
 @app.get("/memo")
 async def memo_page():
-    return FileResponse("static/memo.html")
+    return FileResponse("static/memo.html", headers={"Cache-Control":"no-store, no-cache, must-revalidate"})
 
 @app.get("/changelog")
 async def changelog_page():
-    return FileResponse("static/changelog.html")
+    return FileResponse("static/changelog.html", headers={"Cache-Control":"no-store, no-cache, must-revalidate"})
 
 @app.get("/api/reports")
 async def list_reports():
@@ -523,14 +523,14 @@ def save_inventory(data):
 
 @app.get("/competitor")
 async def competitor_page():
-    return FileResponse("static/competitor.html")
+    return FileResponse("static/competitor.html", headers={"Cache-Control":"no-store, no-cache, must-revalidate"})
 
 @app.get("/100yearinventory")
 async def inventory_input_page():
-    return FileResponse("static/inventory_input.html")
+    return FileResponse("static/inventory_input.html", headers={"Cache-Control":"no-store, no-cache, must-revalidate"})
 @app.get("/inventory")
 async def inventory_page():
-    return FileResponse("static/inventory.html")
+    return FileResponse("static/inventory.html", headers={"Cache-Control":"no-store, no-cache, must-revalidate"})
 
 @app.get("/api/inventory")
 async def get_inventory():
