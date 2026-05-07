@@ -297,67 +297,6 @@ const EVENTS = [
 ];
 
 // ── 유틸 ───────────────────────────────────────────────
-const c
-// ── 데이터 ─────────────────────────────────────────────
-const BRANDS = [
-  { key:'jasaol',   label:'백년화편',    color:'#F5820D' },
-  { key:'myeongga', label:'명가삼대떡집', color:'#3182F6' },
-];
-
-// 백년화편 월별 실측 매출 (원)
-const BAEK_REAL = {
-  '2026-01':1949773003,'2026-02':3457339234,
-  '2026-03':1297704252,'2026-04':1176284097,
-  '2026-05':472595216,
-};
-
-// 백년화편 주간 실측 리뷰수 (week: 월요일 기준)
-const BAEK_WEEKLY = {
-  '2025-12-29':464,'2026-01-05':1206,'2026-01-12':1143,
-  '2026-01-19':1035,'2026-01-26':1582,'2026-02-02':2016,
-  '2026-02-09':3044,'2026-02-16':950, '2026-02-23':1006,
-  '2026-03-02':1233,'2026-03-09':1358,'2026-03-16':1056,
-  '2026-03-23':1150,'2026-03-30':1321,'2026-04-06':1418,
-  '2026-04-13':1200,'2026-04-20':871, '2026-04-27':814,
-  '2026-05-04':861,
-};
-
-// 월별 보정계수 (실측/리뷰역산)
-const MONTHLY_RATIO = {
-  '2026-01':1.272,'2026-02':1.597,'2026-03':0.687,
-  '2026-04':0.886,'2026-05':1.779,
-};
-
-const REVIEW_RATE = 0.175;
-const AVG_PRICE   = 54000;
-
-// 이벤트
-const EVENTS = [
-  {date:'2026-01-01',type:'holiday',  name:'🎊 신년/설 early-bird',  brands:['백년화편','명가삼대'],uplift:55, upliftLabel:'+55% 실측'},
-  {date:'2026-01-05',type:'marketing',name:'📣 네이버 설 선물대첩',    brands:['플랫폼공통'],         uplift:31, upliftLabel:'+31% 실측'},
-  {date:'2026-01-15',type:'marketing',name:'📣 백년특가·친구추천',      brands:['백년화편'],           uplift:null,upliftLabel:null},
-  {date:'2026-01-26',type:'season',   name:'🧧 설 선물 피크',          brands:['백년화편','명가삼대'],uplift:189,upliftLabel:'+189% 실측'},
-  {date:'2026-02-01',type:'marketing',name:'📣 명가 역대최대할인가',    brands:['명가삼대'],           uplift:null,upliftLabel:null},
-  {date:'2026-02-02',type:'season',   name:'🧧 설 최성수기',           brands:['백년화편','명가삼대'],uplift:480,upliftLabel:'+480% 실측'},
-  {date:'2026-02-17',type:'holiday',  name:'🧧 설날 연휴(매출급감)',   brands:['플랫폼공통'],         uplift:-57,upliftLabel:'-57% 실측'},
-  {date:'2026-03-01',type:'holiday',  name:'🎌 삼일절',                brands:['명가삼대'],           uplift:3,  upliftLabel:'+3%'},
-  {date:'2026-03-10',type:'marketing',name:'📣 봄 시즌 상품 출시',     brands:['백년화편','명가삼대'],uplift:2,  upliftLabel:'+2%'},
-  {date:'2026-03-30',type:'season',   name:'🌸 청명·한식 봄 시즌',     brands:['백년화편','명가삼대'],uplift:19, upliftLabel:'+19%'},
-  {date:'2026-04-04',type:'holiday',  name:'🌿 청명·한식',             brands:['백년화편','명가삼대'],uplift:5,  upliftLabel:'+5%'},
-  {date:'2026-04-05',type:'marketing',name:'📣 백년화편 식목일 SNS',    brands:['백년화편'],           uplift:23, upliftLabel:'+23%'},
-  {date:'2026-05-01',type:'holiday',  name:'🎌 노동절',                brands:['플랫폼공통'],         uplift:19, upliftLabel:'+19%'},
-  {date:'2026-05-05',type:'season',   name:'👨‍👩‍👧 어린이날·어버이날',  brands:['백년화편','명가삼대'],uplift:137,upliftLabel:'+137%'},
-  {date:'2026-05-08',type:'holiday',  name:'💐 어버이날',              brands:['백년화편','명가삼대'],uplift:147,upliftLabel:'+147%'},
-  {date:'2026-05-15',type:'holiday',  name:'🎓 스승의날',              brands:['백년화편'],           uplift:20, upliftLabel:'+20%'},
-  {date:'2026-05-24',type:'holiday',  name:'🪷 부처님오신날',           brands:['백년화편','명가삼대'],uplift:10, upliftLabel:'+10%'},
-  {date:'2026-06-03',type:'external', name:'🗳️ 지방선거',              brands:['플랫폼공통'],         uplift:5,  upliftLabel:'+5%'},
-  {date:'2026-06-20',type:'season',   name:'🌾 단오',                  brands:['백년화편','명가삼대'],uplift:8,  upliftLabel:'+8%'},
-  {date:'2026-08-24',type:'season',   name:'🧧 추석 D-30',             brands:['백년화편','명가삼대'],uplift:60, upliftLabel:'+60%'},
-  {date:'2026-09-10',type:'season',   name:'🧧 추석 최성수기',          brands:['백년화편','명가삼대'],uplift:380,upliftLabel:'+380%'},
-  {date:'2026-09-24',type:'holiday',  name:'🧧 추석 연휴(급감)',        brands:['플랫폼공통'],         uplift:-50,upliftLabel:'-50%'},
-];
-
-// ── 유틸 ───────────────────────────────────────────────
 const charts = {};
 let currentMonths = 6;
 let calYear = new Date().getFullYear();
@@ -625,24 +564,7 @@ function renderSalesChart(data, months) {
   });
 }
 
-function renderCntChart(data, months) {
-  const bm={};const allM=new Set();
-  for(const b of BRANDS){
-    const mo=buildMonthly(data[b.key]?.weekly_trend||[]);
-    bm[b.key]={};
-    for(const m of mo){if(m.month>='2026-01'){allM.add(m.month);bm[b.key][m.month]=m.count;}}
-  }
-  const {df,dt}=getDateRange(months);
-  const arr=[...allM].sort().filter(m=>(!df||m>=df)&&(!dt||m<=dt));
-  const ctx=document.getElementById('cntChart').getContext('2d');
-  if(charts.cnt)charts.cnt.destroy();
-  charts.cnt=new Chart(ctx,{type:'bar',
-    data:{labels:arr.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
-      datasets:BRANDS.map((b,i)=>({label:b.label,data:arr.map(m=>bm[b.key][m]||null),
-        backgroundColor:b.color+(i===0?'cc':'66'),borderColor:b.color,borderWidth:1,borderRadius:3}))},
-    options:{...commonOpts(),scales:{...commonOpts().scales,
-      y:{ticks:{color:'#B0B8C1',font:getTickFont(),callback:v=>v>=1000?Math.round(v/1000)+'k':v},grid:{color:'#E5E8EB'}}}}});
-}
+
 
 function renderNegChart(data, months) {
   const bm={};const allM=new Set();
@@ -711,8 +633,6 @@ function renderKeywords(data) {
     }
   });
 }
-
-// ── 달력 ───────────────────────────────────────────────
 
 // ── 전체 로드 ──────────────────────────────────────────
 async function loadAll(months) {
@@ -1038,3 +958,26 @@ window.onDailySlide = function() {
 
 
 
+</script>
+
+<script>
+// ── 메모 패널 ─────────────────────────────────────────
+(function(){
+  var _m=[],_o=false;
+  function t(){_o=!_o;var p=document.getElementById('memoPanel');if(p)p.classList.toggle('open',_o);if(_o){l();var i=document.getElementById('mpInput');if(i)setTimeout(()=>i.focus(),200);}}
+  window.mpToggle=t;
+  function toast(msg){var t=document.getElementById('mpToast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+  function fmt(id){var d=new Date(id);if(isNaN(d))return id;return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+  function render(){var list=document.getElementById('mpList'),badge=document.getElementById('mpBadge');if(!list)return;if(!_m.length){list.innerHTML='<div class="mp-empty">메모가 없어요</div>';if(badge)badge.classList.remove('show');return;}if(badge){badge.textContent=_m.length>99?'99+':_m.length;badge.classList.add('show');}list.innerHTML=[..._m].reverse().map(function(m){return'<div class="mp-card"><div class="mp-card-text">'+m.content.replace(/</g,'&lt;')+'</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px"><span class="mp-card-date">'+fmt(m.id)+'</span><button class="mp-del-btn" onclick="mpDel(\''+m.id+'\')">✕</button></div></div>';}).join('');}
+  async function l(){try{var r=await fetch('/api/memo'),d=await r.json();_m=d.memos||[];render();}catch(e){}}
+  async function mpSave(){var inp=document.getElementById('mpInput'),btn=document.getElementById('mpSaveBtn');if(!inp||!inp.value.trim())return;var c=inp.value.trim();if(btn)btn.disabled=true;try{await fetch('/api/memo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:c})});inp.value='';await l();toast('저장됐어요 ✓');}catch(e){toast('저장 실패');}finally{if(btn)btn.disabled=false;}}
+  window.mpSave=mpSave;
+  async function mpDel(id){if(!confirm('삭제할까요?'))return;try{await fetch('/api/memo/'+id,{method:'DELETE'});await l();toast('삭제됐어요');}catch(e){}}
+  window.mpDel=mpDel;
+  document.addEventListener('keydown',function(e){var inp=document.getElementById('mpInput');if(document.activeElement===inp&&(e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();mpSave();}});
+  document.addEventListener('click',function(e){var p=document.getElementById('memoPanel'),f=document.getElementById('memoFab');if(_o&&p&&f&&!p.contains(e.target)&&!f.contains(e.target)){_o=false;p.classList.remove('open');}});
+  l();
+})();
+</script>
+</body>
+</html>
