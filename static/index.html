@@ -752,13 +752,13 @@ function fmtSec(s){ return s>=60 ? Math.floor(s/60)+'분 '+(s%60)+'초' : s+'초
 (function(){
   const overlay = document.createElement('div');
   overlay.id = 'initOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#f5f4f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:inherit;transition:opacity .5s';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:inherit;transition:opacity .5s';
   overlay.innerHTML =
-    '<div style="font-size:22px;font-weight:700;color:#1a1917">후기 대시보드</div>'+
-    '<div style="width:240px;height:3px;background:#e2e0d8;border-radius:4px;overflow:hidden">'+
-      '<div id="initBar" style="height:100%;width:0%;background:#2d5a3d;border-radius:4px;transition:width .5s ease"></div>'+
+    '<div style="font-size:22px;font-weight:700;color:var(--text)">후기 대시보드</div>'+
+    '<div style="width:240px;height:3px;background:var(--border);border-radius:4px;overflow:hidden">'+
+      '<div id="initBar" style="height:100%;width:0%;background:var(--green);border-radius:4px;transition:width .5s ease"></div>'+
     '</div>'+
-    '<div id="initMsg" style="font-size:13px;color:#7a7870">서버 연결 중...</div>';
+    '<div id="initMsg" style="font-size:13px;color:var(--text3)">서버 연결 중...</div>';
   document.body.prepend(overlay);
   const bar = document.getElementById('initBar');
   const msg = document.getElementById('initMsg');
@@ -1365,15 +1365,15 @@ function renderTrendChart(d){
       labels:trend.map(t=>t.week.slice(5)),
       datasets:[
         {label:'후기수',data:trend.map(t=>t.count),backgroundColor:accent+'30',borderColor:accent,borderWidth:1.5,borderRadius:4,yAxisID:'y'},
-        {label:'부정',data:trend.map(t=>t.negative),backgroundColor:'#c0392b25',borderColor:'#c0392b',borderWidth:1.5,borderRadius:4,yAxisID:'y',type:'bar'},
-        {label:'평균별점',data:trend.map(t=>t.avg_score),type:'line',borderColor:'#e6b84a',borderWidth:2,pointRadius:3,tension:0.3,yAxisID:'y2'},
+        {label:'부정',data:trend.map(t=>t.negative),backgroundColor:'#c0392b25',borderColor:'var(--red)',borderWidth:1.5,borderRadius:4,yAxisID:'y',type:'bar'},
+        {label:'평균별점',data:trend.map(t=>t.avg_score),type:'line',borderColor:'var(--amber)',borderWidth:2,pointRadius:3,tension:0.3,yAxisID:'y2'},
       ]
     },
     options:{
       responsive:true,interaction:{mode:'index',intersect:false},
       plugins:{legend:{labels:{font:{size:11},boxWidth:10}}},
       scales:{
-        y:{beginAtZero:true,grid:{color:'#e2e0d820'},ticks:{font:{size:11}}},
+        y:{beginAtZero:true,grid:{color:'var(--border)20'},ticks:{font:{size:11}}},
         y2:{position:'right',min:0,max:5,grid:{display:false},ticks:{font:{size:11}}},
         x:{grid:{display:false},ticks:{font:{size:11}}}
       }
@@ -1765,7 +1765,7 @@ async function renderLog(){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <div style="font-size:15px;font-weight:700">수집 로그</div>
       <div style="display:flex;gap:8px">
-        <label style="cursor:pointer;padding:6px 12px;background:var(--accent-d);color:#fff;border-radius:6px;font-size:12px;font-weight:600" title="자사몰 XLS 파일 업로드">
+        <label style="cursor:pointer;padding:6px 12px;background:var(--brand);color:#fff;border-radius:6px;font-size:12px;font-weight:600" title="자사몰 XLS 파일 업로드">
           📂 자사몰 임포트
           <input type="file" accept=".xls,.xlsx,.html,.htm" style="display:none" onchange="importJasaol(this)">
         </label>
@@ -1777,7 +1777,7 @@ async function renderLog(){
       </div>
     </div>
     <div id="liveStatusWrap" style="margin-bottom:12px"></div>
-    <div style="background:#1a1a1a;border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:12px;color:#d4d4d4;min-height:200px;max-height:420px;overflow-y:auto;line-height:1.7" id="terminalBox">
+    <div style="background:var(--text);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:12px;color:#D4E0EA;min-height:200px;max-height:420px;overflow-y:auto;line-height:1.7" id="terminalBox">
       <div style="color:#888">수집 로그를 불러오는 중...</div>
     </div>
     <div style="margin-top:12px">
@@ -1867,7 +1867,7 @@ function _renderLiveStatus(st){
   let html = '';
   if(st.collecting){
     const pct = st.progress_pct || 0;
-    html = `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 16px">
+    html = `<div style="background:var(--amber-bg);border:1px solid var(--amber);border-radius:8px;padding:12px 16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <span style="font-size:13px;font-weight:700;color:var(--text)">🔄 수집 중</span>
         <span style="font-size:13px;font-weight:700;color:var(--text)">${pct}%</span>
@@ -1878,12 +1878,12 @@ function _renderLiveStatus(st){
       <div style="font-size:12px;color:var(--text2)">${st.progress_msg||''}</div>
     </div>`;
   } else if(st.last_error){
-    html = `<div style="background:var(--red-bg);border:1px solid #f0c4c0;border-radius:8px;padding:12px 16px">
+    html = `<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:12px 16px">
       <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:4px">❌ 마지막 오류</div>
       <div style="font-size:12px;color:var(--red);font-family:var(--mono);word-break:break-all">${st.last_error}</div>
     </div>`;
   } else if(st.last_success){
-    html = `<div style="background:var(--green-bg);border:1px solid #b8dfc8;border-radius:8px;padding:10px 16px;font-size:12px;color:var(--green)">✅ 마지막 성공: ${st.last_success.replace('T',' ').slice(0,19)}</div>`;
+    html = `<div style="background:var(--green-bg);border:1px solid var(--green);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--green)">✅ 마지막 성공: ${st.last_success.replace('T',' ').slice(0,19)}</div>`;
   }
   wrap.innerHTML = html;
 }
