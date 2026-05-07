@@ -556,7 +556,7 @@
   setInterval(function() {
     try { if (!localStorage.getItem('bnh_theme')) applyTheme(getAutoTheme(), false); } catch(e){}
   }, 60000);
-  (function init() {
+  (function __themeInit() {
     var manual = null;
     try { manual = localStorage.getItem('bnh_theme'); } catch(e){}
     applyTheme(manual || getAutoTheme(), false);
