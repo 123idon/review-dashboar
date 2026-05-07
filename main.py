@@ -475,6 +475,41 @@ async def delete_memo(memo_id: str):
         pass
     return {"ok": True}
 
+
+# ── 재고 관리 ──
+INVENTORY_PATH = Path("data/inventory.json")
+
+def load_inventory():
+    if not INVENTORY_PATH.exists():
+        return {"products": [], "history": [], "settings": {"hd_code": "HYW", "sp_code": "", "alert_threshold": 10, "warning_threshold": 20, "sync_interval": 30}}
+    try:
+        return json.loads(INVENTORY_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {"products": [], "history": [], "settings": {}}
+
+def save_inventory(data):
+    INVENTORY_PATH.parent.mkdir(exist_ok=True)
+    tmp = INVENTORY_PATH.with_suffix('.tmp')
+    tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(INVENTORY_PATH)
+
+@app.get("/inventory")
+async def inventory_page():
+    return FileResponse("static/inventory.html")
+
+@app.get("/api/inventory")
+async def get_inventory():
+    return JSONResponse(load_inventory())
+
+@app.post("/api/inventory")
+async def save_inventory_api(request: Request):
+    try:
+        data = await request.json()
+        save_inventory(data)
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
