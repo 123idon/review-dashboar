@@ -404,7 +404,7 @@ tr:hover td { background:var(--bg); }
 .empty { text-align:center; padding:48px 20px; }
 .empty-icon { font-size:36px; margin-bottom:14px; }
 .empty-text { font-size:14px; color:var(--text3); }
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:500; display:flex; align-items:flex-end; justify-content:center; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:500; display:none; align-items:flex-end; justify-content:center; }
 .modal { background:var(--surface); border-radius:20px 20px 0 0; padding:20px 20px 32px; width:100%; max-width:480px; box-shadow:var(--sh-xl); }
 .modal-handle { width:32px; height:4px; background:var(--border2); border-radius:50px; margin:0 auto 16px; }
 .modal-title { font-size:16px; font-weight:800; margin-bottom:16px; letter-spacing:-.4px; }
@@ -417,6 +417,122 @@ tr:hover td { background:var(--bg); }
 .mp-card{padding:10px 0;border-bottom:1px solid var(--border);position:relative;} .mp-card:last-child{border-bottom:none;} .mp-card-text{font-size:12px;color:var(--text2);line-height:1.6;padding-right:28px;} .mp-card-date{font-size:10px;color:var(--text4);margin-top:4px;} .mp-del-btn{position:absolute;top:10px;right:0;width:22px;height:22px;border-radius:50%;border:none;background:transparent;color:var(--text4);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 150ms ease;} .mp-del-btn:hover{background:var(--red-bg);color:var(--red);} .mp-empty{font-size:12px;color:var(--text4);text-align:center;padding:20px 0;}
 @media(max-width:599px){.content{padding:12px 14px 80px;} .summary-grid{grid-template-columns:1fr 1fr;}}
 
+
+/* ─── inventory 동적 렌더 클래스 ─── */
+
+/* 재고 배지 */
+.stock-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:12px; font-weight:700; padding:4px 10px; border-radius:50px;
+  letter-spacing:.2px;
+}
+.stock-badge.normal  { background:var(--green-bg); color:var(--green); }
+.stock-badge.warning { background:var(--amber-bg); color:var(--amber); }
+.stock-badge.danger  { background:var(--red-bg); color:var(--red); }
+.stock-badge.soldout { background:var(--surface2); color:var(--text4); }
+.stock-badge.blink   { animation:blink-anim .9s step-end infinite; }
+@keyframes blink-anim { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* 상품명/코드 */
+.pname { font-size:13px; font-weight:600; color:var(--text2); }
+.pcode { font-size:11px; color:var(--text4); margin-top:2px; }
+
+/* 임박 기준 배지 */
+.th-badge {
+  display:inline-flex; font-size:11px; font-weight:600;
+  padding:2px 8px; border-radius:50px;
+  background:var(--surface2); color:var(--text3);
+}
+
+/* 매진 시각 */
+.soldout-time { font-size:11px; color:var(--red); }
+
+/* 테이블 액션 버튼 */
+.row-actions { display:flex; gap:5px; flex-wrap:wrap; }
+.btn-xs {
+  height:26px; padding:0 10px; border-radius:50px;
+  border:1.5px solid var(--border); background:transparent;
+  font-family:inherit; font-size:11px; font-weight:700;
+  cursor:pointer; transition:all 150ms ease;
+  white-space:nowrap;
+}
+.btn-xs:active { transform:scale(.96); }
+.bxa { color:var(--green); border-color:rgba(0,168,107,.3); }
+.bxa:hover { background:var(--green-bg); border-color:var(--green); }
+.bxm { color:var(--red); border-color:rgba(240,68,82,.3); }
+.bxm:hover { background:var(--red-bg); border-color:var(--red); }
+.bxe { color:var(--text3); }
+.bxe:hover { background:var(--surface2); border-color:var(--border2); color:var(--text2); }
+
+/* 이력 로우 */
+.history-row {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 0; border-bottom:1px solid var(--border);
+  animation:fadeUp 200ms ease both;
+}
+.history-row:last-child { border-bottom:none; }
+.h-time   { font-size:10px; color:var(--text4); white-space:nowrap; font-variant-numeric:tabular-nums; flex-shrink:0; min-width:130px; }
+.h-type   { font-size:10px; font-weight:700; padding:2px 8px; border-radius:50px; flex-shrink:0; }
+.ht-in      { background:var(--green-bg); color:var(--green); }
+.ht-out     { background:var(--red-bg);   color:var(--red); }
+.ht-set     { background:var(--blue-bg);  color:var(--blue); }
+.ht-soldout { background:var(--surface2); color:var(--text4); }
+.h-detail   { font-size:12px; color:var(--text2); flex:1; }
+.h-qty      { font-size:13px; font-weight:800; flex-shrink:0; font-variant-numeric:tabular-nums; }
+
+/* 차트 컨테이너 */
+.chart-box       { background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:16px; }
+.chart-box-title { font-size:13px; font-weight:700; color:var(--text2); margin-bottom:12px; }
+
+/* 모달 오버레이 열림 */
+.modal-overlay.open { display:flex; }
+
+/* 재고 입력 링크 */
+.inv-input-link {
+  display:inline-flex; align-items:center; gap:5px;
+  height:32px; padding:0 14px; border-radius:50px;
+  border:1.5px solid var(--teal); background:var(--teal-bg);
+  font-size:12px; font-weight:700; color:var(--teal);
+  text-decoration:none; transition:all 150ms ease; flex-shrink:0;
+}
+.inv-input-link:hover { background:var(--teal); color:#fff; }
+
+/* 상품 없음 빈 상태 */
+.empty       { text-align:center; padding:40px 20px; }
+.empty-icon  { font-size:32px; margin-bottom:12px; }
+.empty-text  { font-size:13px; color:var(--text3); }
+
+/* 테이블 반응형 */
+@media(max-width:600px) {
+  .row-actions { flex-direction:row; }
+  .btn-xs { height:24px; padding:0 8px; font-size:10px; }
+  td[data-label]::before {
+    content:attr(data-label);
+    display:block; font-size:10px;
+    color:var(--text4); margin-bottom:3px;
+  }
+  .h-time { min-width:0; font-size:9px; }
+}
+
+/* 이력 상세 (h-item 계열) */
+.h-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 0; border-bottom:1px solid var(--border);
+  animation:fadeUp 200ms ease both;
+}
+.h-item:last-child { border-bottom:none; }
+.h-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+  margin-top:5px;
+}
+.h-dot.add,.h-dot.in   { background:var(--green); }
+.h-dot.minus,.h-dot.out{ background:var(--red); }
+.h-dot.set             { background:var(--blue); }
+.h-dot.pos             { background:var(--amber); }
+.h-dot.soldout         { background:var(--text4); }
+.h-info  { flex:1; min-width:0; }
+.h-name  { font-size:13px; font-weight:600; color:var(--text2); }
+.h-note  { font-size:11px; color:var(--text3); margin-top:2px; }
 </style>
 <script>
 (function(){var DS=6,DE=20;function auto(){var h=new Date().getHours();return(h>=DS&&h<DE)?'day':'night';}function apply(m,save){document.documentElement.setAttribute('data-theme',m);var b=document.getElementById('themeToggle');if(b)b.textContent=m==='night'?'☀️':'🌙';if(save){try{localStorage.setItem('bnh_theme',m);}catch(e){}}}window.__toggleTheme=function(){var c=document.documentElement.getAttribute('data-theme')||'day';apply(c==='day'?'night':'day',true);};setInterval(function(){try{if(!localStorage.getItem('bnh_theme'))apply(auto(),false);}catch(e){}},60000);(function(){var m=null;try{m=localStorage.getItem('bnh_theme');}catch(e){}apply(m||auto(),false);})();})();})();
@@ -441,9 +557,7 @@ tr:hover td { background:var(--bg); }
     <button class="icon-btn" id="refreshBtn" onclick="handleRefresh(this)" title="새로고침">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     </button>
-    <a href="/100yearinventory" class="icon-btn" title="재고 입력">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </a>
+    
     <span class="api-pill off" id="apiPill">● 미연결</span>
   </div>
 </header>
@@ -554,6 +668,10 @@ tr:hover td { background:var(--bg); }
 </div>
 
 <!-- FAB -->
+<a href="/100yearinventory" class="inv-input-link" style="position:fixed;bottom:82px;right:22px;z-index:899;">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+  재고 입력
+</a>
 <button class="fab" onclick="openAddModal()" aria-label="상품 추가">+</button>
 
 <!-- ══ 모달: 상품 추가/수정 ══ -->
