@@ -7,12 +7,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <style>
-[data-theme="day"],:root{
+:root {
   --bg:#F9FAFB;--bg2:#F2F4F6;--surface:#fff;--surface2:#F2F4F6;
   --border:#E5E8EB;--border2:#CDD1D8;
   --text:#191F28;--text2:#333D4B;--text3:#6B7684;--text4:#B0B8C1;
   --brand:#F5820D;--brand-bg:#FFF4E6;--brand-dark:#D96E00;--brand-rgb:245,130,13;
-  --blue:#3182F6;--blue-bg:#EBF3FE;--blue-rgb:49,130,246;
+  --blue:#3182F6;--blue-bg:#EBF3FE;
   --red:#F04452;--red-bg:#FFF0F0;
   --green:#00A86B;--green-bg:#E8FAF4;
   --purple:#6C47FF;--purple-bg:#F3F0FF;
@@ -20,19 +20,13 @@
   --amber:#F59E0B;--amber-bg:#FFFAEB;
   --sh-xs:0 1px 2px rgba(0,0,0,.05);--sh-sm:0 2px 8px rgba(0,0,0,.07);
   --sh-md:0 4px 16px rgba(0,0,0,.09);--sh-lg:0 8px 32px rgba(0,0,0,.11);
-  --sh-xl:0 20px 56px rgba(0,0,0,.13);
   --sh-brand:0 4px 14px rgba(245,130,13,.28);--sh-blue:0 4px 14px rgba(49,130,246,.25);
 }
-
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
-
-/* 키프레임 */
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
 
 /* 로딩 */
 #loading{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .3s}
@@ -45,11 +39,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .back-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--text2);font-size:18px;transition:all 150ms ease;flex-shrink:0}
 .back-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-bg)}
 .page-title{font-size:15px;font-weight:800;letter-spacing:-.4px}
-.page-sub{font-size:10px;color:var(--text4);word-break:keep-all}
+.page-sub{font-size:10px;color:var(--text4)}
 .header-right{margin-left:auto;flex-shrink:0;display:flex;align-items:center;gap:10px}
 .last-upd{font-size:11px;color:var(--text4);font-variant-numeric:tabular-nums}
 
-/* 필터 바 */
+/* 필터 */
 .filter-bar{display:flex;gap:6px;padding:14px 20px;max-width:1000px;margin:0 auto;flex-wrap:wrap}
 .pb{height:30px;padding:0 15px;border-radius:50px;border:1.5px solid var(--border);background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;transition:all 150ms ease}
 .pb:hover{border-color:var(--blue);color:var(--blue)}
@@ -58,75 +52,102 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 /* 콘텐츠 */
 .content{max-width:1000px;margin:0 auto;padding:4px 20px 80px}
 .section{margin-bottom:24px}
-.section-title{font-size:11px;font-weight:700;color:var(--text4);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.tip{font-size:10px;color:var(--text4);font-weight:400;letter-spacing:0;text-transform:none}
+.section-title{font-size:11px;font-weight:700;color:var(--text4);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px}
+.tip{font-size:10px;color:var(--text4);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px}
 
-/* 알림 배너 */
+/* 알림 */
 .alert-banner{margin-bottom:14px}
 .alert-item{background:var(--red-bg);border:1.5px solid rgba(240,68,82,.2);border-radius:12px;padding:11px 16px;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--red);animation:fadeDown 250ms ease both}
 
-/* KPI 카드 */
+/* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
-.kpi-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;transition:transform 250ms cubic-bezier(.34,1.56,.64,1),box-shadow 200ms ease;animation:fadeUp 270ms cubic-bezier(.16,1,.3,1) both}
+.kpi-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;transition:transform 250ms cubic-bezier(.34,1.56,.64,1),box-shadow 200ms ease;animation:fadeUp 270ms ease both}
 .kpi-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
-.kpi-brand{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:.3px;display:flex;align-items:center;gap:6px}
+.kpi-brand{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .brand-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .kpi-score{font-size:30px;font-weight:900;letter-spacing:-1.4px;line-height:1;font-variant-numeric:tabular-nums}
 .kpi-sub{font-size:11px;color:var(--text3);margin-top:4px;font-variant-numeric:tabular-nums}
 .kpi-delta{font-size:11px;font-weight:700;margin-top:5px}
 .kpi-delta.up{color:var(--green)}.kpi-delta.dn{color:var(--red)}.kpi-delta.fl{color:var(--text4)}
-.est-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:50px;background:var(--amber-bg);color:var(--amber);margin-top:5px}
+.est-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 7px;border-radius:50px;background:var(--amber-bg);color:var(--amber);margin-top:5px}
 
-/* 차트 카드 */
-.chart-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;transition:box-shadow .2s}
-.chart-card:hover{box-shadow:var(--sh-sm)}
+/* 차트 */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px}
 .chart-header{margin-bottom:12px}
 .chart-title{font-size:13px;font-weight:700;color:var(--text2);letter-spacing:-.2px}
 .chart-title small{display:block;font-size:10px;color:var(--text4);font-weight:400;margin-top:2px}
 .chart-wrap{position:relative;height:220px}
 .chart-wrap.tall{height:260px}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-/* 달력 섹션 */
+/* ── 달력 ── */
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.cal-nav-title{font-size:14px;font-weight:800;letter-spacing:-.4px}
+.cal-nav-title{font-size:15px;font-weight:800;letter-spacing:-.4px}
 .cal-nav-btns{display:flex;gap:6px}
 .cal-nav-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;transition:all 150ms ease}
 .cal-nav-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-bg)}
+
 .cal-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--sh-sm)}
 .cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface2);border-bottom:1px solid var(--border)}
-.cal-dow{padding:7px 0;text-align:center;font-size:10px;font-weight:700;color:var(--text4);letter-spacing:.5px}
+.cal-dow{padding:7px 0;text-align:center;font-size:10px;font-weight:700;color:var(--text4);letter-spacing:.4px}
 .cal-dow:first-child{color:var(--red)}.cal-dow:last-child{color:var(--blue)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
-.cal-cell{min-height:76px;padding:7px 7px 5px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:background 120ms ease;vertical-align:top}
-.cal-cell:nth-child(7n){border-right:none}
-.cal-cell.other-month{opacity:.35}
-.cal-cell.today{background:var(--brand-bg)}
-.cal-cell.today .cal-day-num{background:var(--brand);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800}
-.cal-day-num{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;line-height:20px;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
-.cal-cell:nth-child(7n+1) .cal-day-num{color:var(--red)}.cal-cell:nth-child(7n) .cal-day-num{color:var(--blue)}
-.cal-chips{display:flex;flex-direction:column;gap:2px}
-.cal-chip{font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.5}
-.cc-sales{background:var(--brand-bg);color:var(--brand)}
-.cc-ev-season{background:var(--amber-bg);color:var(--amber)}
-.cc-ev-holiday{background:var(--blue-bg);color:var(--blue)}
-.cc-ev-marketing{background:var(--brand-bg);color:var(--brand-dark)}
-.cc-ev-external{background:var(--teal-bg);color:var(--teal)}
 
-/* 주간 요약 카드 */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-cell{
+  min-height:88px;
+  padding:5px 5px 4px;
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell.other-month{opacity:.3}
+.cal-cell.today{background:rgba(245,130,13,.06)}
+.cal-cell.today .cal-day-num{background:var(--brand);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px}
+
+/* 날짜 숫자 */
+.cal-day-num{font-size:11px;font-weight:600;color:var(--text2);width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:2px}
+.cal-cell:nth-child(7n+1) .cal-day-num{color:var(--red)}
+.cal-cell:nth-child(7n)   .cal-day-num{color:var(--blue)}
+
+/* 이벤트/공휴일 칩 (날짜 바로 아래) */
+.cal-ev-chips{display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.cal-ev-chip{
+  font-size:9px;font-weight:700;
+  padding:1px 4px;border-radius:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;line-height:1.5;
+}
+.cev-holiday  {background:#EBF3FE;color:#3182F6}
+.cev-season   {background:#FFF4E6;color:#D96E00}
+.cev-marketing{background:#FFFAEB;color:#B45309}
+.cev-external {background:#E6F9FC;color:#0891B2}
+
+/* 매출 추정 칩 (이벤트 아래) */
+.cal-sales-chip{
+  font-size:9px;font-weight:700;color:var(--brand);
+  background:var(--brand-bg);
+  padding:1px 4px;border-radius:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-top:2px;line-height:1.5;
+  flex-shrink:0;
+}
+
+/* 주간 요약 */
 .week-summary{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .week-row{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;animation:fadeUp 200ms ease both}
-.week-row-head{display:flex;align-items:center;gap:8px;margin-bottom:7px}
-.week-label{font-size:11px;font-weight:700;color:var(--text3);min-width:72px}
-.week-sales{font-size:14px;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums;letter-spacing:-.3px}
-.week-sales-est{font-size:10px;color:var(--text4);margin-left:3px;font-weight:400}
+.week-row-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.week-label{font-size:11px;font-weight:700;color:var(--text3);min-width:80px;flex-shrink:0}
+.week-sales{font-size:15px;font-weight:900;color:var(--brand);font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.week-sales-est{font-size:10px;color:var(--text4);font-weight:400;margin-left:2px}
 .week-events{display:flex;flex-wrap:wrap;gap:4px}
-.week-ev-chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:50px}
-.wev-season{background:var(--amber-bg);color:var(--amber)}
-.wev-holiday{background:var(--blue-bg);color:var(--blue)}
+.wev-chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px}
+.wev-season   {background:var(--amber-bg);color:var(--amber)}
+.wev-holiday  {background:var(--blue-bg);color:var(--blue)}
 .wev-marketing{background:var(--brand-bg);color:var(--brand-dark)}
-.wev-external{background:var(--teal-bg);color:var(--teal)}
-.week-ev-impact{font-size:9px;opacity:.7}
+.wev-external {background:var(--teal-bg);color:var(--teal)}
+.wev-uplift   {font-size:9px;opacity:.75;margin-left:2px}
 
 /* 키워드 */
 .kw-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -134,26 +155,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .kw-brand{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
 .kw-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
 .kw-row:last-child{border-bottom:none}
-.kw-word{font-size:12px;font-weight:600;color:var(--text2);width:70px;flex-shrink:0}
+.kw-word{font-size:12px;font-weight:600;color:var(--text2);width:64px;flex-shrink:0}
 .kw-bar-wrap{flex:1;background:var(--surface2);border-radius:50px;height:5px;overflow:hidden}
-.kw-bar{height:100%;border-radius:50px;transition:width .5s cubic-bezier(.16,1,.3,1)}
+.kw-bar{height:100%;border-radius:50px;transition:width .5s ease}
 .kw-cnt{font-size:11px;color:var(--text3);width:28px;text-align:right;font-variant-numeric:tabular-nums}
 
-/* 메모 */
-#memoFab{position:fixed;bottom:22px;right:22px;z-index:900;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#FF5E1A);color:#fff;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-brand);transition:transform 260ms cubic-bezier(.34,1.56,.64,1),box-shadow 200ms ease;-webkit-tap-highlight-color:transparent}
-#memoFab:hover{transform:scale(1.1) rotate(-6deg);box-shadow:0 8px 28px rgba(var(--brand-rgb),.45)}
+/* 메모 FAB */
+#memoFab{position:fixed;bottom:22px;right:22px;z-index:900;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#FF5E1A);color:#fff;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-brand);transition:transform 260ms cubic-bezier(.34,1.56,.64,1);-webkit-tap-highlight-color:transparent}
+#memoFab:hover{transform:scale(1.1) rotate(-6deg)}
 .mp-badge{position:absolute;top:5px;right:5px;min-width:17px;height:17px;padding:0 4px;background:var(--red);color:#fff;font-size:9px;font-weight:800;border-radius:50px;border:2.5px solid var(--surface);display:none;align-items:center;justify-content:center}
 .mp-badge.show{display:flex}
-#memoPanel{position:fixed;bottom:84px;right:22px;z-index:901;width:320px;background:var(--surface);border:1.5px solid var(--border);border-radius:20px;box-shadow:var(--sh-xl);overflow:hidden;transform:scale(.88) translateY(14px);transform-origin:bottom right;opacity:0;pointer-events:none;transition:transform 280ms cubic-bezier(.34,1.56,.64,1),opacity 200ms ease}
+#memoPanel{position:fixed;bottom:84px;right:22px;z-index:901;width:320px;background:var(--surface);border:1.5px solid var(--border);border-radius:20px;box-shadow:var(--sh-lg);overflow:hidden;transform:scale(.88) translateY(14px);transform-origin:bottom right;opacity:0;pointer-events:none;transition:transform 280ms cubic-bezier(.34,1.56,.64,1),opacity 200ms ease}
 #memoPanel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
 .mp-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700}
 .mp-close-btn{width:26px;height:26px;border-radius:50%;border:none;background:var(--surface2);color:var(--text3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 150ms ease}
 .mp-close-btn:hover{background:var(--border);color:var(--text)}
 .mp-body{padding:14px 18px}
 .mp-input-row{display:flex;gap:8px;margin-bottom:12px}
-.mp-input{flex:1;padding:10px 12px;background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:inherit;font-size:13px;line-height:1.6;resize:none;outline:none;transition:border-color 150ms ease,box-shadow 150ms ease}
+.mp-input{flex:1;padding:10px 12px;background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:inherit;font-size:13px;line-height:1.6;resize:none;outline:none;transition:border-color 150ms ease}
 .mp-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-bg)}
-.mp-save-btn{height:36px;padding:0 14px;align-self:flex-end;border-radius:50px;border:none;background:var(--brand);color:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all 150ms ease}
+.mp-save-btn{height:36px;padding:0 14px;align-self:flex-end;border-radius:50px;border:none;background:var(--brand);color:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all 150ms ease}
 .mp-save-btn:hover{background:var(--brand-dark)}
 .mp-list{max-height:260px;overflow-y:auto;scrollbar-width:thin}
 .mp-card{padding:10px 0;border-bottom:1px solid var(--border);position:relative}
@@ -166,12 +187,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .mp-toast{position:fixed;bottom:88px;right:80px;z-index:902;background:var(--text);color:var(--bg);font-size:12px;font-weight:700;padding:8px 16px;border-radius:50px;opacity:0;transform:translateY(8px);pointer-events:none;transition:all 200ms ease}
 .mp-toast.show{opacity:1;transform:translateY(0)}
 
-
-
-
 @media(max-width:700px){.two-col{grid-template-columns:1fr}.kw-grid{grid-template-columns:1fr}}
-@media(max-width:600px){.content{padding:4px 14px 80px}.chart-wrap{height:180px}.chart-wrap.tall{height:210px}.page-sub{display:none}}
-@media(max-width:480px){.kpi-grid{grid-template-columns:1fr 1fr}#memoPanel{width:calc(100vw - 28px);right:14px;bottom:78px}}
+@media(max-width:600px){.content{padding:4px 14px 80px}.chart-wrap{height:180px}.page-sub{display:none}}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr 1fr}.cal-cell{min-height:72px}#memoPanel{width:calc(100vw - 28px);right:14px;bottom:78px}}
 </style>
 </head>
 <body>
@@ -179,14 +197,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 <div id="loading"><div class="spinner"></div><div class="ld-text">데이터 불러오는 중...</div></div>
 
 <div class="top-bar">
-  <a href="/" class="back-btn" title="메인">←</a>
+  <a href="/" class="back-btn">←</a>
   <div>
     <div class="page-title">경쟁사 모니터링</div>
     <div class="page-sub">백년화편 vs 명가삼대떡집 · 2026년 기준</div>
   </div>
-  <div class="header-right">
-    <span class="last-upd" id="lastUpd"></span>
-  </div>
+  <div class="header-right"><span class="last-upd" id="lastUpd"></span></div>
 </div>
 
 <div class="filter-bar">
@@ -205,45 +221,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
     <div class="kpi-grid" id="kpiGrid"></div>
   </div>
 
-  <!-- 예상 매출 (이벤트 annotation 포함) -->
+  <!-- 예상 매출 -->
   <div class="section">
-    <div class="section-title">예상 매출 추이 <span class="tip">⚠ 명가는 리뷰율(≈17.5%) 역산 추정치</span></div>
-    <div class="chart-card">
-      <div class="chart-wrap tall"><canvas id="salesChart"></canvas></div>
-    </div>
+    <div class="section-title">예상 매출 추이 <span class="tip">명가는 리뷰율(≈17.5%) 역산 추정 | 이벤트 세로선</span></div>
+    <div class="chart-card"><div class="chart-wrap tall"><canvas id="salesChart"></canvas></div></div>
   </div>
 
-  <!-- 2×2 차트 그리드 -->
-  <div class="two-col">
+  <!-- 2×2 차트 -->
+  <div class="two-col" style="margin-bottom:24px">
     <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">월별 리뷰 수<small>weekly_trend 전체 기반</small></div>
-      </div>
+      <div class="chart-header"><div class="chart-title">월별 리뷰 수<small>weekly_trend 전체 기반</small></div></div>
       <div class="chart-wrap"><canvas id="cntChart"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">월별 평균 별점<small>리뷰 수 가중 평균</small></div>
-      </div>
+      <div class="chart-header"><div class="chart-title">월별 평균 별점<small>리뷰 수 가중 평균</small></div></div>
       <div class="chart-wrap"><canvas id="scoreChart"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">부정 리뷰 비율<small>1~3점 비율 · 이벤트 세로선 포함</small></div>
-      </div>
+      <div class="chart-header"><div class="chart-title">부정 리뷰 비율<small>1~3점 비율 추이</small></div></div>
       <div class="chart-wrap"><canvas id="negChart"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">리뷰 시장 점유율<small>선택 기간 리뷰 수 비중</small></div>
-      </div>
-      <div class="chart-wrap"><canvas id="shareChart"></canvas></div>
+      <div class="chart-header"><div class="chart-title">월별 리뷰 증가율<small>전월 대비 %</small></div></div>
+      <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
     </div>
   </div>
 
-  <!-- 주간 달력 — 추정 매출 + 이벤트/이슈 -->
-  <div class="section" style="margin-top:24px">
-    <div class="section-title">주간 캘린더 <span class="tip">추정 매출 · 진행 이벤트 · 이슈</span></div>
+  <!-- 주간 달력 -->
+  <div class="section">
+    <div class="section-title">주간 캘린더 <span class="tip">일별 추정 매출(리뷰수 비례) · 이벤트</span></div>
     <div class="cal-nav">
       <div class="cal-nav-title" id="calTitle"></div>
       <div class="cal-nav-btns">
@@ -266,11 +272,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
   <!-- 키워드 -->
   <div class="two-col">
     <div class="section">
-      <div class="section-title">긍정 키워드 비교</div>
+      <div class="section-title">긍정 키워드</div>
       <div class="kw-grid" id="posKw"></div>
     </div>
     <div class="section">
-      <div class="section-title">부정 키워드 비교</div>
+      <div class="section-title">부정 키워드</div>
       <div class="kw-grid" id="negKw"></div>
     </div>
   </div>
@@ -278,7 +284,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 </div>
 
 <!-- 메모 패널 -->
-<button id="memoFab" onclick="mpToggle()" title="빠른 메모" aria-label="메모 열기">📝<span id="mpBadge" class="mp-badge"></span></button>
+<button id="memoFab" onclick="mpToggle()" aria-label="메모">📝<span id="mpBadge" class="mp-badge"></span></button>
 <div id="memoPanel">
   <div class="mp-header"><span>📝 메모</span><button class="mp-close-btn" onclick="mpToggle()">✕</button></div>
   <div class="mp-body">
@@ -288,82 +294,91 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 </div>
 <div id="mpToast" class="mp-toast"></div>
 
-
 <script>
-// ── 테마 ──────────────────────────────────────────────
-(function(){
-  document.documentElement.setAttribute('data-theme','day');
-})();
-})();
+(function(){document.documentElement.setAttribute('data-theme','day');})();
 </script>
 
 <script>
-// ── 브랜드 설정 (파파공방 제거) ──────────────────────
+// ── 데이터 ─────────────────────────────────────────────
 const BRANDS = [
-  { key:'jasaol',   label:'백년화편',    color:'#F5820D', cls:'orange' },
-  { key:'myeongga', label:'명가삼대떡집', color:'#3182F6', cls:'blue'   },
+  { key:'jasaol',   label:'백년화편',    color:'#F5820D' },
+  { key:'myeongga', label:'명가삼대떡집', color:'#3182F6' },
 ];
 
+// 백년화편 월별 실측 매출 (원)
 const BAEK_REAL = {
   '2026-01':1949773003,'2026-02':3457339234,
   '2026-03':1297704252,'2026-04':1176284097,
   '2026-05':472595216,
 };
+
+// 백년화편 주간 실측 리뷰수 (week: 월요일 기준)
+const BAEK_WEEKLY = {
+  '2025-12-29':464,'2026-01-05':1206,'2026-01-12':1143,
+  '2026-01-19':1035,'2026-01-26':1582,'2026-02-02':2016,
+  '2026-02-09':3044,'2026-02-16':950, '2026-02-23':1006,
+  '2026-03-02':1233,'2026-03-09':1358,'2026-03-16':1056,
+  '2026-03-23':1150,'2026-03-30':1321,'2026-04-06':1418,
+  '2026-04-13':1200,'2026-04-20':871, '2026-04-27':814,
+  '2026-05-04':861,
+};
+
+// 월별 보정계수 (실측/리뷰역산)
+const MONTHLY_RATIO = {
+  '2026-01':1.272,'2026-02':1.597,'2026-03':0.687,
+  '2026-04':0.886,'2026-05':1.779,
+};
+
 const REVIEW_RATE = 0.175;
 const AVG_PRICE   = 54000;
 
-// ── 이벤트 데이터 (파파공방 제거) ────────────────────
+// 이벤트
 const EVENTS = [
-  {date:'2026-01-01',type:'holiday',  name:'🎊 신년/설 early-bird',  brands:['백년화편','명가삼대'],impact:'med', uplift:55, upliftLabel:'+55% 실측',verified:true},
-  {date:'2026-01-05',type:'marketing',name:'📣 네이버 설 선물대첩',    brands:['플랫폼공통'],        impact:'high',uplift:31, upliftLabel:'+31% 실측',verified:true},
-  {date:'2026-01-15',type:'marketing',name:'📣 백년화편 백년특가·친구추천',brands:['백년화편'],       impact:'low', uplift:null,upliftLabel:null,     verified:true},
-  {date:'2026-01-26',type:'season',   name:'🧧 설 선물 피크',         brands:['백년화편','명가삼대'],impact:'high',uplift:189,upliftLabel:'+189% 실측',verified:true,peak:'1/26 1,398만원'},
-  {date:'2026-02-02',type:'season',   name:'🧧 설 최성수기',          brands:['백년화편','명가삼대'],impact:'high',uplift:480,upliftLabel:'+480% 실측',verified:true,peak:'2/9 단일일 4,796만원'},
-  {date:'2026-02-01',type:'marketing',name:'📣 명가 역대최대할인가',    brands:['명가삼대'],          impact:'low', uplift:null,upliftLabel:null,     verified:true},
-  {date:'2026-02-17',type:'holiday',  name:'🧧 설날 연휴 (매출 급감)', brands:['플랫폼공통'],        impact:'high',uplift:-57,upliftLabel:'-57% 실측',verified:true},
-  {date:'2026-03-01',type:'holiday',  name:'🎌 삼일절 대체휴일',       brands:['명가삼대'],          impact:'low', uplift:3,  upliftLabel:'+3% 실측', verified:false},
-  {date:'2026-03-10',type:'marketing',name:'📣 봄 시즌 상품 출시',     brands:['백년화편','명가삼대'],impact:'med', uplift:2,  upliftLabel:'+2% 실측', verified:true},
-  {date:'2026-03-30',type:'season',   name:'🌸 청명·한식 봄 시즌',     brands:['백년화편','명가삼대'],impact:'med', uplift:19, upliftLabel:'+19% 실측',verified:true,peak:'3/30 748만원'},
-  {date:'2026-04-04',type:'holiday',  name:'🌿 청명·한식',             brands:['백년화편','명가삼대'],impact:'med', uplift:5,  upliftLabel:'+5% 실측', verified:true,peak:'4/6 869만원'},
-  {date:'2026-04-05',type:'marketing',name:'📣 백년화편 식목일 SNS',    brands:['백년화편'],          impact:'low', uplift:23, upliftLabel:'+23% 실측',verified:true},
-  {date:'2026-05-01',type:'holiday',  name:'🎌 노동절',                brands:['플랫폼공통'],        impact:'med', uplift:19, upliftLabel:'+19% 실측',verified:true},
-  {date:'2026-05-05',type:'season',   name:'👨‍👩‍👧 어린이날·어버이날',  brands:['백년화편','명가삼대'],impact:'high',uplift:137,upliftLabel:'+137% 실측',verified:true,peak:'이틀 약 2.2억'},
-  {date:'2026-05-08',type:'holiday',  name:'💐 어버이날',              brands:['백년화편','명가삼대'],impact:'med', uplift:147,upliftLabel:'+147% 추정',verified:true},
-  {date:'2026-05-15',type:'holiday',  name:'🎓 스승의날',              brands:['백년화편'],          impact:'low', uplift:20, upliftLabel:'+20% 추정',verified:true},
-  {date:'2026-05-24',type:'holiday',  name:'🪷 부처님오신날',           brands:['백년화편','명가삼대'],impact:'low', uplift:10, upliftLabel:'+10% 추정',verified:false},
-  {date:'2026-06-03',type:'external', name:'🗳️ 지방선거 공휴일',       brands:['플랫폼공통'],        impact:'low', uplift:5,  upliftLabel:'+5% 추정', verified:true},
-  {date:'2026-06-20',type:'season',   name:'🌾 단오',                  brands:['백년화편','명가삼대'],impact:'low', uplift:8,  upliftLabel:'+8% 추정', verified:false},
-  {date:'2026-08-24',type:'season',   name:'🧧 추석 D-30 시작',        brands:['백년화편','명가삼대'],impact:'high',uplift:60, upliftLabel:'+60% 추정',verified:true},
-  {date:'2026-09-10',type:'season',   name:'🧧 추석 최성수기',          brands:['백년화편','명가삼대'],impact:'high',uplift:380,upliftLabel:'+380% 추정',verified:true},
-  {date:'2026-09-24',type:'holiday',  name:'🧧 추석 연휴 (급감)',       brands:['플랫폼공통'],        impact:'high',uplift:-50,upliftLabel:'-50% 추정',verified:true},
-  {date:'2026-11-11',type:'marketing',name:'🍫 빼빼로데이·연말 시작',   brands:['백년화편','명가삼대'],impact:'low', uplift:12, upliftLabel:'+12% 추정',verified:false},
-  {date:'2026-12-01',type:'season',   name:'🎄 연말 선물+설 early-bird',brands:['백년화편','명가삼대'],impact:'med', uplift:35, upliftLabel:'+35% 추정',verified:false},
-  {date:'2026-12-25',type:'holiday',  name:'🎅 크리스마스',             brands:['플랫폼공통'],        impact:'low', uplift:15, upliftLabel:'+15% 추정',verified:false},
+  {date:'2026-01-01',type:'holiday',  name:'🎊 신년/설 early-bird',  brands:['백년화편','명가삼대'],uplift:55, upliftLabel:'+55% 실측'},
+  {date:'2026-01-05',type:'marketing',name:'📣 네이버 설 선물대첩',    brands:['플랫폼공통'],         uplift:31, upliftLabel:'+31% 실측'},
+  {date:'2026-01-15',type:'marketing',name:'📣 백년특가·친구추천',      brands:['백년화편'],           uplift:null,upliftLabel:null},
+  {date:'2026-01-26',type:'season',   name:'🧧 설 선물 피크',          brands:['백년화편','명가삼대'],uplift:189,upliftLabel:'+189% 실측'},
+  {date:'2026-02-01',type:'marketing',name:'📣 명가 역대최대할인가',    brands:['명가삼대'],           uplift:null,upliftLabel:null},
+  {date:'2026-02-02',type:'season',   name:'🧧 설 최성수기',           brands:['백년화편','명가삼대'],uplift:480,upliftLabel:'+480% 실측'},
+  {date:'2026-02-17',type:'holiday',  name:'🧧 설날 연휴(매출급감)',   brands:['플랫폼공통'],         uplift:-57,upliftLabel:'-57% 실측'},
+  {date:'2026-03-01',type:'holiday',  name:'🎌 삼일절',                brands:['명가삼대'],           uplift:3,  upliftLabel:'+3%'},
+  {date:'2026-03-10',type:'marketing',name:'📣 봄 시즌 상품 출시',     brands:['백년화편','명가삼대'],uplift:2,  upliftLabel:'+2%'},
+  {date:'2026-03-30',type:'season',   name:'🌸 청명·한식 봄 시즌',     brands:['백년화편','명가삼대'],uplift:19, upliftLabel:'+19%'},
+  {date:'2026-04-04',type:'holiday',  name:'🌿 청명·한식',             brands:['백년화편','명가삼대'],uplift:5,  upliftLabel:'+5%'},
+  {date:'2026-04-05',type:'marketing',name:'📣 백년화편 식목일 SNS',    brands:['백년화편'],           uplift:23, upliftLabel:'+23%'},
+  {date:'2026-05-01',type:'holiday',  name:'🎌 노동절',                brands:['플랫폼공통'],         uplift:19, upliftLabel:'+19%'},
+  {date:'2026-05-05',type:'season',   name:'👨‍👩‍👧 어린이날·어버이날',  brands:['백년화편','명가삼대'],uplift:137,upliftLabel:'+137%'},
+  {date:'2026-05-08',type:'holiday',  name:'💐 어버이날',              brands:['백년화편','명가삼대'],uplift:147,upliftLabel:'+147%'},
+  {date:'2026-05-15',type:'holiday',  name:'🎓 스승의날',              brands:['백년화편'],           uplift:20, upliftLabel:'+20%'},
+  {date:'2026-05-24',type:'holiday',  name:'🪷 부처님오신날',           brands:['백년화편','명가삼대'],uplift:10, upliftLabel:'+10%'},
+  {date:'2026-06-03',type:'external', name:'🗳️ 지방선거',              brands:['플랫폼공통'],         uplift:5,  upliftLabel:'+5%'},
+  {date:'2026-06-20',type:'season',   name:'🌾 단오',                  brands:['백년화편','명가삼대'],uplift:8,  upliftLabel:'+8%'},
+  {date:'2026-08-24',type:'season',   name:'🧧 추석 D-30',             brands:['백년화편','명가삼대'],uplift:60, upliftLabel:'+60%'},
+  {date:'2026-09-10',type:'season',   name:'🧧 추석 최성수기',          brands:['백년화편','명가삼대'],uplift:380,upliftLabel:'+380%'},
+  {date:'2026-09-24',type:'holiday',  name:'🧧 추석 연휴(급감)',        brands:['플랫폼공통'],         uplift:-50,upliftLabel:'-50%'},
 ];
 
-// ── 공통 ──────────────────────────────────────────────
+// ── 유틸 ───────────────────────────────────────────────
 const charts = {};
 let currentMonths = 6;
 let calYear = new Date().getFullYear();
-let calMonth = new Date().getMonth(); // 0-indexed
+let calMonth = new Date().getMonth();
 let globalData = null;
 
 function getDateRange(months) {
   if (!months) return { df:'2026-01', dt:'2026-12' };
-  const dt = new Date();
-  const df = new Date();
+  const dt = new Date(), df = new Date();
   df.setMonth(df.getMonth() - months);
-  // 26년 이전 데이터는 제외
   const dfStr = df.toISOString().slice(0,7);
   return { df: dfStr < '2026-01' ? '2026-01' : dfStr, dt: dt.toISOString().slice(0,7) };
 }
 
 async function fetchData(months) {
-  const {df, dt} = getDateRange(months);
+  const {df,dt} = getDateRange(months);
   const p = new URLSearchParams();
-  if (df) p.set('date_from', df + '-01');
-  if (dt) p.set('date_to',   dt + '-28');
-  const res = await fetch('/api/data?' + p);
+  if (df) p.set('date_from', df+'-01');
+  if (dt) p.set('date_to',   dt+'-28');
+  const res = await fetch('/api/data?'+p);
   if (!res.ok) throw new Error('API 오류');
   return res.json();
 }
@@ -374,8 +389,8 @@ function buildMonthly(weeklyTrend) {
     const mo = w.week.slice(0,7);
     if (!m[mo]) m[mo] = { count:0, scoreSum:0, scoreCount:0, neg:0 };
     m[mo].count += w.count;
-    if (w.avg_score > 0) { m[mo].scoreSum += w.avg_score * w.count; m[mo].scoreCount += w.count; }
-    m[mo].neg += w.negative || 0;
+    if (w.avg_score > 0) { m[mo].scoreSum += w.avg_score*w.count; m[mo].scoreCount += w.count; }
+    m[mo].neg += w.negative||0;
   }
   return Object.entries(m).sort(([a],[b])=>a.localeCompare(b)).map(([mo,v])=>({
     month:mo, count:v.count,
@@ -384,63 +399,105 @@ function buildMonthly(weeklyTrend) {
   }));
 }
 
-function getTickFont() {
-  return { family:'-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",sans-serif', size:10 };
+function formatWon(won) {
+  if (won >= 1e8) return (won/1e8).toFixed(1)+'억';
+  if (won >= 1e4) return Math.round(won/1e4)+'만';
+  return Math.round(won)+'원';
 }
 
+function getTickFont() {
+  return {family:'-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif',size:10};
+}
+
+// 일별 추정 매출: 주간 리뷰수 비례 배분
+function getDailyEstByReview(dateStr) {
+  const mo = dateStr.slice(0,7);
+  if (!BAEK_REAL[mo]) return null;
+
+  // 해당 날짜가 속한 주 찾기 (월요일 기준)
+  const d = new Date(dateStr);
+  const dow = d.getDay();
+  const monOffset = dow === 0 ? -6 : 1 - dow;
+  const mon = new Date(d);
+  mon.setDate(d.getDate() + monOffset);
+  const weekKey = mon.toISOString().slice(0,10);
+
+  const weekCount = BAEK_WEEKLY[weekKey];
+  if (!weekCount) {
+    // 주간 데이터 없으면 월 평균
+    return BAEK_REAL[mo] / 30;
+  }
+
+  // 해당 월의 총 리뷰수
+  let moTotal = 0;
+  for (const [wk, cnt] of Object.entries(BAEK_WEEKLY)) {
+    if (wk.slice(0,7) === mo) moTotal += cnt;
+  }
+  if (!moTotal) return BAEK_REAL[mo] / 30;
+
+  // 주간 비중 × 월 매출 ÷ 7 (일별)
+  return (weekCount / moTotal) * BAEK_REAL[mo] / 7;
+}
+
+// 차트 annotation (세로선만, 레이블 없음)
 function buildAnnotations(months, monthList) {
-  const {df, dt} = getDateRange(months);
-  const annotations = {};
+  const {df,dt} = getDateRange(months);
   const evColors = { season:'#F5820D', holiday:'#3182F6', marketing:'#F59E0B', external:'#00BCD4' };
-  EVENTS.forEach((ev, i) => {
+  const annotations = {};
+  const seen = new Set();
+  EVENTS.forEach((ev,i) => {
     const evMo = ev.date.slice(0,7);
     if (evMo < '2026-01') return;
     if (df && evMo < df) return;
     if (dt && evMo > dt) return;
+    if (seen.has(evMo)) return; // 같은 월 중복 방지
     const idx = monthList.indexOf(evMo);
     if (idx === -1) return;
+    seen.add(evMo);
     annotations[`ev_${i}`] = {
       type:'line', xMin:idx-.5, xMax:idx-.5,
-      borderColor:(evColors[ev.type]||'#888')+'99',
+      borderColor:(evColors[ev.type]||'#888')+'66',
       borderWidth:1.5, borderDash:[4,3],
-      label:{ content:ev.name.replace(/^.{1,2}/,'').trim().slice(0,6), display:true,
-        position:'start', font:{ size:9, family:'-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",sans-serif' },
-        color:(evColors[ev.type]||'#888'), backgroundColor:'transparent', padding:2 }
+      label:{ display:false }
     };
   });
   return annotations;
 }
 
-function commonOpts(annotations) {
-  const tickFont = getTickFont();
+function commonOpts(annotations={}) {
+  const tf = getTickFont();
   return {
     responsive:true, maintainAspectRatio:false,
     interaction:{ mode:'index', intersect:false },
     plugins:{
-      legend:{ labels:{ color:'var(--text3)', font:tickFont, boxWidth:10 } },
-      tooltip:{ backgroundColor:'var(--surface)', titleColor:'var(--text)', bodyColor:'var(--text3)', borderColor:'var(--border2)', borderWidth:1,
-        titleFont:tickFont, bodyFont:tickFont },
+      legend:{ labels:{ color:'#6B7684', font:tf, boxWidth:10 } },
+      tooltip:{
+        backgroundColor:'#fff', titleColor:'#191F28', bodyColor:'#6B7684',
+        borderColor:'#CDD1D8', borderWidth:1,
+        titleFont:tf, bodyFont:tf,
+        position:'nearest',
+        yAlign:'bottom',
+      },
       annotation:{ annotations },
     },
     scales:{
-      x:{ ticks:{ color:'var(--text4)', font:tickFont, maxTicksLimit:12 }, grid:{ color:'var(--border)' } },
-      y:{ ticks:{ color:'var(--text4)', font:tickFont }, grid:{ color:'var(--border)' } },
+      x:{ ticks:{ color:'#B0B8C1', font:tf, maxTicksLimit:12 }, grid:{ color:'#E5E8EB' } },
+      y:{ ticks:{ color:'#B0B8C1', font:tf }, grid:{ color:'#E5E8EB' } },
     },
   };
 }
 
-// ── 렌더 함수들 ───────────────────────────────────────
-
+// ── 렌더 ───────────────────────────────────────────────
 function renderAlerts(data) {
   const banner = document.getElementById('alertBanner');
   const alerts = [];
   for (const b of BRANDS) {
-    const wt = data[b.key]?.weekly_trend || [];
+    const wt = data[b.key]?.weekly_trend||[];
     const r4 = wt.slice(-4).filter(w=>w.avg_score>0);
     const p4 = wt.slice(-8,-4).filter(w=>w.avg_score>0);
     if (!r4.length||!p4.length) continue;
-    const r=r4.reduce((s,w)=>s+w.avg_score*w.count,0)/r4.reduce((s,w)=>s+w.count,0);
-    const p=p4.reduce((s,w)=>s+w.avg_score*w.count,0)/p4.reduce((s,w)=>s+w.count,0);
+    const r = r4.reduce((s,w)=>s+w.avg_score*w.count,0)/r4.reduce((s,w)=>s+w.count,0);
+    const p = p4.reduce((s,w)=>s+w.avg_score*w.count,0)/p4.reduce((s,w)=>s+w.count,0);
     if (p>0 && r<p-0.05) alerts.push(`⚠ ${b.label} 최근 4주 평균 ★${r.toFixed(2)} (4주 전 대비 ▼${(p-r).toFixed(2)})`);
   }
   banner.innerHTML = alerts.map(a=>`<div class="alert-item">${a}</div>`).join('');
@@ -455,16 +512,16 @@ function renderKPI(data) {
     const score = d?.avg_score||0;
     const count = d?.total_count||0;
     const neg   = d?.total_negative||0;
-    const negPct= count ? Math.round(neg/count*100):0;
+    const negPct= count?Math.round(neg/count*100):0;
     const five  = d?.score_distribution?.['5']||0;
-    const fivePct= count ? Math.round(five/count*100):0;
-    const monthly= buildMonthly(wt);
-    const lastMo = monthly[monthly.length-1];
-    const prevMo = monthly[monthly.length-2];
-    let growth = '';
-    if (lastMo && prevMo && prevMo.count > 0) {
-      const pct = Math.round((lastMo.count-prevMo.count)/prevMo.count*100);
-      growth = pct>=0 ? `▲${pct}% 전월比` : `▼${Math.abs(pct)}% 전월比`;
+    const fivePct=count?Math.round(five/count*100):0;
+    const monthly=buildMonthly(wt);
+    const lastMo=monthly[monthly.length-1];
+    const prevMo=monthly[monthly.length-2];
+    let growth='';
+    if(lastMo&&prevMo&&prevMo.count>0){
+      const pct=Math.round((lastMo.count-prevMo.count)/prevMo.count*100);
+      growth=pct>=0?`▲${pct}% 전월比`:`▼${Math.abs(pct)}% 전월比`;
     }
     const r4=wt.slice(-4).filter(w=>w.avg_score>0);
     const p4=wt.slice(-8,-4).filter(w=>w.avg_score>0);
@@ -475,81 +532,65 @@ function renderKPI(data) {
       if(rA>pA){dCls='up';dTxt=`▲${(rA-pA).toFixed(2)} vs 4주전`;}
       else     {dCls='dn';dTxt=`▼${(pA-rA).toFixed(2)} vs 4주전`;}
     }
-    const isReal = b.key==='jasaol';
     grid.innerHTML += `
       <div class="kpi-card">
         <div class="kpi-brand"><div class="brand-dot" style="background:${b.color}"></div>${b.label}</div>
-        <div class="kpi-score" style="color:${b.color}">${score.toFixed(1)}<small style="font-size:12px;font-weight:400;color:var(--text3)"> /5.0</small></div>
+        <div class="kpi-score" style="color:${b.color}">${score.toFixed(1)}<small style="font-size:12px;color:#6B7684;font-weight:400"> /5.0</small></div>
         <div class="kpi-sub">리뷰 ${count.toLocaleString()}건 · 5점 ${fivePct}% · 부정 ${negPct}%</div>
         ${growth?`<div class="kpi-sub" style="color:${growth.startsWith('▲')?'var(--green)':'var(--red)'}">${growth}</div>`:''}
         <div class="kpi-delta ${dCls}">${dTxt}</div>
-        ${!isReal?'<div class="est-badge">📊 추정치</div>':''}
+        ${b.key!=='jasaol'?'<div class="est-badge">📊 추정치</div>':''}
       </div>`;
   }
 }
 
 function renderSalesChart(data, months) {
-  const monthlyData = {};
-  for (const b of BRANDS) {
-    const wt = data[b.key]?.weekly_trend||[];
-    monthlyData[b.key] = buildMonthly(wt);
-  }
-  const allMonths = [...new Set([
-    ...Object.keys(BAEK_REAL),
-    ...monthlyData.myeongga.map(m=>m.month),
-  ])].filter(m=>m>='2026-01').sort();
-
+  const myMonthly = buildMonthly(data.myeongga?.weekly_trend||[]);
+  const allMonths = [...new Set([...Object.keys(BAEK_REAL),...myMonthly.map(m=>m.month)])].filter(m=>m>='2026-01').sort();
   const {df,dt} = getDateRange(months);
   const filtered = allMonths.filter(m=>(!df||m>=df)&&(!dt||m<=dt));
-  const myMap = Object.fromEntries(monthlyData.myeongga.map(m=>[m.month,m.count]));
-  const toM = v => v ? +(v/1000000).toFixed(1) : null;
-
+  const myMap = Object.fromEntries(myMonthly.map(m=>[m.month,m.count]));
+  const toM = v => v?+(v/1000000).toFixed(1):null;
+  const annotations = buildAnnotations(months, filtered);
   const ctx = document.getElementById('salesChart').getContext('2d');
   if (charts.sales) charts.sales.destroy();
-  const annotations = buildAnnotations(months, filtered);
-
   charts.sales = new Chart(ctx, {
     type:'bar',
     data:{
-      labels: filtered.map(m=>{ const [y,mo]=m.split('-'); return `${y.slice(2)}/${mo}`; }),
+      labels:filtered.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
       datasets:[
         { label:'백년화편(실측)', data:filtered.map(m=>toM(BAEK_REAL[m])),
           backgroundColor:'rgba(245,130,13,.75)', borderColor:'#F5820D', borderWidth:1.5, borderRadius:4 },
-        { label:'명가(추정)', data:filtered.map(m=>{ const cnt=myMap[m]||0; return cnt?toM(Math.round(cnt/REVIEW_RATE*AVG_PRICE)):null; }),
+        { label:'명가(추정)', data:filtered.map(m=>{const cnt=myMap[m]||0;return cnt?toM(Math.round(cnt/REVIEW_RATE*AVG_PRICE*(MONTHLY_RATIO[m]||1))):null;}),
           backgroundColor:'rgba(49,130,246,.45)', borderColor:'#3182F6', borderWidth:1.5, borderRadius:4 },
-      ],
+      ]
     },
-    options:{ ...commonOpts(annotations),
-      plugins:{ ...commonOpts(annotations).plugins,
-        tooltip:{ ...commonOpts(annotations).plugins.tooltip,
-          callbacks:{ label:ctx=>`${ctx.dataset.label}: ${ctx.raw!=null?ctx.raw.toLocaleString()+'백만원':'-'}` } } },
-      scales:{ ...commonOpts(annotations).scales,
-        y:{ ticks:{ color:'var(--text4)', font:getTickFont(), callback:v=>`${v}M` }, grid:{ color:'var(--border)' } } }
-    },
+    options:{...commonOpts(annotations),
+      plugins:{...commonOpts(annotations).plugins,
+        tooltip:{...commonOpts(annotations).plugins.tooltip,
+          callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw!=null?ctx.raw.toLocaleString()+'백만원':'-'}`}}},
+      scales:{...commonOpts(annotations).scales,
+        y:{ticks:{color:'#B0B8C1',font:getTickFont(),callback:v=>`${v}M`},grid:{color:'#E5E8EB'}}}}
   });
 }
 
 function renderCntChart(data, months) {
-  const bm = {};
-  const allM = new Set();
-  for (const b of BRANDS) {
-    const mo = buildMonthly(data[b.key]?.weekly_trend||[]);
-    bm[b.key] = {};
-    for (const m of mo) { if(m.month>='2026-01'){allM.add(m.month);bm[b.key][m.month]=m.count;} }
+  const bm={};const allM=new Set();
+  for(const b of BRANDS){
+    const mo=buildMonthly(data[b.key]?.weekly_trend||[]);
+    bm[b.key]={};
+    for(const m of mo){if(m.month>='2026-01'){allM.add(m.month);bm[b.key][m.month]=m.count;}}
   }
   const {df,dt}=getDateRange(months);
   const arr=[...allM].sort().filter(m=>(!df||m>=df)&&(!dt||m<=dt));
   const ctx=document.getElementById('cntChart').getContext('2d');
-  if(charts.cnt) charts.cnt.destroy();
-  charts.cnt = new Chart(ctx,{
-    type:'bar',
-    data:{ labels:arr.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
-      datasets:BRANDS.map((b,i)=>({ label:b.label, data:arr.map(m=>bm[b.key][m]||null),
-        backgroundColor:b.color+(i===0?'cc':'77'), borderColor:b.color, borderWidth:1, borderRadius:3 })) },
-    options:{ ...commonOpts({}),
-      scales:{ ...commonOpts({}).scales,
-        y:{ ticks:{ color:'var(--text4)', font:getTickFont(), callback:v=>v>=1000?Math.round(v/1000)+'k':v }, grid:{ color:'var(--border)' } } } },
-  });
+  if(charts.cnt)charts.cnt.destroy();
+  charts.cnt=new Chart(ctx,{type:'bar',
+    data:{labels:arr.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
+      datasets:BRANDS.map((b,i)=>({label:b.label,data:arr.map(m=>bm[b.key][m]||null),
+        backgroundColor:b.color+(i===0?'cc':'66'),borderColor:b.color,borderWidth:1,borderRadius:3}))},
+    options:{...commonOpts(),scales:{...commonOpts().scales,
+      y:{ticks:{color:'#B0B8C1',font:getTickFont(),callback:v=>v>=1000?Math.round(v/1000)+'k':v},grid:{color:'#E5E8EB'}}}}});
 }
 
 function renderScoreChart(data, months) {
@@ -562,19 +603,13 @@ function renderScoreChart(data, months) {
   const {df,dt}=getDateRange(months);
   const arr=[...allM].sort().filter(m=>(!df||m>=df)&&(!dt||m<=dt));
   const ctx=document.getElementById('scoreChart').getContext('2d');
-  if(charts.score) charts.score.destroy();
-  charts.score = new Chart(ctx,{
-    type:'line',
-    data:{ labels:arr.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
-      datasets:BRANDS.map(b=>({ label:b.label, data:arr.map(m=>bm[b.key][m]||null),
-        borderColor:b.color, backgroundColor:b.color+'20', borderWidth:2, pointRadius:3,
-        tension:.3, spanGaps:false })) },
-    options:{ ...commonOpts({}),
-      scales:{ ...commonOpts({}).scales,
-        y:{ min:4.5, max:5.05,
-          ticks:{ color:'var(--text4)', font:getTickFont(), stepSize:.1 },
-          grid:{ color:'var(--border)' } } } },
-  });
+  if(charts.score)charts.score.destroy();
+  charts.score=new Chart(ctx,{type:'line',
+    data:{labels:arr.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
+      datasets:BRANDS.map(b=>({label:b.label,data:arr.map(m=>bm[b.key][m]||null),
+        borderColor:b.color,backgroundColor:b.color+'20',borderWidth:2,pointRadius:3,tension:.3,spanGaps:false}))},
+    options:{...commonOpts(),scales:{...commonOpts().scales,
+      y:{min:4.5,max:5.05,ticks:{color:'#B0B8C1',font:getTickFont(),stepSize:.1},grid:{color:'#E5E8EB'}}}}});
 }
 
 function renderNegChart(data, months) {
@@ -586,228 +621,192 @@ function renderNegChart(data, months) {
   }
   const {df,dt}=getDateRange(months);
   const arr=[...allM].sort().filter(m=>(!df||m>=df)&&(!dt||m<=dt));
-  const annotations=buildAnnotations(months,arr);
   const ctx=document.getElementById('negChart').getContext('2d');
-  if(charts.neg) charts.neg.destroy();
-  charts.neg = new Chart(ctx,{
-    type:'line',
-    data:{ labels:arr.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
-      datasets:BRANDS.map(b=>({ label:b.label, data:arr.map(m=>bm[b.key][m]??null),
-        borderColor:b.color, backgroundColor:b.color+'20', borderWidth:2, pointRadius:2,
-        tension:.3, spanGaps:true })) },
-    options:{ ...commonOpts(annotations),
-      scales:{ ...commonOpts(annotations).scales,
-        y:{ min:0, ticks:{ color:'var(--text4)', font:getTickFont(), callback:v=>v+'%' }, grid:{ color:'var(--border)' } } } },
-  });
+  if(charts.neg)charts.neg.destroy();
+  charts.neg=new Chart(ctx,{type:'line',
+    data:{labels:arr.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
+      datasets:BRANDS.map(b=>({label:b.label,data:arr.map(m=>bm[b.key][m]??null),
+        borderColor:b.color,backgroundColor:b.color+'20',borderWidth:2,pointRadius:2,tension:.3,spanGaps:true}))},
+    options:{...commonOpts(),scales:{...commonOpts().scales,
+      y:{min:0,ticks:{color:'#B0B8C1',font:getTickFont(),callback:v=>v+'%'},grid:{color:'#E5E8EB'}}}}});
 }
 
-function renderShareChart(data, months) {
-  const totals=BRANDS.map(b=>{
-    const {df,dt}=getDateRange(months);
-    return (data[b.key]?.weekly_trend||[])
-      .filter(w=>w.week.slice(0,7)>='2026-01'&&(!df||w.week.slice(0,7)>=df)&&(!dt||w.week.slice(0,7)<=dt))
-      .reduce((s,w)=>s+w.count,0);
-  });
-  const total=totals.reduce((s,v)=>s+v,0)||1;
-  const ctx=document.getElementById('shareChart').getContext('2d');
-  if(charts.share) charts.share.destroy();
-  charts.share=new Chart(ctx,{
-    type:'doughnut',
-    data:{ labels:BRANDS.map(b=>b.label),
-      datasets:[{ data:totals.map(v=>+(v/total*100).toFixed(1)),
-        backgroundColor:['rgba(245,130,13,.75)','rgba(49,130,246,.65)'],
-        borderColor:['#F5820D','#3182F6'], borderWidth:2 }] },
-    options:{ responsive:true, maintainAspectRatio:false, cutout:'65%',
-      plugins:{ legend:{ position:'bottom', labels:{ color:'var(--text3)', font:getTickFont(), boxWidth:10, padding:10 } },
-        tooltip:{ backgroundColor:'var(--surface)', titleColor:'var(--text)', bodyColor:'var(--text3)',
-          borderColor:'var(--border2)', borderWidth:1, titleFont:getTickFont(), bodyFont:getTickFont(),
-          callbacks:{ label:ctx=>` ${ctx.label}: ${ctx.raw}%` } },
-        annotation:{ annotations:{} } } },
-  });
+function renderGrowthChart(data, months) {
+  const bm={};const allM=new Set();
+  for(const b of BRANDS){
+    const mo=buildMonthly(data[b.key]?.weekly_trend||[]);
+    bm[b.key]={};
+    for(const m of mo){if(m.month>='2026-01'){allM.add(m.month);bm[b.key][m.month]=m.count;}}
+  }
+  const {df,dt}=getDateRange(months);
+  const arr=[...allM].sort().filter(m=>(!df||m>=df)&&(!dt||m<=dt));
+  const ctx=document.getElementById('growthChart').getContext('2d');
+  if(charts.growth)charts.growth.destroy();
+  charts.growth=new Chart(ctx,{type:'line',
+    data:{labels:arr.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
+      datasets:BRANDS.map(b=>({label:b.label,
+        data:arr.map((m,i)=>{
+          if(i===0)return null;
+          const prev=bm[b.key][arr[i-1]];
+          const cur=bm[b.key][m];
+          if(!prev||!cur)return null;
+          return +((cur-prev)/prev*100).toFixed(1);
+        }),
+        borderColor:b.color,backgroundColor:b.color+'20',borderWidth:2,pointRadius:3,tension:.3,spanGaps:false}))},
+    options:{...commonOpts(),scales:{...commonOpts().scales,
+      y:{ticks:{color:'#B0B8C1',font:getTickFont(),callback:v=>v+'%'},grid:{color:'#E5E8EB'},
+        afterDataLimits(scale){scale.min=Math.min(scale.min,-5);scale.max=Math.max(scale.max,5);}
+      }}}});
 }
 
 function renderKeywords(data) {
-  ['pos','neg'].forEach(type => {
-    const grid = document.getElementById(type==='pos'?'posKw':'negKw');
-    const kwKey = type==='pos'?'positive_keywords_all':'negative_keywords_all';
-    const barColor = type==='pos'?'var(--green)':'var(--red)';
+  ['pos','neg'].forEach(type=>{
+    const grid=document.getElementById(type==='pos'?'posKw':'negKw');
+    const kwKey=type==='pos'?'positive_keywords_all':'negative_keywords_all';
+    const barColor=type==='pos'?'var(--green)':'var(--red)';
     grid.innerHTML='';
     for(const b of BRANDS){
       const kws=data[b.key]?.[kwKey]||[];
       const maxC=kws[0]?.count||1;
-      grid.innerHTML+=`
-        <div class="kw-card">
-          <div class="kw-brand"><div class="brand-dot" style="background:${b.color}"></div>${b.label}</div>
-          ${kws.length?kws.slice(0,8).map(k=>`
-            <div class="kw-row">
-              <div class="kw-word">${k.word}</div>
-              <div class="kw-bar-wrap"><div class="kw-bar" style="width:${Math.round(k.count/maxC*100)}%;background:${barColor}55"></div></div>
-              <div class="kw-cnt">${k.count}</div>
-            </div>`).join('')
-          :'<div style="font-size:11px;color:var(--text4)">데이터 부족</div>'}
-        </div>`;
+      grid.innerHTML+=`<div class="kw-card">
+        <div class="kw-brand"><div class="brand-dot" style="background:${b.color}"></div>${b.label}</div>
+        ${kws.length?kws.slice(0,8).map(k=>`<div class="kw-row">
+          <div class="kw-word">${k.word}</div>
+          <div class="kw-bar-wrap"><div class="kw-bar" style="width:${Math.round(k.count/maxC*100)}%;background:${barColor}55"></div></div>
+          <div class="kw-cnt">${k.count}</div></div>`).join('')
+        :'<div style="font-size:11px;color:var(--text4)">데이터 부족</div>'}
+      </div>`;
     }
   });
 }
 
-// ── 달력 렌더 ──────────────────────────────────────────
-function getMondayOfWeek(date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  return d;
-}
-
-function formatWon(won) {
-  if (won >= 1e8) return (won/1e8).toFixed(1)+'억';
-  if (won >= 1e4) return Math.round(won/1e4)+'만';
-  return won+'원';
-}
-
-// 주간 BAEK_REAL (일별 추정: 월별÷30)
-function getDailyEst(dateStr) {
-  const mo = dateStr.slice(0,7);
-  if (BAEK_REAL[mo]) return BAEK_REAL[mo] / 30;
-  return null;
-}
-
-function renderCalendar(data) {
+// ── 달력 ───────────────────────────────────────────────
+function renderCalendar() {
   const title = document.getElementById('calTitle');
   const grid  = document.getElementById('calGrid');
-  const weekSummary = document.getElementById('weekSummary');
-  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-  title.textContent = `${calYear}년 ${monthNames[calMonth]}`;
+  const summary = document.getElementById('weekSummary');
+  const mn = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  title.textContent = `${calYear}년 ${mn[calMonth]}`;
 
   const today = new Date();
   const firstDay = new Date(calYear, calMonth, 1);
   const lastDay  = new Date(calYear, calMonth+1, 0);
-  const startDow = firstDay.getDay(); // 0=일
+  const startDow = firstDay.getDay();
   const totalCells = Math.ceil((startDow + lastDay.getDate()) / 7) * 7;
 
-  // 이벤트 날짜 맵
+  // 이벤트 맵
   const evMap = {};
   EVENTS.forEach(ev => {
-    const d = ev.date;
-    if (!evMap[d]) evMap[d] = [];
-    evMap[d].push(ev);
+    if (!evMap[ev.date]) evMap[ev.date] = [];
+    evMap[ev.date].push(ev);
   });
 
-  // 주간 데이터 계산 (백년화편 실측 기반)
+  // 이벤트 타입 → CSS 클래스
+  const evCls = { holiday:'cev-holiday', season:'cev-season', marketing:'cev-marketing', external:'cev-external' };
+  // 이벤트 이름 축약 (2글자 이모지 제거 후 5글자)
+  function shortName(ev) {
+    return ev.name.replace(/^[\p{Emoji}]+\s*/u,'').slice(0,6);
+  }
+
+  // 주간 집계
   const weeks = [];
-  let currentWeekStart = null;
-  let currentWeekSales = 0;
-  let currentWeekEvents = [];
+  let wStart=null, wSales=0, wEvents=[];
 
   let cells = '';
   for (let i = 0; i < totalCells; i++) {
     const offset = i - startDow;
-    const cellDate = new Date(calYear, calMonth, 1 + offset);
-    const isOther  = offset < 0 || (1 + offset) > lastDay.getDate();
-    const isToday  = cellDate.toDateString() === today.toDateString();
-    const dateStr  = cellDate.toISOString().slice(0,10);
+    const cd = new Date(calYear, calMonth, 1+offset);
+    const isOther = offset<0 || (1+offset)>lastDay.getDate();
+    const isToday = cd.toDateString()===today.toDateString();
+    const ds = cd.toISOString().slice(0,10);
+    const dow = cd.getDay();
 
-    // 주간 집계 (월~일 기준)
-    const dow = cellDate.getDay();
-    if (dow === 1 || (i === 0)) { // 월요일 = 주 시작
-      if (currentWeekStart !== null) {
-        weeks.push({ start: currentWeekStart, sales: currentWeekSales, events: currentWeekEvents });
-      }
-      currentWeekStart = cellDate;
-      currentWeekSales = 0;
-      currentWeekEvents = [];
+    // 주 집계 (일요일 기준 시작)
+    if (dow===0||i===0) {
+      if (wStart!==null) weeks.push({start:wStart,sales:wSales,events:wEvents});
+      wStart=new Date(cd); wSales=0; wEvents=[];
     }
-    const dailyEst = getDailyEst(dateStr);
-    if (dailyEst && !isOther) currentWeekSales += dailyEst;
-    if (evMap[dateStr] && !isOther) currentWeekEvents.push(...evMap[dateStr]);
+    const dayEst = getDailyEstByReview(ds);
+    if (dayEst && !isOther) wSales += dayEst;
+    if (evMap[ds] && !isOther) wEvents.push(...evMap[ds]);
 
-    const dayEvents = evMap[dateStr] || [];
-    let chips = '';
-    // 매출 칩 (실측 월 한정)
-    if (!isOther && BAEK_REAL[dateStr.slice(0,7)]) {
-      const dayWon = BAEK_REAL[dateStr.slice(0,7)] / 30;
-      chips += `<div class="cal-chip cc-sales">${formatWon(dayWon)}/일 추정</div>`;
+    const dayEvs = evMap[ds]||[];
+    const dayEst2 = !isOther ? getDailyEstByReview(ds) : null;
+
+    // 이벤트 칩 (날짜 바로 아래)
+    let evChips = dayEvs.slice(0,2).map(ev=>
+      `<div class="cal-ev-chip ${evCls[ev.type]||'cev-holiday'}">${shortName(ev)}</div>`
+    ).join('');
+
+    // 매출 추정 칩
+    let salesChip = '';
+    if (dayEst2) {
+      salesChip = `<div class="cal-sales-chip">${formatWon(dayEst2)}/일</div>`;
     }
-    dayEvents.slice(0,2).forEach(ev => {
-      chips += `<div class="cal-chip cc-ev-${ev.type}" title="${ev.name}">${ev.name.replace(/^[^\s]+\s/,'').slice(0,8)}</div>`;
-    });
 
     cells += `<div class="cal-cell${isOther?' other-month':''}${isToday?' today':''}">
-      <div class="cal-day-num">${cellDate.getDate()}</div>
-      <div class="cal-chips">${chips}</div>
+      <div class="cal-day-num">${cd.getDate()}</div>
+      <div class="cal-ev-chips">${evChips}</div>
+      ${salesChip}
     </div>`;
   }
-  // 마지막 주 push
-  if (currentWeekStart) weeks.push({ start: currentWeekStart, sales: currentWeekSales, events: currentWeekEvents });
-
+  if (wStart) weeks.push({start:wStart,sales:wSales,events:wEvents});
   grid.innerHTML = cells;
 
-  // 주간 요약 렌더
-  const evColorCls = { season:'wev-season', holiday:'wev-holiday', marketing:'wev-marketing', external:'wev-external' };
-  weekSummary.innerHTML = weeks.map((w, i) => {
-    const endDate = new Date(w.start);
-    endDate.setDate(endDate.getDate() + 6);
-    const label = `${w.start.getMonth()+1}/${w.start.getDate()}~${endDate.getMonth()+1}/${endDate.getDate()}`;
-    const salesHtml = w.sales > 0
+  // 주간 요약
+  const wevCls = { season:'wev-chip wev-season', holiday:'wev-chip wev-holiday', marketing:'wev-chip wev-marketing', external:'wev-chip wev-external' };
+  summary.innerHTML = weeks.map((w,i)=>{
+    const end = new Date(w.start); end.setDate(end.getDate()+6);
+    const label = `${w.start.getMonth()+1}/${w.start.getDate()}~${end.getMonth()+1}/${end.getDate()}`;
+    const salesHtml = w.sales>0
       ? `<span class="week-sales">${formatWon(w.sales)}<span class="week-sales-est"> 추정/주</span></span>`
       : `<span style="color:var(--text4);font-size:11px">데이터 없음</span>`;
-    const evHtml = [...new Map(w.events.map(ev=>[ev.name,ev])).values()]
-      .map(ev=>`<span class="week-ev-chip ${evColorCls[ev.type]||'wev-holiday'}">${ev.name.slice(0,10)}${ev.uplift?` <span class="week-ev-impact">${ev.upliftLabel}</span>`:''}</span>`)
-      .join('');
-    return `<div class="week-row" style="animation-delay:${i*0.04}s">
-      <div class="week-row-head">
-        <span class="week-label">${label}</span>
-        ${salesHtml}
-      </div>
+    const deduped = [...new Map(w.events.map(ev=>[ev.name,ev])).values()];
+    const evHtml = deduped.map(ev=>`<span class="${wevCls[ev.type]||'wev-chip wev-holiday'}">${ev.name.replace(/^[\p{Emoji}]+\s*/u,'').slice(0,10)}${ev.upliftLabel?`<span class="wev-uplift">${ev.upliftLabel}</span>`:''}</span>`).join('');
+    return `<div class="week-row" style="animation-delay:${i*.04}s">
+      <div class="week-row-head"><span class="week-label">${label}</span>${salesHtml}</div>
       ${evHtml?`<div class="week-events">${evHtml}</div>`:'<div style="font-size:11px;color:var(--text4)">이벤트 없음</div>'}
     </div>`;
   }).join('');
 }
 
 window.moveMonth = function(dir) {
-  if (dir === 0) {
-    calYear  = new Date().getFullYear();
-    calMonth = new Date().getMonth();
-  } else {
-    calMonth += dir;
-    if (calMonth < 0)  { calMonth = 11; calYear--; }
-    if (calMonth > 11) { calMonth = 0;  calYear++; }
-  }
-  renderCalendar(globalData);
+  if(dir===0){calYear=new Date().getFullYear();calMonth=new Date().getMonth();}
+  else{calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}}
+  renderCalendar();
 };
 
 // ── 전체 로드 ──────────────────────────────────────────
 async function loadAll(months) {
-  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('loading').style.display='flex';
   try {
     const data = await fetchData(months);
     globalData = data;
     document.getElementById('lastUpd').textContent =
-      data.last_updated ? '업데이트: '+data.last_updated.slice(0,16).replace('T',' ') : '';
-
+      data.last_updated?'업데이트: '+data.last_updated.slice(0,16).replace('T',' '):'';
     renderAlerts(data);
     renderKPI(data);
     renderSalesChart(data, months);
     renderCntChart(data, months);
     renderScoreChart(data, months);
     renderNegChart(data, months);
-    renderShareChart(data, months);
-    renderCalendar(data);
+    renderGrowthChart(data, months);
+    renderCalendar();
     renderKeywords(data);
   } catch(e) {
     console.error(e);
   } finally {
     const ld = document.getElementById('loading');
     ld.classList.add('hidden');
-    setTimeout(()=>{ ld.style.display='none'; }, 400);
+    setTimeout(()=>ld.style.display='none', 400);
   }
 }
 
-document.querySelectorAll('.pb').forEach(btn => {
-  btn.addEventListener('click', () => {
+document.querySelectorAll('.pb').forEach(btn=>{
+  btn.addEventListener('click',()=>{
     document.querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    currentMonths = +btn.dataset.m;
+    currentMonths=+btn.dataset.m;
     loadAll(currentMonths);
   });
 });
@@ -818,20 +817,20 @@ loadAll(currentMonths);
 <script>
 // ── 메모 패널 ─────────────────────────────────────────
 (function(){
-  var _memos=[],_open=false;
-  function mpToggle(){_open=!_open;var p=document.getElementById('memoPanel');if(p)p.classList.toggle('open',_open);if(_open){mpLoad();var i=document.getElementById('mpInput');if(i)setTimeout(()=>i.focus(),200);}}
-  window.mpToggle=mpToggle;
-  function mpToast(msg){var t=document.getElementById('mpToast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
-  function mpFmt(id){var d=new Date(id);if(isNaN(d))return id;return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
-  function mpRender(){var list=document.getElementById('mpList'),badge=document.getElementById('mpBadge');if(!list)return;if(!_memos.length){list.innerHTML='<div class="mp-empty">아직 메모가 없어요</div>';if(badge)badge.classList.remove('show');return;}if(badge){badge.textContent=_memos.length>99?'99+':_memos.length;badge.classList.add('show');}list.innerHTML=[..._memos].reverse().map(function(m){return'<div class="mp-card"><div class="mp-card-text">'+m.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px"><span class="mp-card-date">'+mpFmt(m.id)+'</span><button class="mp-del-btn" onclick="mpDel(\''+m.id+'\')">✕</button></div></div>';}).join('');}
-  async function mpLoad(){try{var r=await fetch('/api/memo'),d=await r.json();_memos=d.memos||[];mpRender();}catch(e){var l=document.getElementById('mpList');if(l)l.innerHTML='<div class="mp-empty">불러오기 실패</div>';}}
-  async function mpSave(){var inp=document.getElementById('mpInput'),btn=document.getElementById('mpSaveBtn');if(!inp||!inp.value.trim())return;var content=inp.value.trim();if(btn)btn.disabled=true;try{await fetch('/api/memo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:content})});inp.value='';await mpLoad();mpToast('저장됐어요 ✓');}catch(e){mpToast('저장 실패');}finally{if(btn)btn.disabled=false;}}
+  var _m=[],_o=false;
+  function t(){_o=!_o;var p=document.getElementById('memoPanel');if(p)p.classList.toggle('open',_o);if(_o){l();var i=document.getElementById('mpInput');if(i)setTimeout(()=>i.focus(),200);}}
+  window.mpToggle=t;
+  function toast(msg){var t=document.getElementById('mpToast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+  function fmt(id){var d=new Date(id);if(isNaN(d))return id;return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+  function render(){var list=document.getElementById('mpList'),badge=document.getElementById('mpBadge');if(!list)return;if(!_m.length){list.innerHTML='<div class="mp-empty">메모가 없어요</div>';if(badge)badge.classList.remove('show');return;}if(badge){badge.textContent=_m.length>99?'99+':_m.length;badge.classList.add('show');}list.innerHTML=[..._m].reverse().map(function(m){return'<div class="mp-card"><div class="mp-card-text">'+m.content.replace(/</g,'&lt;')+'</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px"><span class="mp-card-date">'+fmt(m.id)+'</span><button class="mp-del-btn" onclick="mpDel(\''+m.id+'\')">✕</button></div></div>';}).join('');}
+  async function l(){try{var r=await fetch('/api/memo'),d=await r.json();_m=d.memos||[];render();}catch(e){}}
+  async function mpSave(){var inp=document.getElementById('mpInput'),btn=document.getElementById('mpSaveBtn');if(!inp||!inp.value.trim())return;var c=inp.value.trim();if(btn)btn.disabled=true;try{await fetch('/api/memo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:c})});inp.value='';await l();toast('저장됐어요 ✓');}catch(e){toast('저장 실패');}finally{if(btn)btn.disabled=false;}}
   window.mpSave=mpSave;
-  async function mpDel(id){if(!confirm('삭제할까요?'))return;try{await fetch('/api/memo/'+id,{method:'DELETE'});await mpLoad();mpToast('삭제됐어요');}catch(e){mpToast('삭제 실패');}}
+  async function mpDel(id){if(!confirm('삭제할까요?'))return;try{await fetch('/api/memo/'+id,{method:'DELETE'});await l();toast('삭제됐어요');}catch(e){}}
   window.mpDel=mpDel;
   document.addEventListener('keydown',function(e){var inp=document.getElementById('mpInput');if(document.activeElement===inp&&(e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();mpSave();}});
-  document.addEventListener('click',function(e){var p=document.getElementById('memoPanel'),f=document.getElementById('memoFab');if(_open&&p&&f&&!p.contains(e.target)&&!f.contains(e.target)){_open=false;p.classList.remove('open');}});
-  mpLoad();
+  document.addEventListener('click',function(e){var p=document.getElementById('memoPanel'),f=document.getElementById('memoFab');if(_o&&p&&f&&!p.contains(e.target)&&!f.contains(e.target)){_o=false;p.classList.remove('open');}});
+  l();
 })();
 </script>
 </body>
