@@ -938,6 +938,9 @@ function switchShop(shop, el){
   const activeClass = shop==='changeok' ? 'active-a' : shop==='myeongga' ? 'active-b' : shop==='papa' ? 'active-c' : 'active-d';
   el.classList.add(activeClass);
   reviewFilter = 'all';
+  // 페이지 타이틀 동적 업데이트
+  const titleMap = {jasaol:'백년화편 | 후기 대시보드', changeok:'창억떡 | 후기 대시보드', myeongga:'명가삼대떡집 | 후기 대시보드', papa:'파파공방 | 후기 대시보드', smartstore:'네이버 | 후기 대시보드'};
+  document.title = titleMap[shop] || '후기 대시보드';
   if(!allData){
     // 수집 중이면 수집 화면 유지
     if(collectPollTimer) showCollectingScreen();
@@ -1197,6 +1200,22 @@ function render(){
   if(!allData) return;
   if(currentShop==='memo'){ renderMemo(); return; }
   if(currentShop==='log'){  renderLog();  return; }
+  // 창억떡: 수집 미구현 안내
+  if(currentShop==='changeok'){
+    document.getElementById('mainContent').innerHTML = `
+      <div class="stat-grid section">
+        <div class="stat-card"><div class="stat-label">전체 후기</div><div class="stat-val">—</div><div class="stat-sub">수집 준비 중</div></div>
+        <div class="stat-card"><div class="stat-label">3점 이하</div><div class="stat-val">—</div></div>
+        <div class="stat-card"><div class="stat-label">최근 7일</div><div class="stat-val">—</div></div>
+        <div class="stat-card"><div class="stat-label">평균 별점</div><div class="stat-val">—</div></div>
+      </div>
+      <div class="card section" style="text-align:center;padding:40px 24px;">
+        <div style="font-size:32px;margin-bottom:16px">🚧</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px">창억떡 수집 미구현</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7">자사몰(changeok.co.kr) 로그인이 필요하여 현재 수집할 수 없습니다.<br>스마트스토어(brand.naver.com/changeok) 연동을 준비 중입니다.</div>
+      </div>`;
+    return;
+  }
   const src = filteredData || allData;
   const d = src[currentShop];
   if(!d) return;
@@ -1323,28 +1342,29 @@ function renderNegativeProducts(d){
 // ════════════════════════════════════════
 // 키워드
 // ════════════════════════════════════════
+function _chips(kws,cls){ return kws&&kws.length ? kws.map(k=>`<span class="chip ${cls}">${k.word} <span class="chip-count">${k.count}</span></span>`).join('') : '<span style="font-size:12px;color:var(--muted)">데이터 부족</span>'; }
 function renderKeywords(d){
   const posAll=d.positive_keywords_all||[], negAll=d.negative_keywords_all||[];
-  function chips(kws,cls){ return kws.length ? kws.map(k=>`<span class="chip ${cls}">${k.word} <span class="chip-count">${k.count}</span></span>`).join('') : '<span style="font-size:12px;color:var(--muted)">데이터 부족</span>'; }
   return `<div class="card"><div class="card-title">키워드 분석</div>
     <div class="period-toggle">
       <button class="period-btn active" id="kwPeriodAll" onclick="setKwPeriod('all')">전체</button>
       <button class="period-btn" id="kwPeriodWeek" onclick="setKwPeriod('week')">최근 7일</button>
     </div>
-    <div class="keyword-section"><div class="keyword-section-title">✓ 긍정 (4~5점)</div><div class="keyword-chips" id="posChips">${chips(posAll,'chip-pos')}</div></div>
-    <div class="keyword-section" style="margin-top:12px"><div class="keyword-section-title">✗ 부정 (1~3점)</div><div class="keyword-chips" id="negChips">${chips(negAll,'chip-neg')}</div></div>
+    <div class="keyword-section"><div class="keyword-section-title">✓ 긍정 (4~5점)</div><div class="keyword-chips" id="posChips">${_chips(posAll,'chip-pos')}</div></div>
+    <div class="keyword-section" style="margin-top:12px"><div class="keyword-section-title">✗ 부정 (1~3점)</div><div class="keyword-chips" id="negChips">${_chips(negAll,'chip-neg')}</div></div>
   </div>`;
 }
 function setKwPeriod(period){
   if(!allData)return;
   document.getElementById('kwPeriodAll').classList.toggle('active',period==='all');
   document.getElementById('kwPeriodWeek').classList.toggle('active',period==='week');
-  const d=allData[currentShop];
+  // 기간 필터 적용 중이면 filteredData, 아니면 allData 사용
+  const src = (filteredData||allData);
+  const d=src[currentShop];
   const pos=period==='all'?d.positive_keywords_all:d.positive_keywords_week;
   const neg=period==='all'?d.negative_keywords_all:d.negative_keywords_week;
-  function chips(kws,cls){ return kws&&kws.length?kws.map(k=>`<span class="chip ${cls}">${k.word} <span class="chip-count">${k.count}</span></span>`).join(''):'<span style="font-size:12px;color:var(--muted)">데이터 부족</span>'; }
-  document.getElementById('posChips').innerHTML=chips(pos,'chip-pos');
-  document.getElementById('negChips').innerHTML=chips(neg,'chip-neg');
+  document.getElementById('posChips').innerHTML=_chips(pos,'chip-pos');
+  document.getElementById('negChips').innerHTML=_chips(neg,'chip-neg');
 }
 
 // ════════════════════════════════════════
@@ -1377,7 +1397,9 @@ function setFilter(f,el){
   reviewFilter=f; currentPage=1;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
-  const d=allData[currentShop];
+  // 기간 필터 적용 중이면 filteredData, 아니면 allData 사용
+  const src = filteredData || allData;
+  const d=src[currentShop];
   let reviews=d.reviews||[];
   if(f==='low')  reviews=reviews.filter(r=>r.score<=3);
   else if(f==='jasa') reviews=reviews.filter(r=>r.platform!=='smartstore');
@@ -1411,7 +1433,7 @@ function buildReviewCards(reviews){
     const badgeCls=r.platform==='smartstore'?'smartstore':r.platform==='kakao'?'kakao':'jasa';
     return `<div class="review-card ${isLow?'low':''}">
       <div class="review-header">
-        <div style="display:flex;align-items:center"><div class="stars">${stars}</div><span class="score-num ${isLow?'low':''}">${r.score}.0</span>${isLow?'<span class="low-tag">주의</span>':''}</div>
+        <div style="display:flex;align-items:center"><div class="stars">${stars}</div><span class="score-num ${isLow?'low':''}">${Number(r.score)%1===0?r.score+'.0':r.score}</span>${isLow?'<span class="low-tag">주의</span>':''}</div>
         <div class="review-meta"><span class="rev-badge ${badgeCls}">${platLabel}</span><span class="rev-date">${r.date}</span></div>
       </div>
       ${r.product?`<div class="review-product">${r.product}</div>`:''}
@@ -1791,8 +1813,34 @@ async function _updateLiveLog(){
 // 초기화
 // ════════════════════════════════════════
 loadData();
-setInterval(()=>{ if(!collectPollTimer) loadData(); }, 60*60*1000); // 1시간마다 자동갱신 (수집중이면 스킵)
+// 1시간마다 백그라운드 갱신 (수집중이거나 필터 적용 중이면 스킵)
+setInterval(async ()=>{
+  if(collectPollTimer) return;  // 수집 중 스킵
+  if(dateFilterStart) return;   // 기간 필터 적용 중 스킵 (사용자 조작 방해 방지)
+  await loadData();
+}, 60*60*1000);
 </script>
+
+<!-- ── 플로팅 메모 패널 ── -->
+<button id="memoFab" onclick="mpToggle()" title="빠른 메모" aria-label="메모 열기">
+  📝
+  <span id="mpBadge" class="mp-badge"></span>
+</button>
+<div id="memoPanel">
+  <div class="mp-header">
+    <span>📝 메모</span>
+    <button class="mp-close-btn" onclick="mpToggle()" title="닫기">✕</button>
+  </div>
+  <div class="mp-body">
+    <div class="mp-input-row">
+      <textarea id="mpInput" class="mp-input" placeholder="Ctrl+Enter로 저장" rows="3"></textarea>
+      <button id="mpSaveBtn" class="mp-save-btn" onclick="mpSave()">저장</button>
+    </div>
+    <div id="mpList" class="mp-list"></div>
+  </div>
+</div>
+<div id="mpToast" class="mp-toast"></div>
+
 
 <button class="theme-toggle" id="themeToggle" onclick="__toggleTheme()" title="주간/야간 전환">🌙</button>
 
