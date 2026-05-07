@@ -159,12 +159,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
     <div id="errorCards" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start"></div>
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #E5E8EB;font-size:11px;color:#6B7684">
       평균 절대 오차 <strong id="avgError" style="color:#F5820D;font-size:14px;font-weight:800"></strong>
-      <span style="color:#B0B8C1;margin-left:6px">추정 = 후기수 ÷ 리뷰율(17.5%) × 객단가(5.4만원)</span>
+      <span style="color:#B0B8C1;margin-left:6px">추정 = 후기수 ÷ 17.5% × 54,000원 | 실측 대비 오차 · 양수=과대 음수=과소</span>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-title">예상 매출 추이 <span class="tip">명가는 리뷰율(≈17.5%) 역산 추정 | 이벤트 세로선</span></div>
+    <div class="section-title">예상 매출 추이 <span class="tip">백년화편·명가 모두 리뷰수 역산 추정 · 백년화편 실측(점선) 참고</span></div>
     <div class="chart-card"><div class="chart-wrap tall"><canvas id="salesChart"></canvas></div></div>
   </div>
 
@@ -436,7 +436,6 @@ function renderErrorCards() {
     {mo:'2026-04', label:'4월', real:1176284097},
     {mo:'2026-05', label:'5월', real:472595216},
   ];
-  // 월별 리뷰수 집계
   const moCnt = {};
   for (const [wk, cnt] of Object.entries(BAEK_WEEKLY)) {
     const mo = wk.slice(0,7);
@@ -446,21 +445,22 @@ function renderErrorCards() {
   let totalAbsErr = 0, count = 0;
   const cards = moData.map(({mo, label, real}) => {
     const cnt = moCnt[mo] || 0;
-    const est = cnt / REVIEW_RATE * AVG_PRICE;
+    const est = Math.round(cnt / REVIEW_RATE * AVG_PRICE);
     if (!est) return '';
-    const errPct = (est - real) / real * 100;
+    const errPct = (est - real) / real * 100;   // + = 과대 추정, - = 과소 추정
     const absErr = Math.abs(errPct);
     totalAbsErr += absErr; count++;
-    const isOver  = errPct > 0;
     const color   = absErr > 30 ? '#F04452' : absErr > 15 ? '#F59E0B' : '#00A86B';
     const bgColor = absErr > 30 ? '#FFF0F0' : absErr > 15 ? '#FFFAEB' : '#E8FAF4';
-    const sign    = isOver ? '과대' : '과소';
-    return `<div style="flex:1;min-width:100px;background:${bgColor};border:1.5px solid ${color}33;border-radius:12px;padding:12px 14px">
-      <div style="font-size:11px;font-weight:700;color:#6B7684;margin-bottom:6px">${label}</div>
-      <div style="font-size:24px;font-weight:900;color:${color};letter-spacing:-1px;line-height:1">${errPct>0?'+':''}${errPct.toFixed(1)}%</div>
-      <div style="font-size:10px;color:#6B7684;margin-top:4px">${sign} 추정</div>
-      <div style="font-size:10px;color:#B0B8C1;margin-top:2px;font-variant-numeric:tabular-nums">
-        실측 ${(real/1e6).toFixed(0)}M · 추정 ${(est/1e6).toFixed(0)}M
+    const dirLabel = errPct > 0 ? '▲ 과대추정' : '▼ 과소추정';
+    const dirColor = errPct > 0 ? '#F04452' : '#3182F6';
+    return `<div style="flex:1;min-width:90px;background:${bgColor};border:1.5px solid ${color}33;border-radius:12px;padding:12px 14px">
+      <div style="font-size:11px;font-weight:700;color:#6B7684;margin-bottom:4px">${label}</div>
+      <div style="font-size:26px;font-weight:900;color:${color};letter-spacing:-1px;line-height:1.1">${errPct>0?'+':''}${errPct.toFixed(1)}<span style="font-size:14px">%</span></div>
+      <div style="font-size:10px;font-weight:700;color:${dirColor};margin-top:3px">${dirLabel}</div>
+      <div style="font-size:10px;color:#B0B8C1;margin-top:4px;line-height:1.5">
+        실측 <strong style="color:#191F28">${(real/1e6).toFixed(0)}M</strong><br>
+        추정 <strong style="color:#191F28">${(est/1e6).toFixed(0)}M</strong>
       </div>
     </div>`;
   }).join('');
@@ -477,7 +477,6 @@ function renderErrorCards() {
   }
 }
 
-// ── 렌더 ───────────────────────────────────────────────
 function renderAlerts(data) {
   const banner = document.getElementById('alertBanner');
   const alerts = [];
@@ -535,6 +534,13 @@ function renderKPI(data) {
 }
 
 function renderSalesChart(data, months) {
+  // 백년화편 월별 리뷰수 집계
+  const moCnt = {};
+  for (const [wk, cnt] of Object.entries(BAEK_WEEKLY)) {
+    const mo = wk.slice(0,7);
+    moCnt[mo] = (moCnt[mo]||0) + cnt;
+  }
+
   const myMonthly = buildMonthly(data.myeongga?.weekly_trend||[]);
   const allMonths = [...new Set([...Object.keys(BAEK_REAL),...myMonthly.map(m=>m.month)])].filter(m=>m>='2026-01').sort();
   const {df,dt} = getDateRange(months);
@@ -544,15 +550,37 @@ function renderSalesChart(data, months) {
   const annotations = buildAnnotations(months, filtered);
   const ctx = document.getElementById('salesChart').getContext('2d');
   if (charts.sales) charts.sales.destroy();
+
+  // 백년화편 추정: 리뷰수 역산 (실측과 동일 조건)
+  const baekEst = filtered.map(m => {
+    const cnt = moCnt[m] || 0;
+    return cnt ? toM(Math.round(cnt / REVIEW_RATE * AVG_PRICE)) : null;
+  });
+  // 백년화편 실측 (참고용 line)
+  const baekReal = filtered.map(m => toM(BAEK_REAL[m]));
+  // 명가 추정
+  const myEst = filtered.map(m => {
+    const cnt = myMap[m] || 0;
+    return cnt ? toM(Math.round(cnt / REVIEW_RATE * AVG_PRICE)) : null;
+  });
+
   charts.sales = new Chart(ctx, {
     type:'bar',
     data:{
       labels:filtered.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
       datasets:[
-        { label:'백년화편(실측)', data:filtered.map(m=>toM(BAEK_REAL[m])),
-          backgroundColor:'rgba(245,130,13,.75)', borderColor:'#F5820D', borderWidth:1.5, borderRadius:4 },
-        { label:'명가(추정)', data:filtered.map(m=>{const cnt=myMap[m]||0;return cnt?toM(Math.round(cnt/REVIEW_RATE*AVG_PRICE*(MONTHLY_RATIO[m]||1))):null;}),
-          backgroundColor:'rgba(49,130,246,.45)', borderColor:'#3182F6', borderWidth:1.5, borderRadius:4 },
+        { label:'백년화편 실측', type:'line',
+          data:baekReal,
+          borderColor:'#F5820D', backgroundColor:'transparent',
+          borderWidth:2.5, borderDash:[6,3],
+          pointRadius:4, pointBackgroundColor:'#F5820D',
+          tension:.2, order:0 },
+        { label:'백년화편 추정', data:baekEst,
+          backgroundColor:'rgba(245,130,13,.65)', borderColor:'#F5820D',
+          borderWidth:1.5, borderRadius:4, order:1 },
+        { label:'명가 추정', data:myEst,
+          backgroundColor:'rgba(49,130,246,.45)', borderColor:'#3182F6',
+          borderWidth:1.5, borderRadius:4, order:1 },
       ]
     },
     options:{...commonOpts(annotations),
@@ -563,8 +591,6 @@ function renderSalesChart(data, months) {
         y:{ticks:{color:'#B0B8C1',font:getTickFont(),callback:v=>`${v}M`},grid:{color:'#E5E8EB'}}}}
   });
 }
-
-
 
 function renderNegChart(data, months) {
   const bm={};const allM=new Set();
@@ -898,7 +924,16 @@ function renderDailyChart() {
           bodyFont:{ size:11, family:'-apple-system,BlinkMacSystemFont,sans-serif' },
           callbacks:{
             title: items => items[0].label + '일',
-            label: item => '추정 ' + item.raw.toLocaleString() + '만원',
+            label: item => {
+              const idx = item.dataIndex;
+              const d = slice[idx];
+              const mo = d.date.slice(0,7);
+              // 월별 오차율 안내
+              const ERR = {'2026-01':-21.4,'2026-02':-37.4,'2026-03':45.5,'2026-04':12.9,'2026-05':-43.8};
+              const err = ERR[mo];
+              const errStr = err !== undefined ? ` (${mo.slice(5)}월 모델 오차 ${err>0?'+':''}${err.toFixed(1)}%)` : '';
+              return '추정 ' + item.raw.toLocaleString() + '만원' + errStr;
+            },
             afterBody: items => {
               const idx = items[0].dataIndex;
               const issues = slice[idx]?.issues || [];
