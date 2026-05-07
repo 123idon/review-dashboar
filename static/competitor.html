@@ -432,9 +432,9 @@ body {
       <div class="chart-header">
         <div class="chart-title">월별 매출 (백만원)<small>백년화편: 실측 · 경쟁사: 리뷰수 기반 추정 · 이벤트: 세로선</small></div>
         <div class="chart-legend">
-          <div class="leg"><div class="leg-dot" style="background:#f97316"></div>백년화편(실측)</div>
-          <div class="leg"><div class="leg-dot" style="background:#6366f1;opacity:.7"></div>명가(추정)</div>
-          <div class="leg"><div class="leg-dot" style="background:#ec4899;opacity:.7"></div>파파(추정)</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--brand)"></div>백년화편(실측)</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--purple);opacity:.7"></div>명가(추정)</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--red);opacity:.7"></div>파파(추정)</div>
         </div>
       </div>
       <div class="chart-wrap tall"><canvas id="salesChart"></canvas></div>
@@ -621,7 +621,7 @@ function buildAnnotations(months, monthList, type='month') {
     annotations[`ev_${i}`] = {
       type: 'line',
       xMin: idx, xMax: idx,
-      borderColor: (eventColors[ev.type] || '#475569') + 'aa',
+      borderColor: (eventColors[ev.type] || 'var(--text3)') + 'aa',
       borderWidth: 1.5,
       borderDash: [4,3],
       label: {
@@ -670,7 +670,7 @@ function renderAlerts(data) {
     const r = r4.reduce((s,w)=>s+w.avg_score*w.count,0)/r4.reduce((s,w)=>s+w.count,0);
     const p = p4.reduce((s,w)=>s+w.avg_score*w.count,0)/p4.reduce((s,w)=>s+w.count,0);
     if (p > 0 && (p-r) >= 0.15) {
-      alerts.push(`⚠ <strong>${b.label}</strong> 최근 4주 평점 ${r.toFixed(2)} — 전월 대비 <strong style="color:#f87171">▼${(p-r).toFixed(2)} 하락</strong>`);
+      alerts.push(`⚠ <strong>${b.label}</strong> 최근 4주 평점 ${r.toFixed(2)} — 전월 대비 <strong style="color:var(--red)">▼${(p-r).toFixed(2)} 하락</strong>`);
     }
   }
   banner.innerHTML = alerts.join('<br>');
@@ -961,18 +961,23 @@ function renderFiveChart(data, months) {
 
 function renderEvList() {
   const list = document.getElementById('evList');
-  const brandColors = {'백년화편':'#f97316','명가삼대':'#6366f1','명가삼대떡집':'#6366f1','파파공방':'#ec4899','플랫폼공통':'#22d3ee'};
+  const _root = getComputedStyle(document.documentElement);
+  const _brand  = _root.getPropertyValue('--brand').trim()||'#F5820D';
+  const _purple = _root.getPropertyValue('--purple').trim()||'#6C47FF';
+  const _red    = _root.getPropertyValue('--red').trim()||'#F04452';
+  const _teal   = _root.getPropertyValue('--teal').trim()||'#00BCD4';
+  const brandColors = {'백년화편':_brand,'명가삼대':_purple,'명가삼대떡집':_purple,'파파공방':_red,'플랫폼공통':_teal};
   const tagLabels = { season:'시즌', holiday:'공휴일', marketing:'마케팅', external:'외부환경' };
 
   list.innerHTML = [...EVENTS].sort((a,b)=>a.date.localeCompare(b.date)).map(ev => {
     const bChips = (ev.brands||[]).map(b=>
-      `<span class="brand-chip" style="background:${brandColors[b]||'#475569'}22;color:${brandColors[b]||'#94a3b8'}">${b}</span>`
+      `<span class="brand-chip" style="background:${brandColors[b]||'var(--text3)'}22;color:${brandColors[b]||'var(--text3)'}">${b}</span>`
     ).join(' ');
 
     const upliftHtml = ev.uplift != null ? `<span class="uplift-chip ${ev.uplift>=100?'uplift-boom':ev.uplift>=0?'uplift-up':'uplift-dn'}">${ev.upliftLabel}</span>` : '';
     const verifyBadge = ev.verified
-      ? '<span style="font-size:10px;color:#4ade80;font-weight:700">✓ 검증</span>'
-      : '<span style="font-size:10px;color:#475569">예측</span>';
+      ? '<span style="font-size:10px;color:var(--green);font-weight:700">✓ 검증</span>'
+      : '<span style="font-size:10px;color:var(--text3)">예측</span>';
 
     return `<div class="ev-item ${ev.type}">
       <div class="ev-head">
@@ -987,7 +992,7 @@ function renderEvList() {
           ${ev.impact==='high'?'영향 ●●●':ev.impact==='med'?'영향 ●●○':'영향 ●○○'}
         </span>
         ${upliftHtml}
-        ${ev.peak?`<span style="font-size:11px;color:#64748b">${ev.peak}</span>`:''}
+        ${ev.peak?`<span style="font-size:11px;color:var(--text3)">${ev.peak}</span>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1010,7 +1015,7 @@ function renderKeywords(data) {
               <div class="kw-word">${k.word}</div>
               <div class="kw-bar-wrap"><div class="kw-bar" style="width:${Math.round(k.count/maxC*100)}%;background:${barColor}55"></div></div>
               <div class="kw-cnt">${k.count}</div>
-            </div>`).join('') : '<div style="font-size:12px;color:#475569">데이터 없음</div>'}
+            </div>`).join('') : '<div style="font-size:12px;color:var(--text3)">데이터 없음</div>'}
         </div>`;
     }
   });
@@ -1036,7 +1041,7 @@ async function loadAll(months) {
     renderKeywords(data);
   } catch(e) {
     document.querySelector('.content').innerHTML =
-      `<div style="text-align:center;padding:60px;color:#475569">데이터를 불러오지 못했습니다.<br><small>${e.message}</small></div>`;
+      `<div style="text-align:center;padding:60px;color:var(--text3)">데이터를 불러오지 못했습니다.<br><small>${e.message}</small></div>`;
   } finally {
     document.getElementById('loading').style.display = 'none';
   }
