@@ -494,7 +494,7 @@ def save_inventory(data):
     tmp.replace(INVENTORY_PATH)
 
 
-@app.get("/inventory/input")
+@app.get("/100yearinventory")
 async def inventory_input_page():
     return FileResponse("static/inventory_input.html")
 @app.get("/inventory")
