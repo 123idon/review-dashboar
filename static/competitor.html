@@ -695,11 +695,12 @@ async function loadAll(months) {
     renderDailyChart();
     renderKeywords(data);
   } catch(e) {
-    console.error(e);
+    console.error('loadAll error:', e);
+    const ld2 = document.getElementById('loading');
+    if (ld2) { ld2.classList.add('hidden'); setTimeout(()=>ld2.style.display='none', 400); }
   } finally {
     const ld = document.getElementById('loading');
-    ld.classList.add('hidden');
-    setTimeout(()=>ld.style.display='none', 400);
+    if (ld) { ld.classList.add('hidden'); setTimeout(()=>ld.style.display='none', 400); }
   }
 }
 
@@ -866,15 +867,7 @@ window.onDailySlide = function() {
   renderDailyChart();
 };
 
-// 슬라이더 초기 설정
-(function() {
-  const total = DAILY_DATA.length;
-  const slider = document.getElementById('dailySlider');
-  if (slider) {
-    slider.max = Math.max(0, total - dailyRangeDays);
-    slider.value = 0;
-  }
-})();
+
 
 
 const DAILY_DATA = [
@@ -1029,7 +1022,18 @@ const DAILY_DATA = [
   {date:"2026-05-29",b:0,m:0,ev:null},
   {date:"2026-05-30",b:0,m:0,ev:null},
   {date:"2026-05-31",b:0,m:0,ev:null}
-];// ── 데이터 ─────────────────────────────────────────────
+];
+
+// 슬라이더 초기 설정
+(function() {
+  const total = DAILY_DATA.length;
+  const slider = document.getElementById('dailySlider');
+  if (slider) {
+    slider.max = Math.max(0, total - dailyRangeDays);
+    slider.value = 0;
+  }
+})();
+// ── 데이터 ─────────────────────────────────────────────
 const BRANDS = [
   { key:'jasaol',   label:'백년화편',    color:'#F5820D' },
   { key:'myeongga', label:'명가삼대떡집', color:'#3182F6' },
@@ -1489,11 +1493,12 @@ async function loadAll(months) {
     renderDailyChart();
     renderKeywords(data);
   } catch(e) {
-    console.error(e);
+    console.error('loadAll error:', e);
+    const ld2 = document.getElementById('loading');
+    if (ld2) { ld2.classList.add('hidden'); setTimeout(()=>ld2.style.display='none', 400); }
   } finally {
     const ld = document.getElementById('loading');
-    ld.classList.add('hidden');
-    setTimeout(()=>ld.style.display='none', 400);
+    if (ld) { ld.classList.add('hidden'); setTimeout(()=>ld.style.display='none', 400); }
   }
 }
 
