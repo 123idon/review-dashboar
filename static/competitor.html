@@ -159,12 +159,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
     <div id="errorCards" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start"></div>
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #E5E8EB;font-size:11px;color:#6B7684">
       평균 절대 오차 <strong id="avgError" style="color:#F5820D;font-size:14px;font-weight:800"></strong>
-      <span style="color:#B0B8C1;margin-left:6px">추정 = 후기수 ÷ 17.5% × 54,000원 | 실측 대비 오차 · 양수=과대 음수=과소</span>
+      <span style="color:#B0B8C1;margin-left:6px">추정 = 후기수 ÷ 리뷰율(17.5%) × 객단가(5.4만원)</span>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-title">예상 매출 추이 <span class="tip">백년화편·명가 모두 리뷰수 역산 추정 · 백년화편 실측(점선) 참고</span></div>
+    <div class="section-title">예상 매출 추이 <span class="tip">명가는 리뷰율(≈17.5%) 역산 추정 | 이벤트 세로선</span></div>
     <div class="chart-card"><div class="chart-wrap tall"><canvas id="salesChart"></canvas></div></div>
   </div>
 
@@ -428,7 +428,7 @@ function commonOpts(annotations={}) {
 
 // ── 오차율 카드 ────────────────────────────────────────
 function renderErrorCards() {
-  const REVIEW_RATE = 0.175, AVG_PRICE = 54000;
+  const RR = 0.175, AP = 54000;
   const moData = [
     {mo:'2026-01', label:'1월', real:1949773003},
     {mo:'2026-02', label:'2월', real:3457339234},
@@ -436,31 +436,46 @@ function renderErrorCards() {
     {mo:'2026-04', label:'4월', real:1176284097},
     {mo:'2026-05', label:'5월', real:472595216},
   ];
+  // 월별 리뷰수 집계
   const moCnt = {};
   for (const [wk, cnt] of Object.entries(BAEK_WEEKLY)) {
     const mo = wk.slice(0,7);
     moCnt[mo] = (moCnt[mo]||0) + cnt;
   }
 
-  let totalAbsErr = 0, count = 0;
+  let totalAbs1 = 0, totalAbs2 = 0, count = 0;
   const cards = moData.map(({mo, label, real}) => {
-    const cnt = moCnt[mo] || 0;
-    const est = Math.round(cnt / REVIEW_RATE * AVG_PRICE);
-    if (!est) return '';
-    const errPct = (est - real) / real * 100;   // + = 과대 추정, - = 과소 추정
-    const absErr = Math.abs(errPct);
-    totalAbsErr += absErr; count++;
-    const color   = absErr > 30 ? '#F04452' : absErr > 15 ? '#F59E0B' : '#00A86B';
-    const bgColor = absErr > 30 ? '#FFF0F0' : absErr > 15 ? '#FFFAEB' : '#E8FAF4';
-    const dirLabel = errPct > 0 ? '▲ 과대추정' : '▼ 과소추정';
-    const dirColor = errPct > 0 ? '#F04452' : '#3182F6';
-    return `<div style="flex:1;min-width:90px;background:${bgColor};border:1.5px solid ${color}33;border-radius:12px;padding:12px 14px">
-      <div style="font-size:11px;font-weight:700;color:#6B7684;margin-bottom:4px">${label}</div>
-      <div style="font-size:26px;font-weight:900;color:${color};letter-spacing:-1px;line-height:1.1">${errPct>0?'+':''}${errPct.toFixed(1)}<span style="font-size:14px">%</span></div>
-      <div style="font-size:10px;font-weight:700;color:${dirColor};margin-top:3px">${dirLabel}</div>
-      <div style="font-size:10px;color:#B0B8C1;margin-top:4px;line-height:1.5">
-        실측 <strong style="color:#191F28">${(real/1e6).toFixed(0)}M</strong><br>
-        추정 <strong style="color:#191F28">${(est/1e6).toFixed(0)}M</strong>
+    const cnt = moCnt[mo]||0;
+    const est1 = Math.round(cnt/RR*AP);           // 1차 추정
+    const est2 = Math.round(cnt/RR*AP*(MONTHLY_RATIO[mo]||1)); // 2차 추정(보정)
+    if (!est1) return '';
+    const err1 = (est1 - real)/real*100;
+    const err2 = (est2 - real)/real*100;
+    totalAbs1 += Math.abs(err1);
+    totalAbs2 += Math.abs(err2);
+    count++;
+
+    const c1 = Math.abs(err1)>30?'#F04452':Math.abs(err1)>15?'#F59E0B':'#00A86B';
+    const c2 = Math.abs(err2)<5?'#00A86B':Math.abs(err2)<15?'#F59E0B':'#F04452';
+    const bg = Math.abs(err1)>30?'#FFF0F0':Math.abs(err1)>15?'#FFFAEB':'#E8FAF4';
+
+    return `<div style="flex:1;min-width:100px;background:${bg};border:1.5px solid ${c1}33;border-radius:12px;padding:12px 14px">
+      <div style="font-size:11px;font-weight:700;color:#6B7684;margin-bottom:6px">${label}</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px">
+        <div>
+          <div style="font-size:10px;color:#B0B8C1;margin-bottom:1px">1차 추정 오차</div>
+          <div style="font-size:20px;font-weight:900;color:${c1};letter-spacing:-.5px;line-height:1">${err1>0?'+':''}${err1.toFixed(1)}<span style="font-size:11px">%</span></div>
+        </div>
+        <div style="padding-bottom:2px;color:#B0B8C1;font-size:14px">→</div>
+        <div>
+          <div style="font-size:10px;color:#B0B8C1;margin-bottom:1px">2차 추정 오차</div>
+          <div style="font-size:20px;font-weight:900;color:${c2};letter-spacing:-.5px;line-height:1">${err2>0?'+':''}${err2.toFixed(1)}<span style="font-size:11px">%</span></div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#B0B8C1;line-height:1.6;border-top:1px solid #E5E8EB;padding-top:6px">
+        실측 <strong style="color:#191F28">${(real/1e6).toFixed(0)}M</strong>
+        &nbsp;|&nbsp; 1차 <strong style="color:#6B7684">${(est1/1e6).toFixed(0)}M</strong>
+        &nbsp;|&nbsp; 2차 <strong style="color:#F5820D">${(est2/1e6).toFixed(0)}M</strong>
       </div>
     </div>`;
   }).join('');
@@ -468,15 +483,21 @@ function renderErrorCards() {
   const el = document.getElementById('errorCards');
   if (el) el.innerHTML = cards;
 
-  const avg = count ? totalAbsErr/count : 0;
+  // 평균 오차율 업데이트 (1차 / 2차)
+  const avg1 = count ? totalAbs1/count : 0;
+  const avg2 = count ? totalAbs2/count : 0;
   const avgEl = document.getElementById('avgError');
   if (avgEl) {
-    const avgColor = avg > 30 ? '#F04452' : avg > 15 ? '#F59E0B' : '#00A86B';
-    avgEl.style.color = avgColor;
-    avgEl.textContent = avg.toFixed(1) + '%';
+    const c1 = avg1>30?'#F04452':avg1>15?'#F59E0B':'#00A86B';
+    const c2 = avg2<5?'#00A86B':avg2<15?'#F59E0B':'#F04452';
+    avgEl.innerHTML = `<span style="color:${c1}">${avg1.toFixed(1)}%</span>`
+      + `<span style="color:#B0B8C1;font-size:11px;font-weight:400;margin:0 6px">→ 2차</span>`
+      + `<span style="color:${c2}">${avg2.toFixed(1)}%</span>`;
   }
 }
 
+
+// ── 렌더 ───────────────────────────────────────────────
 function renderAlerts(data) {
   const banner = document.getElementById('alertBanner');
   const alerts = [];
@@ -551,17 +572,34 @@ function renderSalesChart(data, months) {
   const ctx = document.getElementById('salesChart').getContext('2d');
   if (charts.sales) charts.sales.destroy();
 
-  // 백년화편 추정: 리뷰수 역산 (실측과 동일 조건)
-  const baekEst = filtered.map(m => {
-    const cnt = moCnt[m] || 0;
-    return cnt ? toM(Math.round(cnt / REVIEW_RATE * AVG_PRICE)) : null;
+  // ── 백년화편 ──
+  // 1차 추정: 리뷰수 역산 (순수)
+  const baekEst1 = filtered.map(m => {
+    const cnt = moCnt[m]||0;
+    return cnt ? toM(Math.round(cnt/REVIEW_RATE*AVG_PRICE)) : null;
   });
-  // 백년화편 실측 (참고용 line)
+  // 2차 추정: 1차 × 월별 보정계수(MONTHLY_RATIO) → 실측 패턴 반영
+  const baekEst2 = filtered.map(m => {
+    const cnt = moCnt[m]||0;
+    if (!cnt) return null;
+    const ratio = MONTHLY_RATIO[m] || 1;
+    return toM(Math.round(cnt/REVIEW_RATE*AVG_PRICE*ratio));
+  });
+  // 실측 (참고 line)
   const baekReal = filtered.map(m => toM(BAEK_REAL[m]));
-  // 명가 추정
-  const myEst = filtered.map(m => {
-    const cnt = myMap[m] || 0;
-    return cnt ? toM(Math.round(cnt / REVIEW_RATE * AVG_PRICE)) : null;
+
+  // ── 명가 ──
+  // 1차 추정
+  const myEst1 = filtered.map(m => {
+    const cnt = myMap[m]||0;
+    return cnt ? toM(Math.round(cnt/REVIEW_RATE*AVG_PRICE)) : null;
+  });
+  // 2차 추정: 동일 보정계수 적용
+  const myEst2 = filtered.map(m => {
+    const cnt = myMap[m]||0;
+    if (!cnt) return null;
+    const ratio = MONTHLY_RATIO[m] || 1;
+    return toM(Math.round(cnt/REVIEW_RATE*AVG_PRICE*ratio));
   });
 
   charts.sales = new Chart(ctx, {
@@ -569,18 +607,33 @@ function renderSalesChart(data, months) {
     data:{
       labels:filtered.map(m=>{const[y,mo]=m.split('-');return`${y.slice(2)}/${mo}`;}),
       datasets:[
+        // 백년화편 실측 (line, 점선)
         { label:'백년화편 실측', type:'line',
           data:baekReal,
           borderColor:'#F5820D', backgroundColor:'transparent',
           borderWidth:2.5, borderDash:[6,3],
-          pointRadius:4, pointBackgroundColor:'#F5820D',
+          pointRadius:4, pointBackgroundColor:'#F5820D', pointBorderColor:'#fff', pointBorderWidth:2,
           tension:.2, order:0 },
-        { label:'백년화편 추정', data:baekEst,
-          backgroundColor:'rgba(245,130,13,.65)', borderColor:'#F5820D',
+        // 백년화편 2차추정 (진한 bar)
+        { label:'백년화편 2차추정',
+          data:baekEst2,
+          backgroundColor:'rgba(245,130,13,.8)', borderColor:'#F5820D',
           borderWidth:1.5, borderRadius:4, order:1 },
-        { label:'명가 추정', data:myEst,
-          backgroundColor:'rgba(49,130,246,.45)', borderColor:'#3182F6',
+        // 백년화편 1차추정 (연한 bar)
+        { label:'백년화편 1차추정',
+          data:baekEst1,
+          backgroundColor:'rgba(245,130,13,.3)', borderColor:'#F5820D',
+          borderWidth:1, borderRadius:4, borderDash:[3,2], order:1 },
+        // 명가 2차추정 (진한 bar)
+        { label:'명가 2차추정',
+          data:myEst2,
+          backgroundColor:'rgba(49,130,246,.7)', borderColor:'#3182F6',
           borderWidth:1.5, borderRadius:4, order:1 },
+        // 명가 1차추정 (연한 bar)
+        { label:'명가 1차추정',
+          data:myEst1,
+          backgroundColor:'rgba(49,130,246,.25)', borderColor:'#3182F6',
+          borderWidth:1, borderRadius:4, order:1 },
       ]
     },
     options:{...commonOpts(annotations),
@@ -924,16 +977,7 @@ function renderDailyChart() {
           bodyFont:{ size:11, family:'-apple-system,BlinkMacSystemFont,sans-serif' },
           callbacks:{
             title: items => items[0].label + '일',
-            label: item => {
-              const idx = item.dataIndex;
-              const d = slice[idx];
-              const mo = d.date.slice(0,7);
-              // 월별 오차율 안내
-              const ERR = {'2026-01':-21.4,'2026-02':-37.4,'2026-03':45.5,'2026-04':12.9,'2026-05':-43.8};
-              const err = ERR[mo];
-              const errStr = err !== undefined ? ` (${mo.slice(5)}월 모델 오차 ${err>0?'+':''}${err.toFixed(1)}%)` : '';
-              return '추정 ' + item.raw.toLocaleString() + '만원' + errStr;
-            },
+            label: item => '추정 ' + item.raw.toLocaleString() + '만원',
             afterBody: items => {
               const idx = items[0].dataIndex;
               const issues = slice[idx]?.issues || [];
