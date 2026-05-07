@@ -180,5 +180,57 @@ def compute_stats(reviews: list[dict], date_from: str = None, date_to: str = Non
         "negative_keywords_all": extract_keywords(neg_texts, 5),
         "positive_keywords_week": extract_keywords(pos_texts_week, 5),
         "negative_keywords_week": extract_keywords(neg_texts_week, 5),
-        "reviews": sorted(all_reviews, key=lambda x: x.get("date", ""), reverse=True)[:500],
+        "reviews": sorted(all_reviews, key=lambda x: x.get("date", ""), reverse=True)[:500],  # 목록 프리뷰용
+        "total_reviews": len(all_reviews),  # 전체 건수 (페이지네이션용)
+    }
+
+
+def get_reviews_page(reviews: list[dict], date_from: str = None, date_to: str = None,
+                     page: int = 1, size: int = 20,
+                     filter_type: str = "all") -> dict:
+    """후기 목록 페이지네이션 전용 함수"""
+    # 날짜 필터
+    if date_from or date_to:
+        df = parse_date(date_from) if date_from else None
+        dt = parse_date(date_to) if date_to else None
+        if dt:
+            dt = dt.replace(hour=23, minute=59, second=59)
+        filtered = []
+        for r in reviews:
+            d = parse_date(r.get("date", ""))
+            if not d:
+                continue
+            if df and d < df:
+                continue
+            if dt and d > dt:
+                continue
+            filtered.append(r)
+    else:
+        filtered = [r for r in reviews if parse_date(r.get("date", ""))]
+
+    # 플랫폼/점수 필터
+    if filter_type == "low":
+        filtered = [r for r in filtered if 0 < r.get("score", 5) <= 3]
+    elif filter_type == "jasa":
+        filtered = [r for r in filtered if r.get("platform") != "smartstore"]
+    elif filter_type == "ss":
+        filtered = [r for r in filtered if r.get("platform") == "smartstore"]
+
+    # 날짜 내림차순 정렬
+    filtered = sorted(filtered, key=lambda x: x.get("date", ""), reverse=True)
+
+    total = len(filtered)
+    total_pages = max(1, -(-total // size))  # ceil division
+    page = max(1, min(page, total_pages))
+    start = (page - 1) * size
+    items = filtered[start:start + size]
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "size": size,
+        "total_pages": total_pages,
+        "has_prev": page > 1,
+        "has_next": page < total_pages,
     }
