@@ -9,9 +9,9 @@
 
     body {
       min-height: 100vh;
-      background: var(--th-bg, #0f1117);
+      background: var(--bg);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
-      color: #e2e8f0;
+      color: var(--text);
       display: flex;
       flex-direction: column;
     }
@@ -45,7 +45,7 @@
 
     .header-text p {
       font-size: 12px;
-      color: #64748b;
+      color: var(--text3);
       margin-top: 2px;
       letter-spacing: 0.5px;
       text-transform: uppercase;
@@ -61,9 +61,9 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(249,115,22,0.12);
-      border: 1px solid rgba(249,115,22,0.25);
-      color: #fb923c;
+      background: rgba(181,101,29,0.1);
+      border: 1px solid rgba(181,101,29,0.25);
+      color: #b5651d;
       font-size: 12px;
       font-weight: 600;
       padding: 5px 14px;
@@ -78,14 +78,14 @@
       letter-spacing: -1px;
       line-height: 1.2;
       margin-bottom: 14px;
-      background: linear-gradient(135deg, #f8fafc 30%, #94a3b8);
+      background: linear-gradient(135deg, var(--text) 30%, var(--text3));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
     .hero p {
-      color: #64748b;
+      color: var(--text3);
       font-size: 15px;
       line-height: 1.7;
       max-width: 440px;
@@ -104,7 +104,7 @@
     .section-label {
       font-size: 11px;
       font-weight: 600;
-      color: #475569;
+      color: var(--text4);
       letter-spacing: 1.5px;
       text-transform: uppercase;
       margin-bottom: 16px;
@@ -119,8 +119,8 @@
     /* ── 개별 카드 ── */
     .card {
       position: relative;
-      background: var(--th-surface, #1a1f2e);
-      border: 1px solid #1e293b;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 20px;
       padding: 28px;
       cursor: pointer;
@@ -210,7 +210,7 @@
 
     .card-desc {
       font-size: 13px;
-      color: #64748b;
+      color: var(--text3);
       line-height: 1.6;
     }
 
@@ -230,14 +230,14 @@
     }
 
     .card:hover .card-arrow {
-      background: rgba(255,255,255,0.1);
+      background: rgba(44,36,22,.08);
       transform: translate(2px, -2px);
     }
 
     .card-arrow svg {
       width: 14px;
       height: 14px;
-      stroke: #475569;
+      stroke: var(--text4);
     }
 
     /* 상태 뱃지 */
@@ -253,15 +253,15 @@
     }
 
     .status-badge.live {
-      background: rgba(34,197,94,0.12);
-      color: #4ade80;
+      background: rgba(74,154,90,0.12);
+      color: #5a9a5a;
     }
 
     .status-badge.live::before {
       content: '';
       width: 6px; height: 6px;
       border-radius: 50%;
-      background: #4ade80;
+      background: #5a9a5a;
       animation: pulse 2s infinite;
     }
 
@@ -273,24 +273,24 @@
     /* ── 최근 업데이트 ── */
     .updates-section { max-width: 960px; margin: 0 auto; padding: 0 40px 48px; }
     .updates-list { display: flex; flex-direction: column; gap: 0; }
-    .update-item { display: flex; align-items: baseline; gap: 12px; padding: 11px 0; border-bottom: 1px solid #111827; }
+    .update-item { display: flex; align-items: baseline; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
     .update-item:last-child { border-bottom: none; }
     .update-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; letter-spacing: .4px; }
-    .badge-new  { background: rgba(34,197,94,.12); color: #4ade80; }
-    .badge-feat { background: rgba(168,85,247,.12); color: #c084fc; }
-    .badge-fix  { background: rgba(59,130,246,.12); color: #60a5fa; }
-    .update-date { font-size: 11px; color: #334155; white-space: nowrap; flex-shrink: 0; }
-    .update-text { font-size: 13px; color: #64748b; line-height: 1.5; }
+    .badge-new  { background: rgba(74,154,90,.12); color: #5a9a5a; }
+    .badge-feat { background: rgba(181,101,29,.1); color: #b5651d; }
+    .badge-fix  { background: rgba(59,130,246,.1); color: #3b82f6; }
+    .update-date { font-size: 11px; color: var(--text4); white-space: nowrap; flex-shrink: 0; }
+    .update-text { font-size: 13px; color: var(--text3); line-height: 1.5; }
     .updates-footer { margin-top: 10px; }
-    .updates-footer a { font-size: 12px; color: #334155; text-decoration: none; transition: color .15s; }
-    .updates-footer a:hover { color: #94a3b8; }
+    .updates-footer a { font-size: 12px; color: var(--text4); text-decoration: none; transition: color .15s; }
+    .updates-footer a:hover { color: var(--text3); }
 
     /* ── 푸터 ── */
     footer {
       text-align: center;
       padding: 20px 40px 32px;
       font-size: 12px;
-      color: #334155;
+      color: var(--text4);
     }
 
     /* ── 모바일 ── */
@@ -303,36 +303,36 @@
       .hero h2 { font-size: 26px; }
     }
   
-  /* ── 주간/야간 자동 테마 ── */
-  html.night {
-    --th-bg:      #0f1117;
-    --th-surface: #1a1f2e;
-    --th-border:  #1e293b;
-    --th-border2: #334155;
-    --th-text:    #e2e8f0;
-    --th-text2:   #94a3b8;
-    --th-text3:   #64748b;
-    --th-text4:   #475569;
+  
+  /* ══ 베이지 테마 공통 변수 ══ */
+  :root, html.day {
+    --bg:      #f7f3ee;
+    --surface: #fffdf9;
+    --border:  #e8e0d4;
+    --border2: #d4c9b8;
+    --text:    #2c2416;
+    --text2:   #5c4e3a;
+    --text3:   #8a7a65;
+    --text4:   #a89880;
   }
-  html.day {
-    --th-bg:      #f8f5f0;
-    --th-surface: #ffffff;
-    --th-border:  #e2d9cf;
-    --th-border2: #c8b9a8;
-    --th-text:    #1e1a14;
-    --th-text2:   #5c4e3a;
-    --th-text3:   #8a7a65;
-    --th-text4:   #a8998a;
+  html.night {
+    --bg:      #1e1a14;
+    --surface: #2a2318;
+    --border:  #3d3326;
+    --border2: #5a4d38;
+    --text:    #f0e8d8;
+    --text2:   #c8b89a;
+    --text3:   #8a7a65;
+    --text4:   #6b5c48;
   }
   .theme-toggle {
     position: fixed; bottom: 20px; left: 20px;
     width: 38px; height: 38px; border-radius: 50%;
-    border: 1px solid var(--th-border, #1e293b);
-    background: var(--th-surface, #1a1f2e);
-    color: var(--th-text2, #94a3b8);
+    border: 1px solid var(--border2);
+    background: var(--surface); color: var(--text3);
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     font-size: 16px; z-index: 999;
-    box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    box-shadow: 0 2px 12px rgba(44,36,22,.1);
     transition: transform .15s, opacity .15s;
     -webkit-tap-highlight-color: transparent;
   }
