@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pydantic import BaseModel
 from scraper import collect_all, DATA_PATH
-from analyzer import compute_stats
+from analyzer import compute_stats, get_reviews_page
 
 # ── 리뷰 데이터 메모리 캐시 ──
 _reviews_cache = None   # {'jasaol': [...], 'myeongga': [...], ...}
@@ -304,6 +304,32 @@ async def get_live_logs(offset: int = 0):
         "total": len(logs),
         "offset": offset,
     }
+
+
+@app.get("/api/reviews")
+async def get_reviews(
+    shop: str = "jasaol",
+    page: int = 1,
+    size: int = 20,
+    filter_type: str = "all",
+    date_from: str = None,
+    date_to: str = None,
+):
+    """후기 목록 페이지네이션 전용 API"""
+    import asyncio
+    cache = await asyncio.get_event_loop().run_in_executor(None, _load_reviews_cached)
+    if not cache:
+        raise HTTPException(status_code=500, detail="데이터 로드 실패")
+    reviews = cache.get(shop, [])
+    result = get_reviews_page(
+        reviews,
+        date_from=date_from,
+        date_to=date_to,
+        page=page,
+        size=size,
+        filter_type=filter_type,
+    )
+    return result
 
 @app.get("/api/smartstore-latest-date")
 async def smartstore_latest_date():
