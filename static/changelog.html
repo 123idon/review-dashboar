@@ -6,21 +6,21 @@
   <title>업데이트 내역 — 백년화편</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{min-height:100vh;background:var(--th-bg,#0f1117);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;color:#e2e8f0;}
+    body{min-height:100vh;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;color:var(--text);}
 
-    header{padding:24px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;}
+    header{padding:24px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
     .header-left{display:flex;align-items:center;gap:14px;}
     .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#f97316,#ec4899);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;}
     .brand-name{font-size:16px;font-weight:700;}
-    .brand-sub{font-size:11px;color:#475569;margin-top:1px;letter-spacing:.4px;text-transform:uppercase;}
-    .back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid #1e293b;color:#94a3b8;font-size:13px;text-decoration:none;transition:.15s;}
-    .back-btn:hover{background:rgba(255,255,255,.1);color:#e2e8f0;}
+    .brand-sub{font-size:11px;color:var(--text4);margin-top:1px;letter-spacing:.4px;text-transform:uppercase;}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;background:rgba(44,36,22,.06);border:1px solid var(--border);color:var(--text3);font-size:13px;text-decoration:none;transition:.15s;}
+    .back-btn:hover{background:rgba(44,36,22,.08);color:var(--text);}
 
     .wrap{max-width:720px;margin:0 auto;padding:36px 40px 80px;}
 
     .page-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:#818cf8;font-size:11px;font-weight:600;padding:4px 12px;border-radius:100px;margin-bottom:14px;}
-    h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;background:linear-gradient(135deg,#f8fafc 40%,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-    .subtitle{font-size:13px;color:#475569;margin-bottom:40px;}
+    h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;background:linear-gradient(135deg,var(--text) 40%,var(--text3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .subtitle{font-size:13px;color:var(--text4);margin-bottom:40px;}
 
     /* 타임라인 */
     .timeline{position:relative;padding-left:28px;}
@@ -34,7 +34,7 @@
     .dot-refactor{background:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,.3);}
 
     .entry-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
-    .entry-date{font-size:12px;color:#475569;font-weight:600;}
+    .entry-date{font-size:12px;color:var(--text4);font-weight:600;}
     .entry-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;letter-spacing:.5px;}
     .tag-new     {background:rgba(34,197,94,.12);color:#4ade80;}
     .tag-feat    {background:rgba(168,85,247,.12);color:#c084fc;}
@@ -43,8 +43,8 @@
 
     .entry-title{font-size:15px;font-weight:700;margin-bottom:6px;letter-spacing:-.2px;}
     .entry-items{list-style:none;display:flex;flex-direction:column;gap:5px;}
-    .entry-items li{font-size:13px;color:#64748b;line-height:1.6;display:flex;gap:8px;}
-    .entry-items li::before{content:'·';color:#334155;flex-shrink:0;}
+    .entry-items li{font-size:13px;color:var(--text3);line-height:1.6;display:flex;gap:8px;}
+    .entry-items li::before{content:'·';color:var(--text4);flex-shrink:0;}
 
     @media(max-width:600px){
       header{padding:18px 20px;}
@@ -53,36 +53,36 @@
       .entry-title{font-size:14px;}
     }
   
-  /* ── 주간/야간 자동 테마 ── */
-  html.night {
-    --th-bg:      #0f1117;
-    --th-surface: #1a1f2e;
-    --th-border:  #1e293b;
-    --th-border2: #334155;
-    --th-text:    #e2e8f0;
-    --th-text2:   #94a3b8;
-    --th-text3:   #64748b;
-    --th-text4:   #475569;
+  
+  /* ══ 베이지 테마 공통 변수 ══ */
+  :root, html.day {
+    --bg:      #f7f3ee;
+    --surface: #fffdf9;
+    --border:  #e8e0d4;
+    --border2: #d4c9b8;
+    --text:    #2c2416;
+    --text2:   #5c4e3a;
+    --text3:   #8a7a65;
+    --text4:   #a89880;
   }
-  html.day {
-    --th-bg:      #f8f5f0;
-    --th-surface: #ffffff;
-    --th-border:  #e2d9cf;
-    --th-border2: #c8b9a8;
-    --th-text:    #1e1a14;
-    --th-text2:   #5c4e3a;
-    --th-text3:   #8a7a65;
-    --th-text4:   #a8998a;
+  html.night {
+    --bg:      #1e1a14;
+    --surface: #2a2318;
+    --border:  #3d3326;
+    --border2: #5a4d38;
+    --text:    #f0e8d8;
+    --text2:   #c8b89a;
+    --text3:   #8a7a65;
+    --text4:   #6b5c48;
   }
   .theme-toggle {
     position: fixed; bottom: 20px; left: 20px;
     width: 38px; height: 38px; border-radius: 50%;
-    border: 1px solid var(--th-border, #1e293b);
-    background: var(--th-surface, #1a1f2e);
-    color: var(--th-text2, #94a3b8);
+    border: 1px solid var(--border2);
+    background: var(--surface); color: var(--text3);
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     font-size: 16px; z-index: 999;
-    box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    box-shadow: 0 2px 12px rgba(44,36,22,.1);
     transition: transform .15s, opacity .15s;
     -webkit-tap-highlight-color: transparent;
   }
@@ -123,12 +123,12 @@
   }
   .mp-header {
     padding: 16px 18px 12px;
-    border-bottom: 1px solid #1e293b;
+    border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
     flex-shrink: 0;
   }
   .mp-title {
-    font-size: 14px; font-weight: 700; color: #e2e8f0;
+    font-size: 14px; font-weight: 700; color: var(--text);
     display: flex; align-items: center; gap: 6px;
   }
   .mp-title small { font-size: 10px; color: #475569; font-weight: 400; }
@@ -138,13 +138,13 @@
     cursor: pointer; font-size: 14px; display: flex;
     align-items: center; justify-content: center; transition: background .15s;
   }
-  .mp-close:hover { background: #374151; color: #e2e8f0; }
+  .mp-close:hover { background: #374151; color: var(--text); }
   .mp-input-area {
-    padding: 12px 14px; border-bottom: 1px solid #1e293b; flex-shrink: 0;
+    padding: 12px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0;
   }
   .mp-textarea {
     width: 100%; background: #0f1117; border: 1px solid #2d3748;
-    border-radius: 10px; color: #e2e8f0; font-size: 13px;
+    border-radius: 10px; color: var(--text); font-size: 13px;
     font-family: inherit; resize: none; outline: none;
     padding: 10px 12px; line-height: 1.6; min-height: 72px;
     transition: border-color .15s;
@@ -174,7 +174,7 @@
     text-align: center; padding: 28px 0; color: #334155; font-size: 13px;
   }
   .mp-card {
-    background: #0f1117; border: 1px solid #1e293b;
+    background: #0f1117; border: 1px solid var(--border);
     border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
     position: relative;
   }
