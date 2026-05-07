@@ -473,6 +473,27 @@
     loadReports();
   </script>
 
+<!-- ── 플로팅 메모 패널 ── -->
+<button id="memoFab" onclick="mpToggle()" title="빠른 메모" aria-label="메모 열기">
+  📝
+  <span id="mpBadge" class="mp-badge"></span>
+</button>
+<div id="memoPanel">
+  <div class="mp-header">
+    <span>📝 메모</span>
+    <button class="mp-close-btn" onclick="mpToggle()" title="닫기">✕</button>
+  </div>
+  <div class="mp-body">
+    <div class="mp-input-row">
+      <textarea id="mpInput" class="mp-input" placeholder="Ctrl+Enter로 저장" rows="3"></textarea>
+      <button id="mpSaveBtn" class="mp-save-btn" onclick="mpSave()">저장</button>
+    </div>
+    <div id="mpList" class="mp-list"></div>
+  </div>
+</div>
+<div id="mpToast" class="mp-toast"></div>
+
+
 <button class="theme-toggle" id="themeToggle" onclick="__toggleTheme()" title="주간/야간 전환">🌙</button>
 
 <script>
