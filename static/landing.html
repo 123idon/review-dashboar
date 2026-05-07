@@ -169,6 +169,10 @@
     .card.purple { border-color: rgba(139,92,246,0.2); }
     .card.yellow { border-color: rgba(234,179,8,0.2); }
     .card.indigo { border-color: rgba(99,102,241,0.2); }
+    .card.indigo::before { background: linear-gradient(135deg, rgba(99,102,241,0.06), transparent); }
+    .card.indigo:hover { border-color: rgba(99,102,241,0.5); box-shadow: 0 12px 40px rgba(99,102,241,0.15); }
+    .card.indigo:hover::before { opacity: 1; }
+    .card.indigo .card-icon { background: rgba(99,102,241,0.15); }
     .card.teal { border-color: rgba(20,184,166,0.2); }
     .card.teal::before { background: linear-gradient(135deg, rgba(20,184,166,0.06), transparent); }
     .card.teal:hover { border-color: rgba(20,184,166,0.5); box-shadow: 0 12px 40px rgba(20,184,166,0.15); }
@@ -419,6 +423,17 @@
 
 
 
+      <!-- 경쟁사 모니터링 -->
+      <a class="card indigo" href="/competitor">
+        <div class="card-icon">🔍</div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+        </div>
+        <div class="card-title">경쟁사 모니터링</div>
+        <div class="card-desc">명가삼대떡집·파파공방 별점 추이·리뷰량·키워드를 백년화편과 비교.</div>
+        <div class="status-badge live">LIVE</div>
+      </a>
+
       <!-- 재고 현황 -->
       <a class="card teal" href="/inventory">
         <div class="card-icon">📦</div>
@@ -448,6 +463,11 @@
   <div class="updates-section">
     <div class="section-label" style="margin-bottom:14px;">최근 업데이트</div>
     <div class="updates-list">
+      <div class="update-item">
+        <span class="update-badge badge-new">NEW</span>
+        <span class="update-date">2026.05.07</span>
+        <span class="update-text">경쟁사 추이 모니터링 — 브랜드별 월별 평점·리뷰량 추이, 긍/부정 키워드 비교</span>
+      </div>
       <div class="update-item">
         <span class="update-badge badge-new">NEW</span>
         <span class="update-date">2026.05.07</span>
