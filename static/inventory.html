@@ -7,26 +7,46 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    :root {
-      --bg: #0f1117;
-      --surface: #1a1f2e;
-      --border: #1e293b;
-      --border2: #334155;
-      --text: #e2e8f0;
-      --text2: #94a3b8;
-      --text3: #64748b;
-      --text4: #475569;
-      --orange: #f97316;
-      --green: #4ade80;
-      --green-bg: rgba(34,197,94,0.1);
-      --red: #f87171;
-      --red-bg: rgba(239,68,68,0.1);
-      --yellow: #fbbf24;
-      --yellow-bg: rgba(251,191,36,0.1);
-      --purple: #a78bfa;
-      --purple-bg: rgba(139,92,246,0.08);
-      --blue: #60a5fa;
-    }
+    :root, html.day {
+    --bg: #f7f3ee;
+    --surface: #fffdf9;
+    --border: #e8e0d4;
+    --border2: #d4c9b8;
+    --text: #2c2416;
+    --text2: #5c4e3a;
+    --text3: #8a7a65;
+    --text4: #a89880;
+    --orange: #b5651d;
+    --green: #5a9a5a;
+    --green-bg: rgba(74,154,90,0.1);
+    --red: #c0392b;
+    --red-bg: rgba(192,57,43,0.1);
+    --yellow: #c8822a;
+    --yellow-bg: rgba(181,101,29,0.1);
+    --purple: #7c5a8a;
+    --purple-bg: rgba(124,90,138,0.08);
+    --blue: #3b82f6;
+  }
+  html.night {
+    --bg: #1e1a14;
+    --surface: #2a2318;
+    --border: #3d3326;
+    --border2: #5a4d38;
+    --text: #f0e8d8;
+    --text2: #c8b89a;
+    --text3: #8a7a65;
+    --text4: #6b5c48;
+    --orange: #d4973a;
+    --green: #5a9a5a;
+    --green-bg: rgba(74,154,90,0.12);
+    --red: #c0392b;
+    --red-bg: rgba(192,57,43,0.12);
+    --yellow: #d4973a;
+    --yellow-bg: rgba(181,101,29,0.12);
+    --purple: #9b7aa8;
+    --purple-bg: rgba(155,122,168,0.1);
+    --blue: #60a5fa;
+  }
 
     body {
       min-height: 100vh;
@@ -317,7 +337,7 @@
     /* ── 토스트 ── */
     .toast {
       position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
-      background: #2d3748; color: var(--text); padding: 9px 18px;
+      background: var(--border2); color: var(--text); padding: 9px 18px;
       border-radius: 20px; font-size: 12px; font-weight: 600;
       z-index: 400; opacity: 0; transition: opacity .25s;
       pointer-events: none; white-space: nowrap;
@@ -418,7 +438,7 @@
   #memoPanel {
     position: fixed; bottom: 88px; right: 24px; z-index: 901;
     width: 340px; max-height: 520px;
-    background: #1a1f2e; border: 1px solid #2d3748;
+    background: var(--surface); border: 1px solid var(--border2);
     border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.5);
     display: flex; flex-direction: column;
     transform: scale(.9) translateY(16px); opacity: 0;
@@ -435,23 +455,23 @@
     flex-shrink: 0;
   }
   .mp-title {
-    font-size: 14px; font-weight: 700; color: #e2e8f0;
+    font-size: 14px; font-weight: 700; color: var(--text);
     display: flex; align-items: center; gap: 6px;
   }
-  .mp-title small { font-size: 10px; color: #475569; font-weight: 400; }
+  .mp-title small { font-size: 10px; color: var(--text4); font-weight: 400; }
   .mp-close {
     width: 26px; height: 26px; border-radius: 8px;
-    background: #2d3748; border: none; color: #94a3b8;
+    background: var(--border2); border: none; color: var(--text3);
     cursor: pointer; font-size: 14px; display: flex;
     align-items: center; justify-content: center; transition: background .15s;
   }
-  .mp-close:hover { background: #374151; color: #e2e8f0; }
+  .mp-close:hover { background: #374151; color: var(--text); }
   .mp-input-area {
     padding: 12px 14px; border-bottom: 1px solid #1e293b; flex-shrink: 0;
   }
   .mp-textarea {
-    width: 100%; background: #0f1117; border: 1px solid #2d3748;
-    border-radius: 10px; color: #e2e8f0; font-size: 13px;
+    width: 100%; background: var(--bg); border: 1px solid var(--border2);
+    border-radius: 10px; color: var(--text); font-size: 13px;
     font-family: inherit; resize: none; outline: none;
     padding: 10px 12px; line-height: 1.6; min-height: 72px;
     transition: border-color .15s;
@@ -476,17 +496,17 @@
   }
   .mp-list::-webkit-scrollbar { width: 4px; }
   .mp-list::-webkit-scrollbar-track { background: transparent; }
-  .mp-list::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 2px; }
+  .mp-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
   .mp-empty {
     text-align: center; padding: 28px 0; color: #334155; font-size: 13px;
   }
   .mp-card {
-    background: #0f1117; border: 1px solid #1e293b;
+    background: var(--bg); border: 1px solid var(--border);
     border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
     position: relative;
   }
   .mp-card-text {
-    font-size: 13px; color: #cbd5e1; line-height: 1.6;
+    font-size: 13px; color: var(--text2); line-height: 1.6;
     white-space: pre-wrap; word-break: break-all;
     margin-right: 20px;
   }
@@ -494,7 +514,7 @@
   .mp-del-btn {
     position: absolute; top: 8px; right: 8px;
     width: 20px; height: 20px; border-radius: 5px;
-    background: transparent; border: none; color: #475569;
+    background: transparent; border: none; color: var(--text4);
     cursor: pointer; font-size: 14px; line-height: 1;
     display: flex; align-items: center; justify-content: center;
     transition: background .15s, color .15s;
@@ -502,8 +522,8 @@
   .mp-del-btn:hover { background: rgba(239,68,68,.15); color: #f87171; }
   .mp-toast {
     position: fixed; bottom: 88px; right: 82px; z-index: 902;
-    background: #1e293b; border: 1px solid #2d3748;
-    color: #94a3b8; font-size: 12px; font-weight: 600;
+    background: var(--border); border: 1px solid var(--border2);
+    color: var(--text3); font-size: 12px; font-weight: 600;
     padding: 7px 14px; border-radius: 9px;
     opacity: 0; transition: opacity .2s; pointer-events: none;
   }
@@ -960,8 +980,8 @@ function renderChart() {
       responsive:true, maintainAspectRatio:true,
       plugins:{ legend:{ display:false } },
       scales: {
-        x:{ ticks:{ color:'#64748b', font:{size:11} }, grid:{ color:'#1e293b' } },
-        y:{ ticks:{ color:'#64748b', font:{size:11} }, grid:{ color:'#1e293b' }, beginAtZero:true }
+        x:{ ticks:{ color:'#64748b', font:{size:11} }, grid:{ color:'var(--border)' } },
+        y:{ ticks:{ color:'#64748b', font:{size:11} }, grid:{ color:'var(--border)' }, beginAtZero:true }
       }
     }
   });
