@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>재고 현황 — 백년화편</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: #0f1117;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      color: #e2e8f0;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #1e293b;
+      position: sticky;
+      top: 0;
+      background: #0f1117;
+      z-index: 100;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      color: #64748b; text-decoration: none; font-size: 13px;
+      padding: 6px 10px; border-radius: 8px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .back-btn:hover { background: #1e293b; color: #e2e8f0; }
+    .header-title { font-size: 17px; font-weight: 700; }
+    .header-sub { font-size: 12px; color: #64748b; margin-top: 1px; }
+    .header-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+    /* ── 탭 ── */
+    .tabs {
+      display: flex; gap: 4px;
+      padding: 16px 24px 0;
+      border-bottom: 1px solid #1e293b;
+    }
+    .tab {
+      padding: 8px 18px; border-radius: 8px 8px 0 0;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      color: #64748b; border: 1px solid transparent;
+      border-bottom: none; background: none;
+      transition: color 0.15s, background 0.15s;
+    }
+    .tab.active {
+      color: #e2e8f0; background: #1a1f2e;
+      border-color: #1e293b;
+    }
+    .tab:not(.active):hover { color: #94a3b8; }
+
+    /* ── 메인 컨텐츠 ── */
+    .content { padding: 24px; max-width: 1100px; margin: 0 auto; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── 요약 카드 ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px; margin-bottom: 24px;
+    }
+    .summary-card {
+      background: #1a1f2e; border: 1px solid #1e293b;
+      border-radius: 14px; padding: 18px 20px;
+    }
+    .summary-card.alert { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+    .summary-card.ok { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.05); }
+    .summary-label { font-size: 11px; color: #64748b; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+    .summary-value { font-size: 26px; font-weight: 800; }
+    .summary-card.alert .summary-value { color: #f87171; }
+    .summary-card.ok .summary-value { color: #4ade80; }
+
+    /* ── 재고 테이블 ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-title { font-size: 14px; font-weight: 700; color: #94a3b8; }
+    .search-box {
+      background: #1a1f2e; border: 1px solid #1e293b;
+      border-radius: 8px; padding: 7px 12px;
+      color: #e2e8f0; font-size: 13px; outline: none;
+      width: 200px;
+    }
+    .search-box:focus { border-color: #334155; }
+
+    .stock-table { width: 100%; border-collapse: collapse; }
+    .stock-table th {
+      text-align: left; padding: 10px 14px;
+      font-size: 11px; font-weight: 600; color: #475569;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      border-bottom: 1px solid #1e293b;
+    }
+    .stock-table td {
+      padding: 12px 14px; font-size: 14px;
+      border-bottom: 1px solid #0f1117;
+      vertical-align: middle;
+    }
+    .stock-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .stock-name { font-weight: 600; }
+    .stock-code { font-size: 11px; color: #475569; margin-top: 2px; }
+
+    .stock-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 13px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+    }
+    .stock-badge.normal { background: rgba(34,197,94,0.1); color: #4ade80; }
+    .stock-badge.warning { background: rgba(251,191,36,0.1); color: #fbbf24; }
+    .stock-badge.danger { background: rgba(239,68,68,0.1); color: #f87171; animation: pulse 1.5s infinite; }
+    .stock-badge.soldout { background: rgba(100,116,139,0.1); color: #64748b; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .threshold-badge {
+      font-size: 11px; color: #475569;
+      background: #1e293b; border-radius: 4px;
+      padding: 2px 6px;
+    }
+
+    .action-btns { display: flex; gap: 6px; }
+    .btn-sm {
+      padding: 5px 12px; border-radius: 7px; font-size: 12px;
+      font-weight: 600; cursor: pointer; border: none;
+      transition: opacity 0.15s;
+    }
+    .btn-sm:hover { opacity: 0.8; }
+    .btn-add { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .btn-minus { background: rgba(239,68,68,0.15); color: #f87171; }
+    .btn-edit { background: rgba(100,116,139,0.15); color: #94a3b8; }
+
+    .soldout-time { font-size: 11px; color: #ef4444; margin-top: 2px; }
+
+    /* ── 모달 ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #1a1f2e; border: 1px solid #1e293b;
+      border-radius: 18px; padding: 28px; width: 360px;
+      max-width: 90vw;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px; display: block; }
+    .form-input {
+      width: 100%; background: #0f1117; border: 1px solid #1e293b;
+      border-radius: 8px; padding: 10px 12px; color: #e2e8f0;
+      font-size: 14px; outline: none;
+    }
+    .form-input:focus { border-color: #334155; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+    .modal-btns { display: flex; gap: 8px; margin-top: 20px; }
+    .btn-primary {
+      flex: 1; padding: 10px; border-radius: 9px;
+      background: #f97316; color: #fff; border: none;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-secondary {
+      padding: 10px 18px; border-radius: 9px;
+      background: #1e293b; color: #94a3b8; border: none;
+      font-size: 14px; cursor: pointer;
+    }
+    .btn-secondary:hover { background: #334155; }
+
+    /* ── 이력 ── */
+    .history-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: 1px solid #1e293b; background: #1a1f2e; color: #64748b;
+      transition: all 0.15s;
+    }
+    .filter-btn.active { border-color: #f97316; color: #f97316; background: rgba(249,115,22,0.08); }
+
+    .history-list { display: flex; flex-direction: column; gap: 8px; }
+    .history-item {
+      background: #1a1f2e; border: 1px solid #1e293b;
+      border-radius: 10px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .history-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .history-dot.add { background: #4ade80; }
+    .history-dot.minus { background: #f87171; }
+    .history-dot.soldout { background: #64748b; }
+    .history-dot.init { background: #60a5fa; }
+    .history-info { flex: 1; }
+    .history-name { font-size: 13px; font-weight: 600; }
+    .history-note { font-size: 12px; color: #64748b; margin-top: 2px; }
+    .history-qty {
+      font-size: 14px; font-weight: 700;
+    }
+    .history-qty.plus { color: #4ade80; }
+    .history-qty.minus { color: #f87171; }
+    .history-time { font-size: 11px; color: #475569; text-align: right; min-width: 80px; }
+
+    /* ── 차트 탭 ── */
+    .chart-controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+    .period-btn {
+      padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: 1px solid #1e293b; background: #1a1f2e; color: #64748b;
+      transition: all 0.15s;
+    }
+    .period-btn.active { border-color: #8b5cf6; color: #a78bfa; background: rgba(139,92,246,0.08); }
+    .product-select {
+      background: #1a1f2e; border: 1px solid #1e293b;
+      border-radius: 8px; padding: 6px 12px;
+      color: #e2e8f0; font-size: 13px; outline: none;
+    }
+    .chart-wrap {
+      background: #1a1f2e; border: 1px solid #1e293b;
+      border-radius: 14px; padding: 20px; margin-bottom: 16px;
+    }
+    .chart-title { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 16px; }
+    canvas { width: 100% !important; }
+
+    /* ── 설정 탭 ── */
+    .settings-section {
+      background: #1a1f2e; border: 1px solid #1e293b;
+      border-radius: 14px; padding: 24px; margin-bottom: 16px;
+    }
+    .settings-title {
+      font-size: 14px; font-weight: 700; margin-bottom: 18px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .settings-title .icon { font-size: 16px; }
+    .api-status {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .api-status.connected { background: rgba(34,197,94,0.1); color: #4ade80; }
+    .api-status.disconnected { background: rgba(239,68,68,0.1); color: #f87171; }
+    .api-status.pending { background: rgba(251,191,36,0.1); color: #fbbf24; }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: #475569;
+    }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-text { font-size: 14px; }
+
+    /* ── 상품 추가 버튼 ── */
+    .fab {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #f97316; border: none; cursor: pointer;
+      font-size: 24px; color: #fff;
+      box-shadow: 0 4px 20px rgba(249,115,22,0.4);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      z-index: 50;
+    }
+    .fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(249,115,22,0.5); }
+
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: #e2e8f0; padding: 10px 20px;
+      border-radius: 20px; font-size: 13px; font-weight: 600;
+      z-index: 300; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .tabs { overflow-x: auto; padding-bottom: 0; }
+      .tab { white-space: nowrap; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .action-btns { flex-direction: column; }
+      .stock-table th:nth-child(3),
+      .stock-table td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<header>
+  <a href="/" class="back-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    메인
+  </a>
+  <div>
+    <div class="header-title">📦 재고 현황</div>
+    <div class="header-sub" id="lastSync">마지막 동기화: —</div>
+  </div>
+  <div class="header-right">
+    <span class="api-status disconnected" id="apiStatus">● EasyPOS 미연결</span>
+  </div>
+</header>
+
+<!-- 탭 -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('stock')">재고 현황</button>
+  <button class="tab" onclick="switchTab('history')">변동 이력</button>
+  <button class="tab" onclick="switchTab('chart')">판매 추이</button>
+  <button class="tab" onclick="switchTab('settings')">설정</button>
+</div>
+
+<!-- ══ 재고 현황 탭 ══ -->
+<div class="content">
+  <div class="tab-panel active" id="panel-stock">
+    <!-- 요약 -->
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-label">전체 상품</div>
+        <div class="summary-value" id="totalProducts">—</div>
+      </div>
+      <div class="summary-card ok">
+        <div class="summary-label">정상 재고</div>
+        <div class="summary-value" id="normalCount">—</div>
+      </div>
+      <div class="summary-card alert">
+        <div class="summary-label">매진 임박</div>
+        <div class="summary-value" id="alertCount">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">매진</div>
+        <div class="summary-value" style="color:#64748b" id="soldoutCount">—</div>
+      </div>
+    </div>
+
+    <!-- 테이블 -->
+    <div class="section-header">
+      <div class="section-title">상품별 재고</div>
+      <input class="search-box" type="text" placeholder="상품명 검색..." id="searchInput" oninput="renderTable()" />
+    </div>
+    <table class="stock-table">
+      <thead>
+        <tr>
+          <th>상품명</th>
+          <th>현재 재고</th>
+          <th>임박 기준</th>
+          <th>매진 시각</th>
+          <th>조작</th>
+        </tr>
+      </thead>
+      <tbody id="stockBody">
+        <tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">상품을 추가해주세요</div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ 변동 이력 탭 ══ -->
+  <div class="tab-panel" id="panel-history">
+    <div class="history-filters">
+      <button class="filter-btn active" onclick="setHistoryFilter('all', this)">전체</button>
+      <button class="filter-btn" onclick="setHistoryFilter('add', this)">추가</button>
+      <button class="filter-btn" onclick="setHistoryFilter('minus', this)">차감</button>
+      <button class="filter-btn" onclick="setHistoryFilter('soldout', this)">매진</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">이력이 없습니다</div></div>
+    </div>
+  </div>
+
+  <!-- ══ 판매 추이 탭 ══ -->
+  <div class="tab-panel" id="panel-chart">
+    <div class="chart-controls">
+      <button class="period-btn active" onclick="setPeriod('daily', this)">일별</button>
+      <button class="period-btn" onclick="setPeriod('weekly', this)">주별</button>
+      <button class="period-btn" onclick="setPeriod('monthly', this)">월별</button>
+      <select class="product-select" id="chartProduct" onchange="renderChart()">
+        <option value="all">전체 상품</option>
+      </select>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title" id="chartTitle">일별 판매량 추이</div>
+      <canvas id="salesChart" height="260"></canvas>
+    </div>
+    <div class="empty-state" id="chartEmpty" style="display:none">
+      <div class="empty-icon">📊</div>
+      <div class="empty-text">판매 이력이 없습니다</div>
+    </div>
+  </div>
+
+  <!-- ══ 설정 탭 ══ -->
+  <div class="tab-panel" id="panel-settings">
+
+    <!-- EasyPOS 연동 -->
+    <div class="settings-section">
+      <div class="settings-title"><span class="icon">🔌</span> EasyPOS API 연동</div>
+      <div class="form-group">
+        <label class="form-label">본부 코드 (hd_code)</label>
+        <input class="form-input" id="s_hd_code" value="HYW" placeholder="예: HYW" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">매장 코드 (sp_code) <span style="color:#f87171;font-size:11px;">— KICC 담당자에게 확인 필요</span></label>
+        <input class="form-input" id="s_sp_code" placeholder="예: 000001" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">자동 동기화 주기 (분)</label>
+        <input class="form-input" type="number" id="s_sync_interval" value="30" min="5" max="1440" />
+      </div>
+      <button class="btn-primary" style="width:auto;padding:10px 24px;" onclick="saveApiSettings()">연동 정보 저장</button>
+    </div>
+
+    <!-- 알림 기준 설정 -->
+    <div class="settings-section">
+      <div class="settings-title"><span class="icon">⚠️</span> 매진 임박 기준</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">기본 임박 기준 수량</label>
+          <input class="form-input" type="number" id="s_threshold" value="10" min="1" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">경고 기준 수량 (기본의 2배)</label>
+          <input class="form-input" type="number" id="s_warning" value="20" min="1" />
+        </div>
+      </div>
+      <p style="font-size:12px;color:#475569;margin-bottom:16px;">개별 상품에서 직접 설정하면 기본값을 덮어씁니다.</p>
+      <button class="btn-primary" style="width:auto;padding:10px 24px;" onclick="saveThreshold()">저장</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- FAB 상품 추가 -->
+<button class="fab" onclick="openAddModal()" title="상품 추가">+</button>
+
+<!-- ══ 모달: 상품 추가/수정 ══ -->
+<div class="modal-overlay" id="modalProduct">
+  <div class="modal">
+    <div class="modal-title" id="modalProductTitle">상품 추가</div>
+    <div class="form-group">
+      <label class="form-label">상품명</label>
+      <input class="form-input" id="f_name" placeholder="예: 백설기" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">상품 코드 (선택)</label>
+        <input class="form-input" id="f_code" placeholder="EasyPOS 코드" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">초기 재고 수량</label>
+        <input class="form-input" type="number" id="f_stock" placeholder="0" min="0" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">매진 임박 기준 (개) <span style="color:#475569;font-size:11px;">비우면 기본값 사용</span></label>
+      <input class="form-input" type="number" id="f_threshold" placeholder="기본값 사용" min="1" />
+    </div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('modalProduct')">취소</button>
+      <button class="btn-primary" onclick="saveProduct()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 모달: 재고 조정 ══ -->
+<div class="modal-overlay" id="modalAdjust">
+  <div class="modal">
+    <div class="modal-title" id="modalAdjustTitle">재고 추가</div>
+    <input type="hidden" id="adj_code" />
+    <input type="hidden" id="adj_type" />
+    <div class="form-group">
+      <label class="form-label">수량</label>
+      <input class="form-input" type="number" id="adj_qty" placeholder="0" min="1" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">메모 (선택)</label>
+      <input class="form-input" id="adj_note" placeholder="예: 오전 추가 생산" />
+    </div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('modalAdjust')">취소</button>
+      <button class="btn-primary" onclick="applyAdjust()">적용</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+<script>
+// ── 상태 ──
+let state = { products: [], history: [], settings: { hd_code:'HYW', sp_code:'', alert_threshold:10, warning_threshold:20, sync_interval:30 } };
+let historyFilter = 'all';
+let chartPeriod = 'daily';
+let salesChartObj = null;
+let editingCode = null;
+
+// ── 초기 로드 ──
+async function init() {
+  await loadData();
+  renderTable();
+  renderHistory();
+  renderChart();
+  updateSummary();
+  syncSettingsForm();
+}
+
+async function loadData() {
+  try {
+    const r = await fetch('/api/inventory');
+    if (r.ok) { state = await r.json(); }
+  } catch(e) {}
+}
+
+async function saveData() {
+  try {
+    await fetch('/api/inventory', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(state)
+    });
+  } catch(e) {}
+}
+
+// ── 탭 전환 ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'chart') renderChart();
+}
+
+// ── 요약 업데이트 ──
+function updateSummary() {
+  const def = state.settings.alert_threshold || 10;
+  const warn = state.settings.warning_threshold || 20;
+  const total = state.products.length;
+  let normal = 0, alert = 0, soldout = 0;
+  state.products.forEach(p => {
+    const th = p.threshold != null ? p.threshold : def;
+    if (p.current_stock <= 0) soldout++;
+    else if (p.current_stock <= th) alert++;
+    else normal++;
+  });
+  document.getElementById('totalProducts').textContent = total;
+  document.getElementById('normalCount').textContent = normal;
+  document.getElementById('alertCount').textContent = alert;
+  document.getElementById('soldoutCount').textContent = soldout;
+}
+
+// ── 테이블 렌더 ──
+function renderTable() {
+  const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+  const def = state.settings.alert_threshold || 10;
+  const tbody = document.getElementById('stockBody');
+
+  let products = state.products.filter(p =>
+    !keyword || p.item_name.toLowerCase().includes(keyword)
+  );
+
+  if (!products.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">${keyword ? '검색 결과 없음' : '상품을 추가해주세요'}</div></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = products.map(p => {
+    const th = p.threshold != null ? p.threshold : def;
+    const warn = th * 2;
+    let badge, status;
+    if (p.current_stock <= 0) {
+      badge = `<span class="stock-badge soldout">● 매진</span>`;
+      status = 'soldout';
+    } else if (p.current_stock <= th) {
+      badge = `<span class="stock-badge danger">⚠ ${p.current_stock}개</span>`;
+      status = 'danger';
+    } else if (p.current_stock <= warn) {
+      badge = `<span class="stock-badge warning">▲ ${p.current_stock}개</span>`;
+      status = 'warning';
+    } else {
+      badge = `<span class="stock-badge normal">✓ ${p.current_stock}개</span>`;
+      status = 'normal';
+    }
+    const soldoutRow = p.soldout_at
+      ? `<div class="soldout-time">🕐 ${p.soldout_at}</div>` : '';
+    return `
+      <tr>
+        <td>
+          <div class="stock-name">${p.item_name}</div>
+          <div class="stock-code">${p.item_code || '코드 없음'}</div>
+        </td>
+        <td>${badge}</td>
+        <td><span class="threshold-badge">${th}개 이하</span></td>
+        <td>${soldoutRow || '<span style="color:#334155;font-size:12px;">—</span>'}</td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-sm btn-add" onclick="openAdjust('${p.item_code||p.item_name}','add')">+ 추가</button>
+            <button class="btn-sm btn-minus" onclick="openAdjust('${p.item_code||p.item_name}','minus')">- 차감</button>
+            <button class="btn-sm btn-edit" onclick="openEditModal('${p.item_code||p.item_name}')">수정</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+// ── 이력 렌더 ──
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  let items = [...state.history].reverse();
+  if (historyFilter !== 'all') items = items.filter(h => h.type === historyFilter);
+  if (!items.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">이력이 없습니다</div></div>`;
+    return;
+  }
+  const typeLabel = { add:'추가', minus:'차감', soldout:'매진', init:'초기설정', pos:'POS차감' };
+  list.innerHTML = items.map(h => {
+    const qtyClass = h.type === 'add' || h.type === 'init' ? 'plus' : 'minus';
+    const qtySign = h.type === 'add' || h.type === 'init' ? '+' : '-';
+    const dotClass = h.type === 'add' ? 'add' : h.type === 'soldout' ? 'soldout' : h.type === 'init' ? 'init' : 'minus';
+    return `
+      <div class="history-item">
+        <div class="history-dot ${dotClass}"></div>
+        <div class="history-info">
+          <div class="history-name">${h.item_name || h.item_code}</div>
+          <div class="history-note">${typeLabel[h.type]||h.type}${h.note ? ' · ' + h.note : ''}</div>
+        </div>
+        <div class="history-qty ${qtyClass}">${h.type==='soldout'?'0':qtySign+h.qty}</div>
+        <div class="history-time">${h.datetime}</div>
+      </div>`;
+  }).join('');
+}
+
+function setHistoryFilter(f, el) {
+  historyFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderHistory();
+}
+
+// ── 차트 ──
+function setPeriod(p, el) {
+  chartPeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderChart();
+}
+
+function renderChart() {
+  const canvas = document.getElementById('salesChart');
+  const empty = document.getElementById('chartEmpty');
+  const titleEl = document.getElementById('chartTitle');
+  const productFilter = document.getElementById('chartProduct').value;
+
+  // 판매 이력만 (minus, pos)
+  let items = state.history.filter(h => h.type === 'minus' || h.type === 'pos');
+  if (productFilter !== 'all') items = items.filter(h => (h.item_code||h.item_name) === productFilter);
+
+  if (!items.length) {
+    canvas.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  canvas.style.display = 'block';
+  empty.style.display = 'none';
+
+  // 집계
+  const buckets = {};
+  items.forEach(h => {
+    let key;
+    const d = new Date(h.datetime.replace(' ', 'T'));
+    if (chartPeriod === 'daily') key = h.datetime.slice(0,10);
+    else if (chartPeriod === 'weekly') {
+      const mon = new Date(d); mon.setDate(d.getDate() - d.getDay() + 1);
+      key = mon.toISOString().slice(0,10);
+    } else {
+      key = h.datetime.slice(0,7);
+    }
+    buckets[key] = (buckets[key] || 0) + (h.qty || 0);
+  });
+
+  const labels = Object.keys(buckets).sort();
+  const data = labels.map(k => buckets[k]);
+  const periodMap = { daily:'일별', weekly:'주별', monthly:'월별' };
+  titleEl.textContent = `${periodMap[chartPeriod]} 판매량 추이`;
+
+  if (salesChartObj) salesChartObj.destroy();
+  salesChartObj = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '판매 수량',
+        data,
+        backgroundColor: 'rgba(139,92,246,0.5)',
+        borderColor: '#8b5cf6',
+        borderWidth: 2,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+        y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ── 상품 추가/수정 모달 ──
+function openAddModal() {
+  editingCode = null;
+  document.getElementById('modalProductTitle').textContent = '상품 추가';
+  document.getElementById('f_name').value = '';
+  document.getElementById('f_code').value = '';
+  document.getElementById('f_stock').value = '';
+  document.getElementById('f_threshold').value = '';
+  document.getElementById('modalProduct').classList.add('open');
+}
+function openEditModal(code) {
+  const p = state.products.find(p => (p.item_code||p.item_name) === code);
+  if (!p) return;
+  editingCode = code;
+  document.getElementById('modalProductTitle').textContent = '상품 수정';
+  document.getElementById('f_name').value = p.item_name;
+  document.getElementById('f_code').value = p.item_code || '';
+  document.getElementById('f_stock').value = p.current_stock;
+  document.getElementById('f_threshold').value = p.threshold != null ? p.threshold : '';
+  document.getElementById('modalProduct').classList.add('open');
+}
+
+async function saveProduct() {
+  const name = document.getElementById('f_name').value.trim();
+  const code = document.getElementById('f_code').value.trim();
+  const stock = parseInt(document.getElementById('f_stock').value) || 0;
+  const thVal = document.getElementById('f_threshold').value;
+  const threshold = thVal !== '' ? parseInt(thVal) : null;
+  if (!name) { showToast('상품명을 입력해주세요'); return; }
+
+  const key = code || name;
+  if (editingCode) {
+    const p = state.products.find(p => (p.item_code||p.item_name) === editingCode);
+    if (p) { p.item_name = name; p.item_code = code; p.current_stock = stock; p.threshold = threshold; }
+  } else {
+    if (state.products.find(p => (p.item_code||p.item_name) === key)) {
+      showToast('이미 존재하는 상품입니다'); return;
+    }
+    state.products.push({ item_code: code, item_name: name, current_stock: stock, threshold, soldout_at: null });
+    addHistory({ type:'init', item_code:code, item_name:name, qty:stock, note:'초기 설정' });
+    updateChartSelect();
+  }
+  await saveData();
+  closeModal('modalProduct');
+  renderTable(); updateSummary();
+  showToast(editingCode ? '수정되었습니다' : '상품이 추가되었습니다');
+}
+
+// ── 재고 조정 ──
+function openAdjust(code, type) {
+  const p = state.products.find(p => (p.item_code||p.item_name) === code);
+  document.getElementById('modalAdjustTitle').textContent = type === 'add' ? `재고 추가 — ${p?.item_name}` : `재고 차감 — ${p?.item_name}`;
+  document.getElementById('adj_code').value = code;
+  document.getElementById('adj_type').value = type;
+  document.getElementById('adj_qty').value = '';
+  document.getElementById('adj_note').value = '';
+  document.getElementById('modalAdjust').classList.add('open');
+}
+
+async function applyAdjust() {
+  const code = document.getElementById('adj_code').value;
+  const type = document.getElementById('adj_type').value;
+  const qty = parseInt(document.getElementById('adj_qty').value);
+  const note = document.getElementById('adj_note').value.trim();
+  if (!qty || qty <= 0) { showToast('수량을 입력해주세요'); return; }
+
+  const p = state.products.find(p => (p.item_code||p.item_name) === code);
+  if (!p) return;
+
+  if (type === 'add') {
+    p.current_stock += qty;
+    if (p.current_stock > 0) p.soldout_at = null;
+  } else {
+    p.current_stock = Math.max(0, p.current_stock - qty);
+    if (p.current_stock === 0 && !p.soldout_at) {
+      p.soldout_at = new Date().toLocaleString('ko-KR', {hour12:false}).replace(/\. /g,'-').replace('.',':').replace(/[.]/g,'');
+      addHistory({ type:'soldout', item_code:p.item_code, item_name:p.item_name, qty:0, note:'매진' });
+    }
+  }
+  addHistory({ type, item_code:p.item_code, item_name:p.item_name, qty, note });
+  await saveData();
+  closeModal('modalAdjust');
+  renderTable(); renderHistory(); updateSummary();
+  showToast(type === 'add' ? `+${qty}개 추가됨` : `-${qty}개 차감됨`);
+}
+
+function addHistory(entry) {
+  state.history.push({
+    ...entry,
+    datetime: new Date().toLocaleString('ko-KR', {hour12:false, year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(/\. /g,'-').replace('.',':').replace(/[.]/g,'').replace(/,/,'')
+  });
+}
+
+// ── 설정 저장 ──
+function syncSettingsForm() {
+  document.getElementById('s_hd_code').value = state.settings.hd_code || 'HYW';
+  document.getElementById('s_sp_code').value = state.settings.sp_code || '';
+  document.getElementById('s_sync_interval').value = state.settings.sync_interval || 30;
+  document.getElementById('s_threshold').value = state.settings.alert_threshold || 10;
+  document.getElementById('s_warning').value = state.settings.warning_threshold || 20;
+  const sp = state.settings.sp_code;
+  const statusEl = document.getElementById('apiStatus');
+  if (sp) {
+    statusEl.textContent = '● EasyPOS 연결됨';
+    statusEl.className = 'api-status connected';
+  } else {
+    statusEl.textContent = '● EasyPOS 미연결';
+    statusEl.className = 'api-status disconnected';
+  }
+}
+
+async function saveApiSettings() {
+  state.settings.hd_code = document.getElementById('s_hd_code').value.trim();
+  state.settings.sp_code = document.getElementById('s_sp_code').value.trim();
+  state.settings.sync_interval = parseInt(document.getElementById('s_sync_interval').value) || 30;
+  await saveData(); syncSettingsForm();
+  showToast('연동 정보가 저장되었습니다');
+}
+
+async function saveThreshold() {
+  state.settings.alert_threshold = parseInt(document.getElementById('s_threshold').value) || 10;
+  state.settings.warning_threshold = parseInt(document.getElementById('s_warning').value) || 20;
+  await saveData(); renderTable(); updateSummary();
+  showToast('기준 수량이 저장되었습니다');
+}
+
+// ── 차트 상품 선택 업데이트 ──
+function updateChartSelect() {
+  const sel = document.getElementById('chartProduct');
+  sel.innerHTML = '<option value="all">전체 상품</option>' +
+    state.products.map(p => `<option value="${p.item_code||p.item_name}">${p.item_name}</option>`).join('');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// 클릭 외부 시 모달 닫기
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+init();
+</script>
+</body>
+</html>
