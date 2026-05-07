@@ -377,9 +377,10 @@ body { display:flex; flex-direction:column; }
 .card-arrow svg { width:12px; height:12px; stroke:var(--text3); }
 .menu-card:hover .card-arrow svg { stroke:var(--mc); }
 
-.card-name  { font-size:15px; font-weight:800; letter-spacing:-.4px; margin-bottom:6px; position:relative; z-index:1; }
-.card-desc  { font-size:12px; color:var(--text3); line-height:1.65; position:relative; z-index:1;  flex-grow:1;}
-.card-badges { display:flex; align-items:center; gap:7px; margin-top:auto; padding-top:12px; position:relative; z-index:1; flex-wrap:wrap; flex-direction:row; min-height:30px; }
+.card-name  { font-size:15px; font-weight:800; letter-spacing:-.4px; position:relative; z-index:1; }
+.card-body  { flex-grow:1; position:relative; z-index:1; }
+.card-desc  { font-size:12px; color:var(--text3); line-height:1.65; position:relative; z-index:1; margin-top:6px; }
+.card-badges { display:flex; align-items:center; gap:7px; margin-top:14px; position:relative; z-index:1; flex-wrap:wrap; flex-direction:row; }
 
 .live-badge { display:inline-flex; align-items:center; gap:5px; height:22px; padding:0 9px; border-radius:50px; background:var(--green-bg); color:var(--green); font-size:10px; font-weight:700; letter-spacing:.4px; }
 .live-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green); animation:pulseDot 2s ease-in-out infinite; }
@@ -443,32 +444,32 @@ footer { text-align:center; padding:0 28px 32px; font-size:11px; color:var(--tex
     <a class="menu-card c-purple anim-up d1" href="/insights">
       <div class="card-icon">📊</div>
       <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
-      <div class="card-name">인사이트 리포트</div>
-      <div class="card-desc">주간·월간 브랜드 분석 리포트. 핵심 지표를 한눈에.</div>
+      <div class="card-body"><div class="card-name">인사이트 리포트</div>
+      <div class="card-desc">주간·월간 브랜드 분석 리포트. 핵심 지표를 한눈에.</div></div>
       <div class="card-badges"><span class="live-dot">LIVE</span></div>
     </a>
 
     <a class="menu-card c-brand anim-up d2" href="/dashboard">
       <div class="card-icon">⭐</div>
       <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
-      <div class="card-name">후기 대시보드</div>
-      <div class="card-desc">자사몰·네이버 구매 후기 수집 및 분석. 브랜드별 별점 트렌드.</div>
+      <div class="card-body"><div class="card-name">후기 대시보드</div>
+      <div class="card-desc">자사몰·네이버 구매 후기 수집 및 분석. 브랜드별 별점 트렌드.</div></div>
       <div class="card-badges"><span class="live-dot">LIVE</span></div>
     </a>
 
     <a class="menu-card c-blue anim-up d3" href="/competitor">
       <div class="card-icon">🔍</div>
       <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
-      <div class="card-name">경쟁사 모니터링</div>
-      <div class="card-desc">명가삼대떡집 별점·리뷰량·키워드를 백년화편과 비교.</div>
+      <div class="card-body"><div class="card-name">경쟁사 모니터링</div>
+      <div class="card-desc">명가삼대떡집 별점·리뷰량·키워드를 백년화편과 비교.</div></div>
       <div class="card-badges"><span class="live-dot">LIVE</span></div>
     </a>
 
     <a class="menu-card c-teal anim-up d4" href="/inventory">
       <div class="card-icon">📦</div>
       <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
-      <div class="card-name">재고 현황</div>
-      <div class="card-desc">상품별 재고 조회·관리. 매진 임박 알림, 판매 추이 분석.</div>
+      <div class="card-body"><div class="card-name">재고 현황</div>
+      <div class="card-desc">상품별 재고 조회·관리. 매진 임박 알림, 판매 추이 분석.</div></div>
       <div class="card-badges">
         <span class="live-dot">LIVE</span>
         <a href="/100yearinventory" onclick="event.stopPropagation()" class="sub-link">+ 재고 입력</a>
@@ -478,8 +479,8 @@ footer { text-align:center; padding:0 28px 32px; font-size:11px; color:var(--tex
     <a class="menu-card c-amber anim-up d5" href="/memo">
       <div class="card-icon">📝</div>
       <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
-      <div class="card-name">메모장</div>
-      <div class="card-desc">아이디어, 할 일, 참고사항을 자유롭게 기록하고 관리하세요.</div>
+      <div class="card-body"><div class="card-name">메모장</div>
+      <div class="card-desc">아이디어, 할 일, 참고사항을 자유롭게 기록하고 관리하세요.</div></div>
       <div class="card-badges"><span class="live-dot">LIVE</span></div>
     </a>
 
