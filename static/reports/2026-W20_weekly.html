@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>백년화편 주간 리포트 2026-W20</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #f5f5f7; color: #1d1d1f; font-size: 14px; }
+
+  .report-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: #1d1d1f; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 62px;
+  }
+  .report-header .brand { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+  .report-header .meta { font-size: 12px; color: #aaa; }
+
+  .nav-bar {
+    position: fixed; top: 62px; left: 0; right: 0; z-index: 99;
+    background: #fff; border-bottom: 1px solid #e0e0e0;
+    display: flex; gap: 0; height: 46px;
+    overflow-x: auto;
+  }
+  .nav-bar a {
+    padding: 0 20px; line-height: 46px; font-size: 13px; font-weight: 600;
+    color: #555; text-decoration: none; white-space: nowrap;
+    border-bottom: 3px solid transparent;
+  }
+  .nav-bar a:hover { color: #000; }
+  .nav-bar a.active { color: #e8392a; border-bottom-color: #e8392a; }
+
+  .container { margin-top: 108px; max-width: 1100px; margin-left: auto; margin-right: auto; padding: 24px 16px 48px; }
+
+  h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #e8392a; }
+  h3 { font-size: 15px; font-weight: 700; margin: 20px 0 10px; color: #333; }
+
+  .section { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+
+  /* KPI 테이블 */
+  .kpi-table { table-layout: fixed; width: 100%; text-align: center; border-collapse: separate; border-spacing: 8px; }
+  .kpi-table td { background: #f8f8f8; border-radius: 10px; padding: 16px 8px; vertical-align: middle; }
+  .kpi-table .kpi-label { font-size: 11px; color: #888; margin-bottom: 6px; }
+  .kpi-table .kpi-val { font-size: 22px; font-weight: 800; color: #1d1d1f; }
+  .kpi-table .kpi-sub { font-size: 11px; color: #aaa; margin-top: 4px; }
+  .kpi-good { color: #28a745 !important; }
+  .kpi-bad  { color: #e8392a !important; }
+  .kpi-warn { color: #ff9500 !important; }
+
+  /* 채널 테이블 */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { background: #f0f0f0; padding: 10px 12px; text-align: left; font-weight: 600; color: #555; border-bottom: 1px solid #ddd; }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #fafafa; }
+
+  /* 뱃지 */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #e6f4ea; color: #1a7731; }
+  .badge-red   { background: #fdecea; color: #c0392b; }
+  .badge-gray  { background: #f0f0f0; color: #555; }
+  .badge-blue  { background: #e8f0fe; color: #1a56b0; }
+  .badge-orange{ background: #fff3e0; color: #e65100; }
+
+  /* 경쟁사 카드 */
+  .comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .comp-card { border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px; }
+  .comp-card .comp-name { font-size: 15px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .comp-card ul { padding-left: 16px; }
+  .comp-card ul li { font-size: 13px; color: #444; margin-bottom: 5px; line-height: 1.6; }
+  .comp-card .status-tag { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+
+  /* 키워드 */
+  .keyword-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .kw-pos { background: #e6f4ea; color: #1a7731; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+  .kw-neg { background: #fdecea; color: #c0392b; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+
+  /* 액션 아이템 */
+  .action-list { list-style: none; padding: 0; }
+  .action-list li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+  .action-list li:last-child { border-bottom: none; }
+  .action-num { min-width: 24px; height: 24px; background: #e8392a; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-top: 1px; }
+  .action-content { flex: 1; }
+  .action-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .action-desc  { font-size: 12px; color: #666; line-height: 1.6; }
+
+  /* 트렌드 바 */
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .bar-label { width: 200px; font-size: 12px; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; background: #f0f0f0; border-radius: 4px; height: 16px; }
+  .bar-fill { height: 16px; border-radius: 4px; background: #e8392a; transition: width 0.3s; }
+  .bar-val { width: 60px; font-size: 12px; color: #555; text-align: right; }
+
+  .insight-box { background: #fff8f0; border-left: 4px solid #ff9500; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13px; line-height: 1.7; color: #444; }
+  .warn-box  { background: #fdecea; border-left: 4px solid #e8392a; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13px; line-height: 1.7; color: #444; }
+
+  .divider { border: none; border-top: 1px solid #f0f0f0; margin: 16px 0; }
+
+  .footer { text-align: center; font-size: 11px; color: #aaa; margin-top: 32px; }
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <div class="brand">🍡 백년화편 주간 리포트</div>
+  <div class="meta">2026-W20 &nbsp;|&nbsp; 기준일: 2026-05-12 &nbsp;|&nbsp; Auto-generated</div>
+</header>
+
+<nav class="nav-bar">
+  <a href="#kpi" class="active">KPI 요약</a>
+  <a href="#channel">채널 현황</a>
+  <a href="#competitor">경쟁사 동향</a>
+  <a href="#naver">네이버 키워드</a>
+  <a href="#action">액션 아이템</a>
+</nav>
+
+<div class="container">
+
+  <!-- ① KPI 요약 -->
+  <div class="section" id="kpi">
+    <h2>① 주간 KPI 요약</h2>
+    <table class="kpi-table">
+      <tr>
+        <td>
+          <div class="kpi-label">전체 누적 후기</div>
+          <div class="kpi-val">190,342</div>
+          <div class="kpi-sub">전 채널 합산</div>
+        </td>
+        <td>
+          <div class="kpi-label">평균 평점</div>
+          <div class="kpi-val kpi-good">★ 4.9</div>
+          <div class="kpi-sub">5점 비율 96%</div>
+        </td>
+        <td>
+          <div class="kpi-label">최근 7일 신규 후기</div>
+          <div class="kpi-val kpi-warn">884건</div>
+          <div class="kpi-sub">전 채널 합산</div>
+        </td>
+        <td>
+          <div class="kpi-label">최근 7일 부정 후기</div>
+          <div class="kpi-val kpi-good">0건</div>
+          <div class="kpi-sub">자사몰 기준 0%</div>
+        </td>
+        <td>
+          <div class="kpi-label">전체 3점 이하 비율</div>
+          <div class="kpi-val">1%</div>
+          <div class="kpi-sub">1,745건 / 190,342건</div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="insight-box" style="margin-top:16px;">
+      <strong>📌 이번 주 핵심:</strong> 어버이날(5/8) 시즌 영향으로 자사몰 리뷰가 집중 유입됐습니다. 최근 리뷰 다수가 "어버이날 선물", "부모님께 보내드렸다"는 내용으로, 선물 수요 피크가 확인됩니다. 부정 후기는 0건으로 이 기간 품질·배송 이슈 없음.
+    </div>
+  </div>
+
+  <!-- ② 채널별 리뷰 현황 -->
+  <div class="section" id="channel">
+    <h2>② 채널별 리뷰 현황 (백년화편)</h2>
+
+    <h3>플랫폼별 현황</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>채널</th>
+          <th>전체 후기</th>
+          <th>평균 평점</th>
+          <th>3점 이하</th>
+          <th>비고</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>자사몰</strong></td>
+          <td>118,102건</td>
+          <td><span class="badge badge-green">★ 5.0</span></td>
+          <td>—</td>
+          <td>주력 채널, 최다 누적</td>
+        </tr>
+        <tr>
+          <td><strong>자사몰 (카카오)</strong></td>
+          <td>46,514건</td>
+          <td><span class="badge badge-green">★ 5.0</span></td>
+          <td>—</td>
+          <td>카카오 선물하기 경유</td>
+        </tr>
+        <tr>
+          <td><strong>자사몰 (네이버)</strong></td>
+          <td>25,726건</td>
+          <td><span class="badge badge-green">★ 4.9</span></td>
+          <td>545건 (3%)</td>
+          <td>최근 7일 신규 20건 — 유입 저조</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>최근 7일 인기 상품 TOP 3</h3>
+    <div class="bar-row">
+      <div class="bar-label">밥알찹쌀떡 32개 (팥 앙금)</div>
+      <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+      <div class="bar-val">78,322건</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">밥알흑임자 32개</div>
+      <div class="bar-track"><div class="bar-fill" style="width:21%"></div></div>
+      <div class="bar-val">16,315건</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">옛날밥알쑥떡 32개</div>
+      <div class="bar-track"><div class="bar-fill" style="width:15%"></div></div>
+      <div class="bar-val">12,063건</div>
+    </div>
+
+    <h3>긍정 키워드 (전체 누적)</h3>
+    <div class="keyword-wrap">
+      <span class="kw-pos">맛있어요 27,874</span>
+      <span class="kw-pos">맛있다고 11,808</span>
+      <span class="kw-pos">선물로 10,511</span>
+      <span class="kw-pos">맛있게 9,801</span>
+      <span class="kw-pos">먹고 8,645</span>
+    </div>
+
+    <h3>부정 키워드 (전체 누적)</h3>
+    <div class="keyword-wrap">
+      <span class="kw-neg">떡이 214</span>
+      <span class="kw-neg">많이 143</span>
+      <span class="kw-neg">맛이 124</span>
+      <span class="kw-neg">떡은 98</span>
+      <span class="kw-neg">바로 93</span>
+    </div>
+
+    <div class="warn-box" style="margin-top:16px;">
+      <strong>⚠ 주의:</strong> 네이버 채널 최근 7일 신규 후기 <strong>20건</strong>으로 자사몰(884건) 대비 현저히 낮습니다. 네이버 채널 유입 자체가 적거나, 구매 후 리뷰 작성 전환율이 낮을 가능성이 있습니다. 어버이날 시즌 네이버 광고 집행 여부 확인이 필요합니다.
+    </div>
+  </div>
+
+  <!-- ③ 경쟁사 동향 -->
+  <div class="section" id="competitor">
+    <h2>③ 경쟁사 동향</h2>
+
+    <div class="comp-grid">
+
+      <div class="comp-card">
+        <div class="comp-name">
+          창억떡
+          <span class="badge badge-orange">🔥 SNS 급상승</span>
+        </div>
+        <ul>
+          <li><strong>2026년 최대 이슈:</strong> 유튜브 '하말넘많' + DAY6 Young K 콘서트 언급 → SNS 바이럴, 오픈런 발생 (3월)</li>
+          <li><strong>핵심 상품:</strong> 단호박 찰떡 + 카스테라 고명 호박인절미 (시그니처)</li>
+          <li><strong>유통:</strong> 자사몰(changeok.co.kr), 공영홈쇼핑, SSG닷컴, 해외(꽃마USA)</li>
+          <li><strong>대시보드 수집:</strong> 자사몰 로그인 필요 — 데이터 미수집 (확인 불가)</li>
+          <li><strong>전략 방향:</strong> 오프라인 매장 방문 + 셀럽/콘텐츠 크리에이터 자연 노출 기반</li>
+        </ul>
+        <div class="insight-box" style="margin-top:10px;">
+          <strong>시사점:</strong> 창억떡의 SNS 확산은 콘텐츠 투자가 아닌 '먹어본 사람의 자발적 언급'에서 시작됐습니다. 백년화편이 동일 전략을 취하기 위해서는 체험 확산 구조(팝업박스, 시식 채널) 강화가 선행되어야 합니다.
+        </div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-name">
+          명가삼대떡집
+          <span class="badge badge-blue">주간 리뷰 1위</span>
+        </div>
+        <ul>
+          <li><strong>전체 후기:</strong> 122,852건 / 평균 ★4.9</li>
+          <li><strong>최근 7일 신규:</strong> <strong>1,371건</strong> (백년화편 884건의 1.55배)</li>
+          <li><strong>주간 부정:</strong> 39건 (3%) — 콩가루 양 부족 민원 반복 확인</li>
+          <li><strong>핵심 상품:</strong> 30년 전통 쑥인절미(역대 최대 할인가), 콩달떡, 쑥설기</li>
+          <li><strong>이번 주 이슈:</strong> '역대 최대 할인가' 프로모션 상시 운영 중</li>
+          <li><strong>채널:</strong> 자사몰(myeonggashop.com), 신세계몰, 쿠팡</li>
+        </ul>
+        <div class="warn-box" style="margin-top:10px;">
+          <strong>경쟁 리스크:</strong> 주간 신규 후기 수에서 명가삼대떡집이 1.55배 앞서고 있습니다. 리뷰 누적 속도는 곧 신규 구매자 수 차이를 의미합니다. 특히 쑥계열 제품에서 직접 경쟁 중.
+        </div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-name">
+          압구정공주떡집
+          <span class="badge badge-gray">오프라인 강세</span>
+        </div>
+        <ul>
+          <li><strong>포지셔닝:</strong> 압구정 로컬 떡집, 흑임자인절미 대표 맛집</li>
+          <li><strong>온라인 채널:</strong> 자사몰(kongjudduk.co.kr), 씽굴마켓(택배)</li>
+          <li><strong>2026년 이슈:</strong> 신제품·이벤트 공식 발표 없음 (확인 불가)</li>
+          <li><strong>강점:</strong> TV 방송 노출 다수, 오프라인 방문 체험 고객 비율 높음</li>
+          <li><strong>약점:</strong> 온라인 확장성 낮음, 대량 납품 구조 어려움</li>
+        </ul>
+        <div class="insight-box" style="margin-top:10px;">
+          <strong>시사점:</strong> 흑임자 계열에서 브랜드 인지도 경쟁. 백년화편 밥알흑임자가 차별화 포인트(밥알 식감, 특허)를 전면에 내세울 기회.
+        </div>
+      </div>
+
+    </div>
+
+    <h3>경쟁사 비교 요약</h3>
+    <table class="data-table" style="margin-top:12px;">
+      <thead>
+        <tr>
+          <th>항목</th>
+          <th>백년화편</th>
+          <th>창억떡</th>
+          <th>명가삼대떡집</th>
+          <th>압구정공주떡</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>누적 후기</td>
+          <td><strong>190,342건</strong></td>
+          <td>확인 불가</td>
+          <td>122,852건</td>
+          <td>확인 불가</td>
+        </tr>
+        <tr>
+          <td>평균 평점</td>
+          <td>★4.9</td>
+          <td>확인 불가</td>
+          <td>★4.9</td>
+          <td>확인 불가</td>
+        </tr>
+        <tr>
+          <td>주간 신규 후기</td>
+          <td>884건</td>
+          <td>확인 불가</td>
+          <td><strong>1,371건</strong></td>
+          <td>확인 불가</td>
+        </tr>
+        <tr>
+          <td>SNS 화제성</td>
+          <td>보통</td>
+          <td>🔥 급상승 (오픈런)</td>
+          <td>보통</td>
+          <td>보통</td>
+        </tr>
+        <tr>
+          <td>대표 차별점</td>
+          <td>밥알 식감, 한국·일본 특허, 대한명인</td>
+          <td>호박인절미, 100종 이상 다양성</td>
+          <td>30년 전통 쑥계열 특화, 할인 전략</td>
+          <td>흑임자인절미, 오프라인 맛집</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ④ 네이버 키워드 트렌드 -->
+  <div class="section" id="naver">
+    <h2>④ 네이버 채널 키워드 트렌드</h2>
+
+    <h3>네이버 채널 현황</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>지표</th><th>수치</th><th>비고</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>전체 후기</td><td>21,649건</td><td>자사몰 전체(190,342건)의 11.4%</td></tr>
+        <tr><td>평균 평점</td><td>★4.9</td><td>5점 89%, 4점 9%</td></tr>
+        <tr><td>3점 이하</td><td>545건 (3%)</td><td>자사몰 전체(1%)보다 높음 — 주의</td></tr>
+        <tr><td>최근 7일 신규</td><td>20건</td><td>⚠ 저조 — 어버이날 시즌임에도 낮음</td></tr>
+        <tr><td>최근 7일 부정</td><td>0건</td><td>이번 주 품질 이슈 없음</td></tr>
+      </tbody>
+    </table>
+
+    <h3>네이버 긍정 키워드 TOP 5</h3>
+    <div class="bar-row">
+      <div class="bar-label">맛있어요</div>
+      <div class="bar-track"><div class="bar-fill" style="width:100%; background:#28a745;"></div></div>
+      <div class="bar-val">3,957건</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">맛있어서</div>
+      <div class="bar-track"><div class="bar-fill" style="width:31%; background:#28a745;"></div></div>
+      <div class="bar-val">1,213건</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">맛있다고</div>
+      <div class="bar-track"><div class="bar-fill" style="width:31%; background:#28a745;"></div></div>
+      <div class="bar-val">1,211건</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">맛있게</div>
+      <div class="bar-track"><div class="bar-fill" style="width:31%; background:#28a745;"></div></div>
+      <div class="bar-val">1,209건</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">달지 (않아서)</div>
+      <div class="bar-track"><div class="bar-fill" style="width:30%; background:#28a745;"></div></div>
+      <div class="bar-val">1,190건</div>
+    </div>
+
+    <h3>시장 트렌드 요약 (2026)</h3>
+    <table class="data-table" style="margin-top:8px;">
+      <thead>
+        <tr><th>트렌드</th><th>내용</th><th>백년화편 기회</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>건강·무첨가 강조</td>
+          <td>천연 원재료, 무설탕·저당 제품 선호 확대</td>
+          <td>국산 원재료 전면 강조, "달지 않다" 키워드 적극 활용</td>
+        </tr>
+        <tr>
+          <td>소포장 트렌드</td>
+          <td>개별 포장, 소량 구매 선호 → 선물세트에도 확산</td>
+          <td>개별 포장이 이미 강점 — 패키지 다양화(2만/4만/7만원대) 연계</td>
+        </tr>
+        <tr>
+          <td>체험 후 구매 패턴 지속</td>
+          <td>"먹어보고 재주문" 패턴 — SNS보다 직접 체험이 구매 전환 핵심</td>
+          <td>팝업박스 나눔 구조 강화 → 체험 확산 → 전화 주문 연결</td>
+        </tr>
+        <tr>
+          <td>선물 시장 성장</td>
+          <td>어버이날·명절 외 일상 선물 증가, D-day 예약 수요 상승</td>
+          <td>D-day 배송 서비스 즉시 개시 적기</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ⑤ 액션 아이템 -->
+  <div class="section" id="action">
+    <h2>⑤ 이번 주 액션 아이템</h2>
+    <ul class="action-list">
+      <li>
+        <div class="action-num">1</div>
+        <div class="action-content">
+          <div class="action-title">네이버 채널 어버이날 시즌 후기 저조 원인 파악 <span class="badge badge-red">긴급</span></div>
+          <div class="action-desc">네이버 최근 7일 신규 20건은 어버이날 시즌 대비 지나치게 낮음. 네이버 광고 집행 여부, 상품 노출 순위, 리뷰 요청 알림 작동 여부 점검 필요. 자사몰(카카오) 46,514건과 구조적 차이 분석.</div>
+        </div>
+      </li>
+      <li>
+        <div class="action-num">2</div>
+        <div class="action-content">
+          <div class="action-title">창억떡 SNS 오픈런 대응 모니터링 지속 <span class="badge badge-orange">주의 관찰</span></div>
+          <div class="action-desc">하말넘많·DAY6 언급 이후 창억떡 검색량 급증 추정. 백년화편의 '선물용' 포지셔닝에 직접 위협은 낮지만, 젊은 층 떡 소비 확산에 따른 시장 전체 활성화를 기회로 전환할 전략 필요.</div>
+        </div>
+      </li>
+      <li>
+        <div class="action-num">3</div>
+        <div class="action-content">
+          <div class="action-title">명가삼대떡집 주간 리뷰 역전 대응 <span class="badge badge-orange">전략 검토</span></div>
+          <div class="action-desc">명가삼대떡집 주간 1,371건 vs 백년화편 884건. 지속 시 연간 리뷰 격차 누적. 자사몰 리뷰 작성 유도 강화(구매 후 리뷰 알림 최적화) 및 쑥계열 상품 차별화 메시지 강화 필요.</div>
+        </div>
+      </li>
+      <li>
+        <div class="action-num">4</div>
+        <div class="action-content">
+          <div class="action-title">D-day 선물 예약 배송 즉시 시작 <span class="badge badge-blue">실행</span></div>
+          <div class="action-desc">어버이날 후기에 "선물로 보냈다"는 내용이 대다수. D-day 배송 서비스는 스마트스토어 수동 운영으로 즉시 시작 가능. 어버이날 수요를 다음 시즌(스승의날, 추석)으로 연결하는 선제 대응.</div>
+        </div>
+      </li>
+      <li>
+        <div class="action-num">5</div>
+        <div class="action-content">
+          <div class="action-title">명가삼대떡집 쑥인절미 콩가루 불만 역이용 <span class="badge badge-green">기회</span></div>
+          <div class="action-desc">명가삼대떡집 이번 주 부정 후기 39건 중 다수가 "콩가루 양 부족"으로 반복 민원. 백년화편 네이버/스마트스토어 상품 상세 페이지에 원재료 충분함을 명시적으로 강조하는 문구 추가 검토.</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <p>백년화편 주간 리포트 2026-W20 &nbsp;|&nbsp; 생성: 2026-05-12 &nbsp;|&nbsp; 데이터 기준: 1일 전 갱신</p>
+    <p style="margin-top:4px;">대시보드 원본: <a href="https://web-production-ce7ca1.up.railway.app/insights" style="color:#e8392a;">insights 페이지</a></p>
+  </div>
+
+</div>
+
+<script>
+// 네비게이션 활성화
+const sections = document.querySelectorAll('.section');
+const navLinks = document.querySelectorAll('.nav-bar a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 140) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+
+</body>
+</html>
