@@ -186,7 +186,8 @@ async def cleanup_jasaol_new():
     seen = set()
     cleaned = []
     for rv in data:
-        key = (rv.get("date",""), rv.get("author",""), rv.get("content","")[:80], rv.get("product","")[:40])
+        # (날짜+작성자+내용) 기준 - 같은 사람이 같은날 같은 내용을 여러상품에 쓴 경우 1건만
+        key = (rv.get("date",""), rv.get("author",""), rv.get("content","")[:80])
         if key not in seen:
             seen.add(key)
             cleaned.append(rv)
