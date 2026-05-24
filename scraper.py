@@ -234,11 +234,24 @@ def get_last_page(soup: BeautifulSoup) -> int:
                     max_page = p
     return max_page
 
+def extract_product_from_content(content: str) -> str:
+    """content에서 'X번 구매 [상품명]...' 패턴으로 실제 구매 상품명 추출"""
+    m = re.match(r"^\d+번\s*구매\s*([^\d][^\n]{2,60}?)(?:\s{2,}|\d|$)", content)
+    if m:
+        name = m.group(1).strip()
+        # 너무 길거나 내용이 섞인 경우 자르기
+        if len(name) > 60:
+            name = name[:60]
+        return name
+    return ""
+
 def parse_jasaol_review(row, product_name: str):
     try:
         tds = row.find_all("td", recursive=False)
         if len(tds) < 5:
             return None
+        # 리뷰 번호 (td[0]) - 중복 제거용
+        review_no = tds[0].get_text(strip=True) if tds else ""
         date_str = ""
         if len(tds) > 4:
             t = tds[4].get_text(strip=True)
@@ -276,7 +289,11 @@ def parse_jasaol_review(row, product_name: str):
                 author = t
         if not content or len(content) < 2:
             return None
-        return {"date": date_str, "score": float(score), "product": product_name[:80],
+        # content에서 실제 구매 상품명 추출 (있으면 우선 사용)
+        extracted = extract_product_from_content(content)
+        actual_product = extracted if extracted else product_name[:80]
+        return {"date": date_str, "score": float(score), "product": actual_product[:80],
+                "review_no": review_no,
                 "title": "", "content": content, "platform": "direct", "author": author}
     except Exception:
         return None
@@ -394,8 +411,10 @@ async def get_categories_and_goods(client, progress_cb=None) -> list:
     return list(goods.items())
 
 async def scrape_jasaol_incremental(progress_cb=None) -> list:
+    """goods_review.php가 goodsno 무관하게 전체 리뷰를 반환하므로
+    단일 URL로 수집하고 review_no 기준으로 중복 제거"""
     since_date = get_jasaol_since_date()
-    print(f"  [자사몰] 증분 수집: {since_date} 이후")
+    print(f"  [자사몰] 증분 수집: {since_date} 이후 (단일 페이지 방식)")
 
     def _cb(msg, pct=58, done=0, total=1, collected=0):
         if progress_cb:
@@ -405,35 +424,42 @@ async def scrape_jasaol_incremental(progress_cb=None) -> list:
     _cb(f"자사몰 {since_date} 이후 신규 후기 수집 시작", 55)
     sem = asyncio.Semaphore(JASAOL_CONCURRENT)
     all_new = []
+    # 기존 리뷰 번호 set (중복 방지)
+    existing = load_json(JASAOL_BASE_PATH, []) + load_json(JASAOL_NEW_PATH, [])
+    existing_nos = set(str(r.get("review_no","")) for r in existing if r.get("review_no"))
 
     try:
         async with asyncio.timeout(JASAOL_TOTAL_TIMEOUT):
             async with httpx.AsyncClient(headers=JASAOL_HEADERS, follow_redirects=True,
                                          timeout=JASAOL_PAGE_TIMEOUT) as client:
-                goods_list = await get_categories_and_goods(client, progress_cb)
-                if not goods_list:
-                    print("  [자사몰] 상품 목록 없음, 건너뜀")
-                    return []
-
-                total = len(goods_list)
-                _cb(f"상품 {total}개, {since_date} 이후 수집 시작", 58, 0, total)
-
-                done = 0
-                for i in range(0, total, GOODS_CONCURRENT):
-                    batch = goods_list[i:i+GOODS_CONCURRENT]
-                    tasks = [
-                        get_new_reviews_for_good(client, gno, name, sem, since_date)
-                        for gno, name in batch
-                    ]
-                    results = await asyncio.gather(*tasks, return_exceptions=True)
-                    for r in results:
-                        if isinstance(r, list):
-                            all_new.extend(r)
-                        elif isinstance(r, Exception):
-                            print(f"  [자사몰] 상품 수집 오류: {r}")
-                    done += len(batch)
-                    pct = 58 + int(done / total * 42)
-                    _cb(f"자사몰 {done}/{total}개 완료 (신규 {len(all_new):,}건)", pct, done, total, len(all_new))
+                # 단일 URL로 페이지별 수집 (goodsno=1 고정, 전체 리뷰 반환됨)
+                page = 1
+                total_pages = None
+                _cb("자사몰 리뷰 수집 중...", 58, 0, 1)
+                while True:
+                    _, reviews, last_page = await fetch_review_page(client, 1, page, sem, "")
+                    if page == 1 and last_page:
+                        total_pages = last_page
+                    if not reviews:
+                        break
+                    stop = False
+                    for rv in reviews:
+                        rno = str(rv.get("review_no",""))
+                        if rv["date"] <= since_date and rno in existing_nos:
+                            stop = True
+                            break
+                        if rno and rno not in existing_nos:
+                            all_new.append(rv)
+                            existing_nos.add(rno)
+                    pct = 58 + int(page / (total_pages or page) * 42)
+                    _cb(f"자사몰 p{page}/{total_pages or '?'} (신규 {len(all_new):,}건)",
+                        pct, page, total_pages or page, len(all_new))
+                    if stop:
+                        break
+                    max_p = total_pages or page
+                    if page >= max_p:
+                        break
+                    page += 1
 
     except asyncio.TimeoutError:
         print(f"  [자사몰] 전체 타임아웃 ({JASAOL_TOTAL_TIMEOUT}초) — 수집된 것만 저장")
