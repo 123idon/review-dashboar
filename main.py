@@ -176,6 +176,24 @@ async def startup():
 async def shutdown():
     scheduler.shutdown()
 
+
+@app.post("/api/cleanup-jasaol-new")
+async def cleanup_jasaol_new():
+    """jasaol_new.json 중복 제거 및 이상 데이터 정리"""
+    from scraper import JASAOL_NEW_PATH, load_json, safe_save
+    data = load_json(JASAOL_NEW_PATH, [])
+    before = len(data)
+    seen = set()
+    cleaned = []
+    for rv in data:
+        key = (rv.get("date",""), rv.get("author",""), rv.get("content","")[:80], rv.get("product","")[:40])
+        if key not in seen:
+            seen.add(key)
+            cleaned.append(rv)
+    safe_save(JASAOL_NEW_PATH, cleaned)
+    invalidate_cache()
+    return {"before": before, "after": len(cleaned), "removed": before - len(cleaned)}
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
