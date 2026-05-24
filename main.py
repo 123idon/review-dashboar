@@ -49,7 +49,8 @@ def _load_reviews_cached():
         seen_keys = set()
         jasaol_deduped = []
         for rv in jasaol_base + jasaol_new:
-            key = (rv.get("date",""), rv.get("product","")[:40], rv.get("content","")[:80])
+            # (날짜+작성자+내용) 기준 중복제거
+            key = (rv.get("date",""), rv.get("author",""), rv.get("content","")[:80])
             if key not in seen_keys:
                 seen_keys.add(key)
                 jasaol_deduped.append(rv)
