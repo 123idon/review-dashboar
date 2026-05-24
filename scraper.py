@@ -507,11 +507,11 @@ async def collect_all(progress_cb=None) -> dict:
         new_reviews = await scrape_jasaol_incremental(progress_cb)
         existing_new = load_json(JASAOL_NEW_PATH, [])
         combined = [r for r in existing_new if r.get("date", "") >= since_before] + new_reviews
-        # 중복 제거: (date, author, content) 기준 - 같은 사람이 같은날 같은 내용을 여러상품에 쓴 경우 1건만
+        # 중복 제거: (author, date, content) 기준 — product 무관하게 동일 리뷰 제거
         seen = set()
         deduped = []
         for rv in combined:
-            key = (rv.get("date",""), rv.get("author",""), rv.get("content","")[:80], rv.get("product","")[:40])
+            key = (rv.get("author",""), rv.get("date",""), rv.get("content","")[:100])
             if key not in seen:
                 seen.add(key)
                 deduped.append(rv)
