@@ -485,7 +485,7 @@ async def collect_all(progress_cb=None) -> dict:
         seen = set()
         deduped = []
         for rv in combined:
-            key = (rv.get("date",""), rv.get("author",""), rv.get("content","")[:80])
+            key = (rv.get("date",""), rv.get("author",""), rv.get("content","")[:80], rv.get("product","")[:40])
             if key not in seen:
                 seen.add(key)
                 deduped.append(rv)
