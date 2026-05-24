@@ -475,12 +475,21 @@ async def collect_all(progress_cb=None) -> dict:
     except Exception as e:
         print(f"  [파파공방] 실패: {e}")
 
-    # 자사몰: 증분 → jasaol_new.json에 누적
+    # 자사몰: 증분 → jasaol_new.json에 누적 (중복 제거)
     try:
         since_before = get_jasaol_since_date()
         new_reviews = await scrape_jasaol_incremental(progress_cb)
         existing_new = load_json(JASAOL_NEW_PATH, [])
-        merged_new = [r for r in existing_new if r.get("date", "") >= since_before] + new_reviews
+        combined = [r for r in existing_new if r.get("date", "") >= since_before] + new_reviews
+        # 중복 제거: (date, product, content) 조합 기준
+        seen = set()
+        deduped = []
+        for rv in combined:
+            key = (rv.get("date",""), rv.get("product","")[:40], rv.get("content","")[:80])
+            if key not in seen:
+                seen.add(key)
+                deduped.append(rv)
+        merged_new = deduped
         safe_save(JASAOL_NEW_PATH, merged_new)
         del new_reviews, existing_new, merged_new
         data = load_json(DATA_PATH, {})
