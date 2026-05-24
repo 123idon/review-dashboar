@@ -313,7 +313,7 @@ async def get_new_reviews_for_good(client, goodsno, product_name, sem, since_dat
             break
         stop = False
         for rv in reviews:
-            if rv["date"] >= since_date:
+            if rv["date"] > since_date:
                 all_reviews.append(rv)
             else:
                 stop = True
