@@ -45,7 +45,15 @@ def _load_reviews_cached():
         jasaol_base = load_json(JASAOL_BASE_PATH, [])
         jasaol_new  = load_json(JASAOL_NEW_PATH, [])
         smartstore  = load_json(SMARTSTORE_PATH, [])
-        jasaol = jasaol_base + jasaol_new + smartstore
+        # 중복 제거: jasaol_base+new 합산 시 (date, product, content) 기준
+        seen_keys = set()
+        jasaol_deduped = []
+        for rv in jasaol_base + jasaol_new:
+            key = (rv.get("date",""), rv.get("product","")[:40], rv.get("content","")[:80])
+            if key not in seen_keys:
+                seen_keys.add(key)
+                jasaol_deduped.append(rv)
+        jasaol = jasaol_deduped + smartstore
 
         _reviews_cache = {
             'raw_last_updated': raw.get("last_updated"),
