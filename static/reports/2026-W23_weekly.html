@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>백년화편 주간 리포트 2026-W23</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; color: #1a1a1a; background: #f4f5f7; line-height: 1.6; }
+  .report-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 62px; background: #2b2d42; color: #fff; display: flex; align-items: center; padding: 0 24px; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .report-header h1 { font-size: 18px; font-weight: 700; }
+  .report-header .sub { margin-left: 14px; font-size: 12px; opacity: .75; font-weight: 400; }
+  .nav-bar { position: fixed; top: 62px; left: 0; right: 0; z-index: 99; height: 46px; background: #fff; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 6px; padding: 0 24px; overflow-x: auto; }
+  .nav-bar a { font-size: 13px; color: #555; text-decoration: none; padding: 6px 12px; border-radius: 6px; white-space: nowrap; }
+  .nav-bar a:hover { background: #eef0f4; color: #2b2d42; }
+  .container { max-width: 1080px; margin: 108px auto 60px; padding: 0 24px; }
+  section { background: #fff; border-radius: 10px; padding: 26px 28px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  h2 { font-size: 19px; color: #2b2d42; margin-bottom: 6px; padding-bottom: 10px; border-bottom: 2px solid #2b2d42; }
+  h2 .num { color: #8d99ae; margin-right: 8px; }
+  h3 { font-size: 15px; margin: 18px 0 8px; color: #333; }
+  p { font-size: 14px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #e3e3e3; padding: 9px 10px; text-align: center; }
+  th { background: #2b2d42; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  .kpi-table { table-layout: fixed; width: 100%; text-align: center; }
+  .kpi-table td.big { font-size: 22px; font-weight: 700; color: #2b2d42; }
+  .label { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; vertical-align: middle; }
+  .l-fact { background: #d8f3dc; color: #1b4332; }
+  .l-est { background: #ffe8cc; color: #7f4f24; }
+  .l-na { background: #ffd6d6; color: #842029; }
+  .callout { background: #fff8e1; border-left: 4px solid #f0ad4e; padding: 12px 16px; border-radius: 4px; font-size: 13px; margin: 14px 0; }
+  .callout.warn { background: #fdecea; border-left-color: #d9534f; }
+  ul.action { list-style: none; margin: 8px 0; }
+  ul.action li { padding: 9px 0 9px 28px; position: relative; font-size: 14px; border-bottom: 1px dashed #eee; }
+  ul.action li::before { content: "□"; position: absolute; left: 4px; color: #2b2d42; font-weight: 700; }
+  ul.action li .tag { font-size: 11px; font-weight: 700; color: #8d99ae; margin-right: 6px; }
+  .conclusion { font-weight: 600; color: #2b2d42; font-size: 14px; margin-bottom: 12px; }
+  .meta { font-size: 12px; color: #888; }
+  td.left { text-align: left; }
+  .src { font-size: 11px; color: #999; word-break: break-all; }
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <h1>백년화편 주간 리포트</h1>
+  <span class="sub">2026-W23 · 작성일 2026-06-01 · 정기 경쟁사/시장 리서치</span>
+</div>
+
+<div class="nav-bar">
+  <a href="#kpi">1. 주간 KPI</a>
+  <a href="#channel">2. 채널별 리뷰</a>
+  <a href="#competitor">3. 경쟁사 동향</a>
+  <a href="#keyword">4. 키워드 트렌드</a>
+  <a href="#action">5. 액션 아이템</a>
+</div>
+
+<div class="container">
+
+  <div class="callout warn">
+    <strong>⚠ 데이터 수집 한계 고지</strong><br>
+    이번 주 대시보드(<span class="src">web-production-ce7ca1.up.railway.app/dashboard</span>) 라이브 데이터는
+    <span class="label l-na">확인 불가</span> 상태로 수집하지 못했습니다.
+    사유: (1) Chrome 확장(브라우저 자동화)이 연결되지 않아 각 탭의 리뷰 텍스트를 추출할 수 없었고,
+    (2) 대시보드 자체가 <strong>"네이버 쿠키가 만료됐어요. 집 PC에서 쿠키를 갱신해주세요"</strong> 경고를 표시 중입니다.
+    따라서 본 리포트의 <strong>KPI·채널별 리뷰·네이버 키워드</strong> 섹션은 빈 값이며,
+    경쟁사·시장 동향은 웹 검색(2026-06-01 기준)으로 작성했습니다.
+    <br><strong>조치 필요:</strong> 집 PC에서 네이버 쿠키 갱신 + Cowork 세션에서 Chrome 확장 연결 후 재실행.
+  </div>
+
+  <section id="kpi">
+    <h2><span class="num">1.</span>주간 KPI 요약</h2>
+    <p class="conclusion">결론: 이번 주 자사 리뷰 KPI는 수집 실패로 산출 불가. 아래 수치는 데이터 연결 복구 후 채워야 함.</p>
+    <table class="kpi-table">
+      <tr>
+        <th>총 리뷰 건수</th>
+        <th>평균 평점</th>
+        <th>주간 신규 리뷰</th>
+        <th>수집 상태</th>
+      </tr>
+      <tr>
+        <td class="big">—</td>
+        <td class="big">—</td>
+        <td class="big">—</td>
+        <td><span class="label l-na">확인 불가</span></td>
+      </tr>
+    </table>
+    <p class="meta">대시보드 탭(백년화편/창억떡/명가삼대떡집/파파공방/네이버) 모두 라이브 수집 미완료. 추정치는 기입하지 않음(출처 불분명 수치 미기재 원칙).</p>
+  </section>
+
+  <section id="channel">
+    <h2><span class="num">2.</span>채널별 리뷰 현황 (백년화편)</h2>
+    <p class="conclusion">결론: 채널별 리뷰 수·평점 데이터 미수집. 자사몰 &gt; 네이버스토어 &gt; 쿠팡 순 매출 구조는 고정 정보로 유지.</p>
+    <table>
+      <tr><th>채널</th><th>리뷰 수</th><th>평균 평점</th><th>주간 신규</th><th>비고</th></tr>
+      <tr><td class="left">자사몰</td><td>—</td><td>—</td><td>—</td><td><span class="label l-na">확인 불가</span></td></tr>
+      <tr><td class="left">네이버스토어</td><td>—</td><td>—</td><td>—</td><td><span class="label l-na">확인 불가</span> · 쿠키 만료</td></tr>
+      <tr><td class="left">쿠팡</td><td>—</td><td>—</td><td>—</td><td><span class="label l-na">확인 불가</span></td></tr>
+    </table>
+    <p class="meta">네이버스토어 데이터는 대시보드 쿠키 만료로 특히 영향. 갱신 우선순위 1순위.</p>
+  </section>
+
+  <section id="competitor">
+    <h2><span class="num">3.</span>경쟁사 동향</h2>
+    <p class="conclusion">결론: 이번 주 가장 큰 변수는 <strong>창억떡의 SNS 바이럴 폭발</strong>. 자사가 가장 취약한 '체험·노출' 영역에서 경쟁사가 무료로 대규모 인지도를 확보 중. <span class="label l-est">추정</span> 위협도 높음.</p>
+
+    <h3>창억떡 <span class="label l-fact">사실</span></h3>
+    <p>2026년 SNS 음식 유행에 진입. 3월 초 유튜브 언급을 기점으로 DAY6 Young K가 콘서트에서 '호박인절미'를 언급하며 바이럴, 매장 오픈런 발생(두바이 쫀득쿠키·버터떡 유행의 뒤를 잇는 흐름). 공영홈쇼핑(6종 세트 80개), 마켓컬리, 쿠팡, SSG·이마트몰 등 <strong>광범위한 대형 유통 입점</strong>. 2026 신제품 단위의 구체적 프로모션 공지는 <span class="label l-na">확인 불가</span>.</p>
+    <p class="callout">시사점: 창억떡은 '식감 트렌드 + 셀럽 노출 + 대형 유통'을 동시에 확보. 백년화편의 당일생산·선물 포지션과는 직접 충돌하지 않으나, '떡 디저트' 카테고리 전체 인지도를 창억떡이 흡수 중인 점은 리스크.</p>
+
+    <h3>명가삼대떡집 <span class="label l-fact">사실</span></h3>
+    <p>신제품 '쑥 카스테라 찹쌀떡 · 콩달떡 개별포장'(정가 27,900원대) 출시. '30년 전통 쑥떡·쑥인절미 역대 최대 할인 + 콩고물 증정' 프로모션 진행. 공식몰 단독할인, 신세계몰·쿠팡 입점. <strong>가격 할인 + 사은품</strong> 중심의 공격적 프로모션 기조.</p>
+    <p class="callout">시사점: 명가삼대는 쑥떡 라인에서 백년화편(옛날밥알쑥떡/밥알약콩쑥떡)과 직접 경쟁. 개별포장 + 할인으로 가성비·실용 선물 수요를 가져갈 수 있음. 백년화편은 가격 경쟁 대신 '명인 인증·특허·당일생산' 프리미엄으로 차별화 유지가 합리적.</p>
+
+    <h3>압구정공주떡집 <span class="label l-fact">사실</span></h3>
+    <p>'흑임자 인절미' 시그니처(농협 쌀, 당일생산), 5색 영양떡·쑥개떡 인기. 홈페이지·전화·매장 택배 주문, 날짜 지정 배송 운영. 선물용 박스 다양화. 2026 신규 이벤트 별도 공지는 <span class="label l-na">확인 불가</span>.</p>
+    <p class="callout">시사점: 압구정공주떡은 백년화편과 가장 유사한 모델(당일생산·흑임자·선물·전화주문). 흑임자 라인(밥알흑임자) 포지셔닝이 정면으로 겹침. 차별점은 백년화편의 '밥알이 살아있는 특허 방식 + 대한명인' — 이 메시지를 흑임자 상세페이지에서 더 강조할 필요.</p>
+
+    <h3>경쟁 포지셔닝 비교</h3>
+    <table>
+      <tr><th>항목</th><th>백년화편</th><th>창억떡</th><th>명가삼대떡집</th><th>압구정공주떡</th></tr>
+      <tr><td class="left">핵심 포지션</td><td>명인·특허 선물</td><td>SNS 바이럴 디저트</td><td>가성비 전통+할인</td><td>당일생산 흑임자</td></tr>
+      <tr><td class="left">대표 제품</td><td>밥알찹쌀떡</td><td>호박인절미</td><td>쑥인절미/쑥떡</td><td>흑임자인절미</td></tr>
+      <tr><td class="left">유통 폭</td><td>자사몰 중심(좁음)</td><td>대형유통 광범위</td><td>중간(신세계·쿠팡)</td><td>자사·택배 중심</td></tr>
+      <tr><td class="left">가격 전략</td><td>프리미엄 42,000</td><td>중저가 세트</td><td>할인+사은품</td><td>중가</td></tr>
+      <tr><td class="left">이번 주 모멘텀</td><td>정체 <span class="label l-est">추정</span></td><td>급상승(바이럴)</td><td>프로모션 강화</td><td>안정</td></tr>
+    </table>
+  </section>
+
+  <section id="keyword">
+    <h2><span class="num">4.</span>네이버 키워드 트렌드</h2>
+    <p class="conclusion">결론: 대시보드 네이버 탭 미수집으로 자사 키워드 데이터는 <span class="label l-na">확인 불가</span>. 대신 시장 검색 기반 카테고리 트렌드를 정리.</p>
+    <table>
+      <tr><th>지표 (2026-06-01 웹 검색)</th><th>값</th><th>레이블</th></tr>
+      <tr><td class="left">국내 떡류 판매액 (2024)</td><td>약 9,291억 원</td><td><span class="label l-fact">사실</span></td></tr>
+      <tr><td class="left">2018→2024 성장률</td><td>약 +65% (6년)</td><td><span class="label l-fact">사실</span></td></tr>
+      <tr><td class="left">시장 연평균 성장</td><td>약 5~7%</td><td><span class="label l-fact">사실</span></td></tr>
+      <tr><td class="left">주도 트렌드</td><td>'쫀득 식감' 열풍, 버터떡, 떡지순례(Z세대)</td><td><span class="label l-fact">사실</span></td></tr>
+      <tr><td class="left">위협 요인</td><td>마트 PB 떡(노브랜드 떡마리 누적 30만 개)</td><td><span class="label l-fact">사실</span></td></tr>
+    </table>
+    <p class="callout">시사점: 시장은 명절 중심 → 일상 간식·경험 소비로 이동 중. 백년화편의 '선물·전통' 포지션은 안정적이나, 성장하는 '일상 디저트·Z세대 체험' 수요는 거의 흡수하지 못하는 구조. 성장 정체의 외부 원인 중 하나로 <span class="label l-est">추정</span>.</p>
+  </section>
+
+  <section id="action">
+    <h2><span class="num">5.</span>이번 주 액션 아이템</h2>
+    <p class="conclusion">결론: 최우선은 데이터 파이프라인 복구. 그다음 흑임자·쑥떡 라인 방어와 체험 기반 노출 강화.</p>
+    <ul class="action">
+      <li><span class="tag">[긴급]</span> 집 PC에서 네이버 쿠키 갱신 → 대시보드 네이버 탭 수집 정상화 (이번 리포트 KPI 공백의 직접 원인)</li>
+      <li><span class="tag">[긴급]</span> 다음 자동 실행 전 Cowork 세션 Chrome 확장 연결 확인 — 미연결 시 리뷰 데이터 매주 누락</li>
+      <li><span class="tag">[방어]</span> 흑임자(밥알흑임자) 상세페이지에 '밥알 살아있는 특허 방식 + 대한명인' 메시지 강조 — 압구정공주떡 흑임자와 직접 차별화</li>
+      <li><span class="tag">[방어]</span> 쑥떡 라인 — 명가삼대 할인+사은품에 가격 대응 대신 '국산 쑥·당일생산' 품질 메시지 유지</li>
+      <li><span class="tag">[기회]</span> 창억떡 바이럴로 커진 '떡 디저트' 관심을 선물 수요로 전환 — 팝업박스/체험 나눔 구조로 "먹어보고 산다" 트리거 활용</li>
+      <li><span class="tag">[모니터]</span> 창억떡 셀럽 바이럴 지속 여부, 명가삼대 할인 종료 시점 다음 주 추적</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="num">·</span>출처 및 작성 기준</h2>
+    <p class="meta">웹 검색 시점: 2026-06-01. 사실/추정/확인 불가 레이블로 구분. 출처가 불분명한 수치는 기재하지 않음.</p>
+    <p class="src">
+      · 떡 시장 규모/트렌드: economist.co.kr, segye.com, some.co.kr, mobiinside.co.kr (2026)<br>
+      · 창억떡: changeok.co.kr, namu.wiki, gongyoungshop.kr<br>
+      · 명가삼대떡집: myeonggashop.com, m-shinsegaemall.ssg.com<br>
+      · 압구정공주떡: kongjudduk.co.kr, diningcode.com, thingoolmarket.com
+    </p>
+  </section>
+
+</div>
+</body>
+</html>
