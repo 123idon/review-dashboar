@@ -10,6 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pydantic import BaseModel
 from scraper import collect_all, DATA_PATH
 from analyzer import compute_stats, get_reviews_page
+import survey_module
 
 # ── 리뷰 데이터 메모리 캐시 ──
 _reviews_cache = None   # {'jasaol': [...], 'myeongga': [...], ...}
@@ -90,6 +91,29 @@ collect_state = {
     "started_at": None, "live_logs": [],
 }
 
+survey_state = {
+    "running": False, "last_success": None, "last_error": None, "count": 0,
+}
+
+async def run_survey_collect():
+    """구글 서비스 계정으로 설문 시트를 수집해 data/survey.json 저장."""
+    import asyncio
+    if survey_state["running"]:
+        return
+    survey_state["running"] = True
+    survey_state["last_error"] = None
+    try:
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, survey_module.collect_survey)
+        survey_state["last_success"] = result["last_updated"]
+        survey_state["count"] = result["count"]
+        print(f"📋 설문 수집 완료: {result['count']}건")
+    except Exception as e:
+        survey_state["last_error"] = str(e)
+        print(f"❌ 설문 수집 실패: {e}")
+    finally:
+        survey_state["running"] = False
+
 def progress_cb(info: dict):
     collect_state.update(info)
     msg = info.get("progress_msg", "")
@@ -152,6 +176,7 @@ async def run_collect():
 async def startup():
     import asyncio
     scheduler.add_job(run_collect, "cron", hour=0, minute=6, id="daily")
+    scheduler.add_job(run_survey_collect, "cron", hour=0, minute=20, id="survey_daily")
     scheduler.start()
     need_collect = False
     if not DATA_PATH.exists():
@@ -169,6 +194,10 @@ async def startup():
             need_collect = True
     if need_collect:
         asyncio.create_task(run_collect())
+    # 설문: 서비스 계정 키가 있고 데이터가 없으면 1회 수집
+    if os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON") and not survey_module.SURVEY_PATH.exists():
+        print("📋 설문 데이터 없음 → 자동 수집 시도")
+        asyncio.create_task(run_survey_collect())
     print("✅ 서버 시작 완료")
 
 @app.on_event("shutdown")
@@ -571,6 +600,53 @@ async def save_inventory_api(request: Request):
         return {"ok": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── 고객만족 설문 분석 ──
+@app.get("/survey")
+async def survey_page():
+    return FileResponse("static/survey.html", headers={"Cache-Control": "no-store, no-cache, must-revalidate"})
+
+@app.get("/api/survey")
+async def get_survey_stats():
+    """설문 통계 (마스킹된 데이터 기반)."""
+    import asyncio
+    loop = asyncio.get_event_loop()
+    payload = await loop.run_in_executor(None, survey_module.load_survey)
+    stats = await loop.run_in_executor(None, survey_module.compute_survey_stats, payload)
+    # 데이터가 없고 서비스 계정도 없으면 안내 메시지
+    if stats["total"] == 0 and not os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON"):
+        stats["error"] = "구글 서비스 계정이 아직 연결되지 않았습니다. 환경변수 GOOGLE_SERVICE_ACCOUNT_JSON 등록 후 동기화하세요."
+    elif stats["total"] == 0 and survey_state.get("last_error"):
+        stats["error"] = f"수집 오류: {survey_state['last_error']}"
+    return JSONResponse(stats)
+
+@app.get("/api/survey/records")
+async def get_survey_records():
+    """마스킹된 설문 원본 레코드 (휴대폰번호는 이미 마스킹되어 저장됨)."""
+    import asyncio
+    loop = asyncio.get_event_loop()
+    payload = await loop.run_in_executor(None, survey_module.load_survey)
+    return JSONResponse({"records": payload.get("records", []), "count": payload.get("count", 0)})
+
+@app.post("/api/survey/sync")
+async def sync_survey(background_tasks: BackgroundTasks):
+    """설문 수동 동기화 트리거."""
+    if survey_state["running"]:
+        return {"ok": False, "msg": "이미 동기화 중입니다"}
+    background_tasks.add_task(run_survey_collect)
+    return {"ok": True, "msg": "동기화 시작"}
+
+@app.get("/api/survey/status")
+async def survey_status():
+    """설문 수집 상태 + 서비스 계정 이메일(공유 요청용)."""
+    return {
+        **survey_state,
+        "service_account_email": survey_module.service_account_email(),
+        "sheet_id": survey_module.SHEET_ID,
+        "data_exists": survey_module.SURVEY_PATH.exists(),
+    }
+
 
 if __name__ == "__main__":
     import uvicorn
