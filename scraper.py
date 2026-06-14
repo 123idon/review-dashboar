@@ -527,6 +527,50 @@ async def scrape_jasaol_incremental(progress_cb=None) -> list:
     print(f"  [자사몰] 신규 {len(all_new):,}건")
     return all_new
 
+async def scrape_jasaol_recent(days: int = 14, progress_cb=None) -> list:
+    """최근 N일 자사몰 후기를 전문+사진 포함하여 수집 (날짜 기준, review_no 중복 없이).
+    기존 데이터 교체용 — 날짜가 cutoff보다 오래된 페이지를 만나면 중단."""
+    from datetime import timedelta
+    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    print(f"  [자사몰] 최근 {days}일 재수집: {cutoff} 이후 (전문+사진)")
+    sem = asyncio.Semaphore(JASAOL_CONCURRENT)
+    collected = []
+    seen_nos = set()
+    try:
+        async with asyncio.timeout(JASAOL_TOTAL_TIMEOUT):
+            async with httpx.AsyncClient(headers=JASAOL_HEADERS, follow_redirects=True,
+                                         timeout=JASAOL_PAGE_TIMEOUT) as client:
+                page = 1
+                total_pages = None
+                while True:
+                    _, reviews, last_page = await fetch_review_page(client, 1, page, sem, "")
+                    if page == 1 and last_page:
+                        total_pages = last_page
+                    if not reviews:
+                        break
+                    stop = False
+                    for rv in reviews:
+                        rno = str(rv.get("review_no", ""))
+                        if rv["date"] < cutoff:
+                            stop = True  # 정렬상 이후는 더 오래됨 → 중단
+                            break
+                        if rno and rno not in seen_nos:
+                            seen_nos.add(rno)
+                            collected.append(rv)
+                    if progress_cb:
+                        progress_cb({"phase": "detail", "brand": "자사몰",
+                                     "progress_msg": f"자사몰 최근{days}일 p{page} (수집 {len(collected):,}건)"})
+                    if stop:
+                        break
+                    max_p = total_pages or page
+                    if page >= max_p:
+                        break
+                    page += 1
+    except asyncio.TimeoutError:
+        print(f"  [자사몰] 재수집 타임아웃 — 수집된 것만 반환")
+    print(f"  [자사몰] 최근 {days}일 {len(collected):,}건 수집 (전문+사진)")
+    return collected
+
 # ─────────────────────────── 메인 ──────────────────────────────────────────────
 async def collect_all(progress_cb=None) -> dict:
     print("=" * 50)
