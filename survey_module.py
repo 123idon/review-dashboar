@@ -19,7 +19,7 @@ from datetime import datetime
 from collections import Counter
 
 # ── 시트 식별자 (URL에서 확인된 값) ──
-SHEET_ID = os.environ.get("SURVEY_SHEET_ID", "1UAbCrCM0KnnqlDn7MHeHObzMl13Xs3Fp80FwsCMwwt4")
+SHEET_ID = os.environ.get("SURVEY_SHEET_ID", "1UAbCrCM0KnnqlDn7MHeHObzMI13Xs3Fp80FwsCMwwt4")
 SHEET_GID = os.environ.get("SURVEY_SHEET_GID", "1051173109")
 
 SURVEY_PATH = Path("data/survey.json")
