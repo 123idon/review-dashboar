@@ -67,6 +67,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .search-box:focus{border-color:var(--accent)}
 .filter-sel{height:34px;padding:0 12px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;outline:none}
 
+.field-toggle{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.field-toggle-label{font-size:12px;font-weight:700;color:var(--text4);margin-right:4px}
+.field-btn{height:30px;padding:0 13px;border-radius:50px;border:1.5px solid var(--border);background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;transition:all 150ms ease}
+.field-btn:hover{border-color:var(--accent);color:var(--accent)}
+.field-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .resp-list{display:flex;flex-direction:column;gap:12px}
 .resp-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px}
 .resp-card.low{border-color:#fecaca;background:#fffafa}
@@ -80,6 +85,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .resp-tags{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
 .resp-tag{font-size:11px;color:var(--text3);background:var(--bg2);padding:2px 9px;border-radius:50px}
 .resp-qa{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px}
+.resp-qa.single{grid-template-columns:1fr}
 .qa-item{display:flex;flex-direction:column;gap:3px}
 .qa-label{font-size:11px;font-weight:700;color:var(--text4)}
 .qa-text{font-size:13px;color:var(--text2);line-height:1.6;word-break:break-word}
@@ -149,13 +155,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
     <select class="filter-sel" id="filGender"><option value="">성별 전체</option></select>
     <select class="filter-sel" id="filPath"><option value="">주문경로 전체</option></select>
   </div>
+  <div class="field-toggle" id="fieldToggle">
+    <span class="field-toggle-label">주관식 보기</span>
+    <button class="field-btn active" data-f="all">전체</button>
+    <button class="field-btn" data-f="reason">만족 이유</button>
+    <button class="field-btn" data-f="improve_product">상품 개선점</button>
+    <button class="field-btn" data-f="improve_order">주문과정 개선점</button>
+    <button class="field-btn" data-f="wish_product">출시 희망 상품</button>
+  </div>
   <div class="resp-list" id="respList"></div>
   <div class="pager" id="pager"></div>
 </div>
 
 <script>
 const PALETTE=['#b5651d','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#EC4899','#84CC16','#6366F1'];
-let RAW=null, STATS=null, charts={}, curPage=1;
+let RAW=null, STATS=null, charts={}, curPage=1, curField='all';
 let curFrom='', curTo='';   // 현재 적용된 날짜 범위 (YYYY-MM-DD)
 const PER=10;
 
@@ -207,6 +221,16 @@ document.getElementById('dateApply').addEventListener('click',()=>{
   curFrom=f; curTo=t;
   document.querySelectorAll('.date-preset').forEach(x=>x.classList.remove('active'));
   curPage=1; reloadStats();
+});
+
+// 주관식 항목 토글 (전체 / 항목 하나만)
+document.getElementById('fieldToggle').addEventListener('click',e=>{
+  const b=e.target.closest('.field-btn'); if(!b) return;
+  document.querySelectorAll('.field-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  curField=b.dataset.f;
+  curPage=1;
+  if(RAW) renderCards();
 });
 
 async function reloadStats(){
@@ -342,9 +366,16 @@ function renderCards(){
   const totalPg=Math.ceil(rows.length/PER);
   if(curPage>totalPg)curPage=totalPg;
   const slice=rows.slice((curPage-1)*PER,curPage*PER);
+  const FIELDS={reason:'만족 이유',improve_product:'상품 개선점',improve_order:'주문과정 개선점',wish_product:'출시 희망 상품'};
   el.innerHTML=slice.map(r=>{
     const s=r.satisfaction;
     const isLow = s>0 && s<=3;
+    let qaHtml;
+    if(curField==='all'){
+      qaHtml = Object.entries(FIELDS).map(([k,lbl])=>qaItem(lbl,r[k])).join('');
+    }else{
+      qaHtml = qaItem(FIELDS[curField], r[curField]);
+    }
     return `<div class="resp-card ${isLow?'low':''}">
       <div class="resp-top">
         ${satBadge(s)}
@@ -355,11 +386,8 @@ function renderCards(){
           ${r.channel?`<span class="resp-tag">${esc(r.channel)}</span>`:''}
         </span>
       </div>
-      <div class="resp-qa">
-        ${qaItem('만족 이유', r.reason)}
-        ${qaItem('상품 개선점', r.improve_product)}
-        ${qaItem('주문과정 개선점', r.improve_order)}
-        ${qaItem('출시 희망 상품', r.wish_product)}
+      <div class="resp-qa ${curField==='all'?'':'single'}">
+        ${qaHtml}
       </div>
       <div class="resp-foot">
         <span><b>날짜</b> ${fmtDate(r.ts)}</span>
