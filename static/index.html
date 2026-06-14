@@ -522,6 +522,8 @@ body {
 .rev-date    { font-size:11px; color:var(--text4); font-variant-numeric:tabular-nums; }
 .review-product { font-size:11px; color:var(--text3); margin-bottom:5px; font-weight:500; }
 .review-content { font-size:13px; color:var(--text2); line-height:1.65; }
+.src-link { font-size:12px; color:var(--brand); font-weight:600; text-decoration:none; white-space:nowrap; margin-left:4px; }
+.src-link:hover { text-decoration:underline; }
 
 /* 페이지네이션 */
 .pagination { display:flex; justify-content:center; align-items:center; gap:4px; padding-top:16px; flex-wrap:wrap; }
@@ -1446,13 +1448,18 @@ function buildReviewCards(reviews){
     const stars=[1,2,3,4,5].map(i=>`<span class="star ${i<=r.score?'on':'off'}">★</span>`).join('');
     const platLabel={direct:'자사몰',kakao:'카카오',naver:'네이버',smartstore:'스마트스토어'}[r.platform]||r.platform;
     const badgeCls=r.platform==='smartstore'?'smartstore':r.platform==='kakao'?'kakao':'jasa';
+    const c = r.content||r.title||'';
+    const truncated = /[.\u2026]{1}$/.test(c.trim()) && (c.trim().endsWith('...')||c.trim().endsWith('…'));
+    const srcLink = (r.platform==='direct' && truncated)
+      ? ` <a href="https://shop.100yearshop.co.kr/shop/goods/goods_review.php" target="_blank" rel="noopener" class="src-link">원문 보기 ↗</a>`
+      : '';
     return `<div class="review-card ${isLow?'low':''}">
       <div class="review-header">
         <div style="display:flex;align-items:center"><div class="stars">${stars}</div><span class="score-num ${isLow?'low':''}">${Number(r.score)%1===0?r.score+'.0':r.score}</span>${isLow?'<span class="low-tag">주의</span>':''}</div>
         <div class="review-meta"><span class="rev-badge ${badgeCls}">${platLabel}</span><span class="rev-date">${r.date}</span></div>
       </div>
       ${r.product?`<div class="review-product">${r.product}</div>`:''}
-      <div class="review-content">${r.content||r.title||'<span style="color:var(--text3)">본문 없음</span>'}</div>
+      <div class="review-content">${c||'<span style="color:var(--text3)">본문 없음</span>'}${srcLink}</div>
     </div>`;
   }).join('');
 }
