@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>고객만족 설문 분석 · 백년화편</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F9FAFB;--bg2:#F2F4F6;--surface:#fff;--surface2:#F2F4F6;
+  --border:#E5E8EB;
+  --text:#191F28;--text2:#333D4B;--text3:#6B7684;--text4:#B0B8C1;
+  --accent:#b5651d;--accent-soft:#f3e9dd;
+  --green:#10B981;--red:#EF4444;--blue:#3B82F6;--amber:#F59E0B;--purple:#8B5CF6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:60px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 18px}
+
+#loading{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .3s}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ld-text{font-size:13px;color:var(--text3)}
+
+.hdr{display:flex;align-items:center;gap:12px;padding:20px 0 14px}
+.back-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--text2);font-size:18px;transition:all 150ms ease;flex-shrink:0}
+.back-btn:hover{background:var(--surface2)}
+.hdr-titles{flex:1}
+.page-title{font-size:18px;font-weight:800;letter-spacing:-.4px}
+.page-sub{font-size:11px;color:var(--text4);margin-top:2px}
+.last-upd{font-size:11px;color:var(--text4);font-variant-numeric:tabular-nums;text-align:right}
+
+.notice{background:var(--accent-soft);border:1px solid #e8d5bf;border-radius:12px;padding:11px 14px;font-size:12px;color:#7a4a13;line-height:1.6;margin-bottom:16px;display:none}
+.notice.show{display:block}
+
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px}
+.kpi-label{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px}
+.kpi-value{font-size:26px;font-weight:800;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.kpi-value small{font-size:13px;font-weight:600;color:var(--text4)}
+.kpi-sub{font-size:11px;color:var(--text4);margin-top:4px}
+.stars{color:var(--amber);font-size:15px;letter-spacing:1px}
+
+.section-title{font-size:11px;font-weight:700;color:var(--text4);letter-spacing:1.2px;text-transform:uppercase;margin:8px 0 12px}
+
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:22px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px}
+.chart-title{font-size:13px;font-weight:700;color:var(--text2);letter-spacing:-.2px;margin-bottom:14px}
+.chart-box{position:relative;height:230px}
+
+/* 주관식 키워드 탭 */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{height:32px;padding:0 14px;border-radius:50px;border:1.5px solid var(--border);background:transparent;font-family:inherit;font-size:12px;font-weight:700;color:var(--text3);cursor:pointer;transition:all 150ms ease}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.kw-list{display:flex;flex-direction:column;gap:8px}
+.kw-row{display:flex;align-items:center;gap:10px;cursor:pointer;padding:3px 0}
+.kw-row:hover .kw-word{color:var(--accent)}
+.kw-word{font-size:13px;font-weight:700;color:var(--text2);width:78px;flex-shrink:0}
+.kw-bar-bg{flex:1;height:8px;background:var(--bg2);border-radius:50px;overflow:hidden}
+.kw-bar{height:100%;background:var(--accent);border-radius:50px;transition:width .5s ease}
+.kw-cnt{font-size:11px;color:var(--text3);width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.kw-hint{font-size:11px;color:var(--text4);margin-top:10px}
+
+/* 원본 테이블 */
+.table-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.search-box{flex:1;min-width:160px;height:34px;padding:0 14px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:13px;color:var(--text);outline:none}
+.search-box:focus{border-color:var(--accent)}
+.filter-sel{height:34px;padding:0 12px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;outline:none}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:760px}
+th{background:var(--bg2);color:var(--text3);font-weight:700;text-align:left;padding:10px 12px;white-space:nowrap;position:sticky;top:0}
+td{padding:10px 12px;border-top:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.5}
+tr:hover td{background:var(--bg2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:50px;font-size:11px;font-weight:700}
+.b-sat5{background:#dcfce7;color:#15803d}.b-sat4{background:#dbeafe;color:#1d4ed8}
+.b-sat3{background:#fef9c3;color:#a16207}.b-sat12{background:#fee2e2;color:#b91c1c}
+.cell-text{max-width:240px;white-space:normal}
+.pager{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap}
+.pg-btn{min-width:32px;height:32px;padding:0 8px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer}
+.pg-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.pg-btn:disabled{opacity:.4;cursor:default}
+.empty{text-align:center;padding:40px 0;color:var(--text4);font-size:13px}
+@media(max-width:600px){.page-title{font-size:16px}.kpi-value{font-size:22px}}
+</style>
+</head>
+<body>
+<div id="loading"><div class="spinner"></div><div class="ld-text">설문 데이터 불러오는 중…</div></div>
+
+<div class="wrap">
+  <div class="hdr">
+    <a href="/" class="back-btn">←</a>
+    <div class="hdr-titles">
+      <div class="page-title">고객만족 설문 분석</div>
+      <div class="page-sub">백년화편 고객만족 설문조사 응답 집계</div>
+    </div>
+    <div class="last-upd" id="lastUpd"></div>
+  </div>
+
+  <div class="notice" id="notice"></div>
+
+  <!-- 영역 1: KPI -->
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- 영역 1: 차트 -->
+  <div class="section-title">응답 분포</div>
+  <div class="chart-grid">
+    <div class="card"><div class="chart-title">만족도 분포</div><div class="chart-box"><canvas id="chSat"></canvas></div></div>
+    <div class="card"><div class="chart-title">인지 경로 (어떻게 알게 되었나)</div><div class="chart-box"><canvas id="chChannel"></canvas></div></div>
+    <div class="card"><div class="chart-title">주문 경로</div><div class="chart-box"><canvas id="chOrder"></canvas></div></div>
+    <div class="card"><div class="chart-title">연령대</div><div class="chart-box"><canvas id="chAge"></canvas></div></div>
+    <div class="card"><div class="chart-title">성별</div><div class="chart-box"><canvas id="chGender"></canvas></div></div>
+    <div class="card"><div class="chart-title">추천 의향</div><div class="chart-box"><canvas id="chRec"></canvas></div></div>
+  </div>
+
+  <!-- 영역 2: 주관식 키워드 -->
+  <div class="section-title">주관식 키워드 분석</div>
+  <div class="card" style="margin-bottom:22px">
+    <div class="tabs" id="kwTabs">
+      <button class="tab active" data-k="improve_product">상품 개선점</button>
+      <button class="tab" data-k="improve_order">주문과정 개선점</button>
+      <button class="tab" data-k="wish_product">출시 희망 상품</button>
+      <button class="tab" data-k="reason">만족 이유</button>
+    </div>
+    <div class="kw-list" id="kwList"></div>
+    <div class="kw-hint">키워드를 클릭하면 아래 표가 해당 단어를 포함한 응답으로 필터링됩니다.</div>
+  </div>
+
+  <!-- 영역 3: 원본 테이블 -->
+  <div class="section-title">응답 원본 <span style="color:var(--text4);font-weight:400;text-transform:none;letter-spacing:0">· 휴대폰번호는 보호를 위해 마스킹 표시됩니다</span></div>
+  <div class="table-controls">
+    <input class="search-box" id="searchBox" placeholder="응답 내용 검색…">
+    <select class="filter-sel" id="filSat"><option value="">만족도 전체</option><option value="5">5점</option><option value="4">4점</option><option value="3">3점</option><option value="2">2점</option><option value="1">1점</option></select>
+    <select class="filter-sel" id="filGender"><option value="">성별 전체</option></select>
+    <select class="filter-sel" id="filPath"><option value="">주문경로 전체</option></select>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>날짜</th><th>만족</th><th>주문상품</th><th>인지경로</th><th>주문경로</th>
+        <th>만족이유</th><th>상품개선</th><th>주문과정개선</th><th>출시희망</th>
+        <th>성별</th><th>나이</th><th>연락처</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="pager" id="pager"></div>
+</div>
+
+<script>
+const PALETTE=['#b5651d','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#EC4899','#84CC16','#6366F1'];
+let RAW=null, STATS=null, charts={}, curKw='improve_product', curPage=1;
+const PER=10;
+
+function fmtDate(s){if(!s)return'';return s.replace(/-/g,'.');}
+
+async function load(){
+  try{
+    const [rs, rd] = await Promise.all([
+      fetch('/api/survey').then(r=>r.json()),
+      fetch('/api/survey/records').then(r=>r.json())
+    ]);
+    STATS = rs; RAW = rd.records||[];
+    if(rs.error){ showNotice(rs.error); }
+    render();
+  }catch(e){
+    showNotice('데이터를 불러오지 못했습니다: '+e.message);
+  }finally{
+    document.getElementById('loading').style.opacity=0;
+    setTimeout(()=>document.getElementById('loading').style.display='none',300);
+  }
+}
+function showNotice(msg){const n=document.getElementById('notice');n.textContent=msg;n.classList.add('show');}
+
+function render(){
+  if(!STATS||STATS.total===0){
+    document.getElementById('kpiRow').innerHTML='<div class="kpi"><div class="kpi-label">응답</div><div class="kpi-value">0</div><div class="kpi-sub">아직 수집된 응답이 없습니다</div></div>';
+    return;
+  }
+  document.getElementById('lastUpd').textContent = STATS.last_updated ? '갱신 '+fmtDate(STATS.last_updated.slice(0,10)) : '';
+  renderKpi();
+  renderCharts();
+  renderKeywords();
+  setupFilters();
+  renderTable();
+}
+
+function renderKpi(){
+  const s=STATS, p=s.period||{};
+  const avg=s.avg_satisfaction;
+  const stars = avg ? '★'.repeat(Math.round(avg))+'☆'.repeat(5-Math.round(avg)) : '';
+  const recAgree = (s.recommend_dist||[]).reduce((a,b)=>a+(b.label.includes('동의')?b.count:0),0);
+  const recRate = s.total? Math.round(recAgree/s.total*100):0;
+  document.getElementById('kpiRow').innerHTML=`
+    <div class="kpi"><div class="kpi-label">총 응답</div><div class="kpi-value">${s.total.toLocaleString()}<small> 건</small></div><div class="kpi-sub">${fmtDate(p.from)} ~ ${fmtDate(p.to)}</div></div>
+    <div class="kpi"><div class="kpi-label">평균 만족도</div><div class="kpi-value">${avg??'-'}<small> / 5</small></div><div class="kpi-sub stars">${stars}</div></div>
+    <div class="kpi"><div class="kpi-label">추천 의향 동의</div><div class="kpi-value">${recRate}<small>%</small></div><div class="kpi-sub">${recAgree.toLocaleString()}명 동의</div></div>
+  `;
+}
+
+function destroyCharts(){Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};}
+function donutOpts(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,color:getCss('--text3')}}}};}
+function barOpts(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:11},color:getCss('--text3')},grid:{display:false}},y:{ticks:{font:{size:11},color:getCss('--text3'),precision:0},grid:{color:getCss('--border')}}}};}
+function getCss(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()||'#999';}
+
+function renderCharts(){
+  destroyCharts();
+  const s=STATS;
+  // 만족도 (막대)
+  const sat=s.satisfaction_dist||[];
+  charts.sat=new Chart(document.getElementById('chSat'),{type:'bar',
+    data:{labels:sat.map(x=>x.score+'점'),datasets:[{data:sat.map(x=>x.count),backgroundColor:['#EF4444','#F59E0B','#FbbF24','#60A5FA','#10B981'],borderRadius:6}]},
+    options:barOpts()});
+  // 인지경로 (도넛)
+  donut('chChannel',s.channel_dist);
+  // 주문경로 (도넛)
+  donut('chOrder',s.order_path_dist);
+  // 연령 (막대)
+  const age=(s.age_dist||[]).slice().sort((a,b)=>a.label.localeCompare(b.label));
+  charts.age=new Chart(document.getElementById('chAge'),{type:'bar',
+    data:{labels:age.map(x=>x.label),datasets:[{data:age.map(x=>x.count),backgroundColor:'#b5651d',borderRadius:6}]},
+    options:barOpts()});
+  // 성별 (도넛)
+  donut('chGender',s.gender_dist);
+  // 추천의향 (도넛)
+  donut('chRec',s.recommend_dist);
+}
+function donut(id,dist){
+  dist=dist||[];
+  charts[id]=new Chart(document.getElementById(id),{type:'doughnut',
+    data:{labels:dist.map(x=>x.label.length>16?x.label.slice(0,15)+'…':x.label),datasets:[{data:dist.map(x=>x.count),backgroundColor:PALETTE,borderWidth:2,borderColor:getCss('--surface')}]},
+    options:donutOpts()});
+}
+
+function renderKeywords(){
+  const list=(STATS.keywords&&STATS.keywords[curKw])||[];
+  const max=list.length?list[0].count:1;
+  const el=document.getElementById('kwList');
+  if(!list.length){el.innerHTML='<div class="empty">키워드가 없습니다</div>';return;}
+  el.innerHTML=list.map(k=>`
+    <div class="kw-row" onclick="filterByKeyword('${k.word.replace(/'/g,"")}')">
+      <span class="kw-word">${k.word}</span>
+      <span class="kw-bar-bg"><span class="kw-bar" style="width:${Math.round(k.count/max*100)}%"></span></span>
+      <span class="kw-cnt">${k.count}</span>
+    </div>`).join('');
+}
+document.getElementById('kwTabs').addEventListener('click',e=>{
+  const b=e.target.closest('.tab');if(!b)return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  b.classList.add('active');curKw=b.dataset.k;renderKeywords();
+});
+function filterByKeyword(w){
+  document.getElementById('searchBox').value=w;
+  curPage=1;renderTable();
+  document.querySelector('.table-controls').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function setupFilters(){
+  const gsel=document.getElementById('filGender'), psel=document.getElementById('filPath');
+  (STATS.gender_dist||[]).forEach(g=>{const o=document.createElement('option');o.value=g.label;o.textContent=g.label;gsel.appendChild(o);});
+  (STATS.order_path_dist||[]).forEach(p=>{const o=document.createElement('option');o.value=p.label;o.textContent=p.label;psel.appendChild(o);});
+  ['searchBox','filSat','filGender','filPath'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{curPage=1;renderTable();});
+    document.getElementById(id).addEventListener('change',()=>{curPage=1;renderTable();});
+  });
+}
+
+function filteredRows(){
+  const q=document.getElementById('searchBox').value.trim();
+  const fs=document.getElementById('filSat').value;
+  const fg=document.getElementById('filGender').value;
+  const fp=document.getElementById('filPath').value;
+  return RAW.filter(r=>{
+    if(fs && String(r.satisfaction)!==fs)return false;
+    if(fg && r.gender!==fg)return false;
+    if(fp && r.order_path!==fp)return false;
+    if(q){
+      const blob=[r.reason,r.improve_product,r.improve_order,r.wish_product,r.product,r.channel].join(' ');
+      if(!blob.includes(q))return false;
+    }
+    return true;
+  });
+}
+
+function satBadge(s){
+  if(s===5)return'<span class="badge b-sat5">5</span>';
+  if(s===4)return'<span class="badge b-sat4">4</span>';
+  if(s===3)return'<span class="badge b-sat3">3</span>';
+  if(s===2||s===1)return`<span class="badge b-sat12">${s}</span>`;
+  return'-';
+}
+function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function renderTable(){
+  const rows=filteredRows().slice().reverse(); // 최신순
+  const tb=document.getElementById('tbody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="12"><div class="empty">조건에 맞는 응답이 없습니다</div></td></tr>';document.getElementById('pager').innerHTML='';return;}
+  const totalPg=Math.ceil(rows.length/PER);
+  if(curPage>totalPg)curPage=totalPg;
+  const slice=rows.slice((curPage-1)*PER,curPage*PER);
+  tb.innerHTML=slice.map(r=>`<tr>
+    <td style="white-space:nowrap">${fmtDate(r.ts)}</td>
+    <td>${satBadge(r.satisfaction)}</td>
+    <td style="white-space:nowrap">${esc(r.product)}</td>
+    <td class="cell-text">${esc(r.channel)}</td>
+    <td style="white-space:nowrap">${esc(r.order_path)}</td>
+    <td class="cell-text">${esc(r.reason)}</td>
+    <td class="cell-text">${esc(r.improve_product)}</td>
+    <td class="cell-text">${esc(r.improve_order)}</td>
+    <td class="cell-text">${esc(r.wish_product)}</td>
+    <td style="white-space:nowrap">${esc(r.gender)}</td>
+    <td style="white-space:nowrap">${esc(r.age)}</td>
+    <td style="white-space:nowrap;color:var(--text4)">${esc(r.phone)}</td>
+  </tr>`).join('');
+  renderPager(totalPg,rows.length);
+}
+function renderPager(total,count){
+  if(total<=1){document.getElementById('pager').innerHTML=`<span style="font-size:11px;color:var(--text4)">${count}건</span>`;return;}
+  let h=`<button class="pg-btn" onclick="goPage(${curPage-1})" ${curPage===1?'disabled':''}>‹</button>`;
+  const win=2;let start=Math.max(1,curPage-win),end=Math.min(total,curPage+win);
+  if(start>1)h+=`<button class="pg-btn" onclick="goPage(1)">1</button>`+(start>2?'<span style="color:var(--text4)">…</span>':'');
+  for(let i=start;i<=end;i++)h+=`<button class="pg-btn ${i===curPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  if(end<total)h+=(end<total-1?'<span style="color:var(--text4)">…</span>':'')+`<button class="pg-btn" onclick="goPage(${total})">${total}</button>`;
+  h+=`<button class="pg-btn" onclick="goPage(${curPage+1})" ${curPage===total?'disabled':''}>›</button>`;
+  h+=`<span style="font-size:11px;color:var(--text4);margin-left:8px">총 ${count}건</span>`;
+  document.getElementById('pager').innerHTML=h;
+}
+function goPage(p){curPage=p;renderTable();window.scrollTo({top:document.querySelector('.table-controls').offsetTop-20,behavior:'smooth'});}
+
+load();
+</script>
+</body>
+</html>
