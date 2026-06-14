@@ -245,13 +245,62 @@ def extract_product_from_content(content: str) -> str:
         return name
     return ""
 
-def parse_jasaol_review(row, product_name: str):
+def build_fulltext_map(soup: BeautifulSoup) -> dict:
+    """목록 페이지의 숨김 div(display:none)에서 후기 전문+이미지를 추출.
+    키는 sno(추천버튼 id / RV이미지 번호). 반환: {sno: {"content": str, "images": [url...]}}"""
+    out = {}
+    for d in soup.find_all("div", style=re.compile(r"display:\s*none")):
+        inner = d.find("div", style=re.compile(r"padding-left"))
+        if not inner:
+            continue
+        imgs = []
+        sno = None
+        for img in inner.find_all("img"):
+            src = img.get("src", "")
+            if not src:
+                continue
+            m = re.search(r"RV0*(\d+)", src)
+            if m:
+                if sno is None:
+                    sno = m.group(1)
+                imgs.append(JASAOL_BASE + src if src.startswith("/") else src)
+        # 이미지가 없는 후기는 RV번호를 못 얻으므로, 직전 recommend 버튼 id에서 sno 추출
+        if sno is None:
+            prev = d.find_previous(id=re.compile(r"recommend_\d+"))
+            if prev:
+                m = re.search(r"recommend_(\d+)", prev.get("id", ""))
+                if m:
+                    sno = m.group(1)
+        # 전문 텍스트: inner의 직계 div들 중 이미지가 없는 마지막 텍스트 블록
+        text = ""
+        for sub in inner.find_all("div", recursive=False):
+            if sub.find("img"):
+                continue
+            t = sub.get_text(" ", strip=True)
+            if t:
+                text = t  # 마지막 텍스트 div가 본문
+        if not text:
+            # 폴백: inner 전체 텍스트
+            text = inner.get_text(" ", strip=True)
+        text = re.sub(r"\s+", " ", text).strip()
+        if sno:
+            out[sno] = {"content": text, "images": imgs}
+    return out
+
+def parse_jasaol_review(row, product_name: str, fulltext_map: dict = None):
     try:
         tds = row.find_all("td", recursive=False)
         if len(tds) < 5:
             return None
-        # 리뷰 번호 (td[0]) - 중복 제거용
+        # 리뷰 번호 (td[0]) - 중복 제거용 (기존 호환 유지)
         review_no = tds[0].get_text(strip=True) if tds else ""
+        # sno: 추천버튼 id(recommend_XXXX) → 전문/이미지 매칭 키
+        sno = ""
+        btn = row.find(id=re.compile(r"recommend_(\d+)"))
+        if btn:
+            m = re.search(r"recommend_(\d+)", btn.get("id", ""))
+            if m:
+                sno = m.group(1)
         date_str = ""
         if len(tds) > 4:
             t = tds[4].get_text(strip=True)
@@ -273,15 +322,22 @@ def parse_jasaol_review(row, product_name: str):
                 if "14AA46" in str(td):
                     score = td.get_text().count("★")
                     break
+        # ── 본문: 숨김 div의 전문을 우선 사용, 없으면 목록 미리보기 폴백 ──
         content = ""
-        if len(tds) > 2:
-            content = tds[2].get_text(separator=" ", strip=True)
-        if len(content) < 5:
-            for td in tds[2:]:
-                t = td.get_text(separator=" ", strip=True)
-                if len(t) > len(content) and not re.match(r"^[\d\-\s★☆]+$", t):
-                    content = t
-        content = re.sub(r"\s+", " ", content).strip()[:500]
+        images = []
+        if fulltext_map and sno and sno in fulltext_map:
+            content = fulltext_map[sno]["content"]
+            images = fulltext_map[sno]["images"]
+        if not content:
+            # 폴백: 기존 방식(미리보기, 잘릴 수 있음)
+            if len(tds) > 2:
+                content = tds[2].get_text(separator=" ", strip=True)
+            if len(content) < 5:
+                for td in tds[2:]:
+                    t = td.get_text(separator=" ", strip=True)
+                    if len(t) > len(content) and not re.match(r"^[\d\-\s★☆]+$", t):
+                        content = t
+        content = re.sub(r"\s+", " ", content).strip()[:2000]
         author = ""
         if len(tds) > 3:
             t = tds[3].get_text(strip=True)
@@ -292,9 +348,12 @@ def parse_jasaol_review(row, product_name: str):
         # content에서 실제 구매 상품명 추출 (있으면 우선 사용)
         extracted = extract_product_from_content(content)
         actual_product = extracted if extracted else product_name[:80]
-        return {"date": date_str, "score": float(score), "product": actual_product[:80],
-                "review_no": review_no,
-                "title": "", "content": content, "platform": "direct", "author": author}
+        rec = {"date": date_str, "score": float(score), "product": actual_product[:80],
+               "review_no": review_no,
+               "title": "", "content": content, "platform": "direct", "author": author}
+        if images:
+            rec["images"] = images
+        return rec
     except Exception:
         return None
 
@@ -308,7 +367,8 @@ async def fetch_review_page(client, goodsno, page, sem, product_name):
             tbl = soup.find("div", class_="rv_tbl")
             if tbl:
                 rows = tbl.find_all("tr", onmouseover=True)
-                reviews = [rv for row in rows for rv in [parse_jasaol_review(row, product_name)] if rv]
+                fulltext_map = build_fulltext_map(soup)
+                reviews = [rv for row in rows for rv in [parse_jasaol_review(row, product_name, fulltext_map)] if rv]
                 last_page = get_last_page(soup) if page == 1 else 0
                 result = (page, reviews, last_page)
         except asyncio.TimeoutError:
