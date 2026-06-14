@@ -608,16 +608,16 @@ async def survey_page():
     return FileResponse("static/survey.html", headers={"Cache-Control": "no-store, no-cache, must-revalidate"})
 
 @app.get("/api/survey")
-async def get_survey_stats():
-    """설문 통계 (마스킹된 데이터 기반)."""
+async def get_survey_stats(date_from: str = None, date_to: str = None):
+    """설문 통계 (마스킹된 데이터 기반). date_from/date_to(YYYY-MM-DD)로 기간 필터."""
     import asyncio
     loop = asyncio.get_event_loop()
     payload = await loop.run_in_executor(None, survey_module.load_survey)
-    stats = await loop.run_in_executor(None, survey_module.compute_survey_stats, payload)
+    stats = await loop.run_in_executor(None, survey_module.compute_survey_stats, payload, date_from, date_to)
     # 데이터가 없고 서비스 계정도 없으면 안내 메시지
-    if stats["total"] == 0 and not os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON"):
+    if stats.get("total_all", 0) == 0 and not os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON"):
         stats["error"] = "구글 서비스 계정이 아직 연결되지 않았습니다. 환경변수 GOOGLE_SERVICE_ACCOUNT_JSON 등록 후 동기화하세요."
-    elif stats["total"] == 0 and survey_state.get("last_error"):
+    elif stats.get("total_all", 0) == 0 and survey_state.get("last_error"):
         stats["error"] = f"수집 오류: {survey_state['last_error']}"
     return JSONResponse(stats)
 
