@@ -86,6 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .resp-tag{font-size:11px;color:var(--text3);background:var(--bg2);padding:2px 9px;border-radius:50px}
 .resp-qa{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px}
 .resp-qa.single{grid-template-columns:1fr}
+.resp-noqa{font-size:12px;color:var(--text4);font-style:italic}
 .qa-item{display:flex;flex-direction:column;gap:3px}
 .qa-label{font-size:11px;font-weight:700;color:var(--text4)}
 .qa-text{font-size:13px;color:var(--text2);line-height:1.6;word-break:break-word}
@@ -337,6 +338,8 @@ function filteredRows(){
     if(fs && String(r.satisfaction)!==fs)return false;
     if(fg && r.gender!==fg)return false;
     if(fp && r.order_path!==fp)return false;
+    // 특정 주관식 항목 선택 시: 그 항목이 비어있는 응답은 제외
+    if(curField!=='all' && !(r[curField]||'').trim())return false;
     if(q){
       const blob=[r.reason,r.improve_product,r.improve_order,r.wish_product,r.product,r.channel].join(' ');
       if(!blob.includes(q))return false;
@@ -356,7 +359,8 @@ function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 function starStr(s){s=Number(s)||0;return '★'.repeat(s)+'☆'.repeat(Math.max(0,5-s));}
 function qaItem(label,val){
   const v=(val||'').trim();
-  return `<div class="qa-item"><span class="qa-label">${label}</span><span class="qa-text ${v?'':'qa-empty'}">${v?esc(v):'—'}</span></div>`;
+  if(!v) return '';  // 비어있으면 칸 자체를 표시하지 않음
+  return `<div class="qa-item"><span class="qa-label">${label}</span><span class="qa-text">${esc(v)}</span></div>`;
 }
 
 function renderCards(){
@@ -376,6 +380,9 @@ function renderCards(){
     }else{
       qaHtml = qaItem(FIELDS[curField], r[curField]);
     }
+    const qaBlock = qaHtml
+      ? `<div class="resp-qa ${curField==='all'?'':'single'}">${qaHtml}</div>`
+      : `<div class="resp-noqa">주관식 응답 없음</div>`;
     return `<div class="resp-card ${isLow?'low':''}">
       <div class="resp-top">
         ${satBadge(s)}
@@ -386,9 +393,7 @@ function renderCards(){
           ${r.channel?`<span class="resp-tag">${esc(r.channel)}</span>`:''}
         </span>
       </div>
-      <div class="resp-qa ${curField==='all'?'':'single'}">
-        ${qaHtml}
-      </div>
+      ${qaBlock}
       <div class="resp-foot">
         <span><b>날짜</b> ${fmtDate(r.ts)}</span>
         ${r.gender?`<span><b>성별</b> ${esc(r.gender)}</span>`:''}
