@@ -648,6 +648,56 @@ async def survey_status():
     }
 
 
+@app.post("/api/refresh-jasaol-recent")
+async def refresh_jasaol_recent(days: int = 14):
+    """최근 N일 자사몰 후기를 전문+사진으로 재수집하여 기존 데이터를 교체.
+    같은 review_no는 전문 버전으로 덮어쓰고, 없으면 추가."""
+    import asyncio
+    from scraper import scrape_jasaol_recent, JASAOL_BASE_PATH, JASAOL_NEW_PATH, load_json, safe_save
+    try:
+        fresh = await scrape_jasaol_recent(days=days, progress_cb=progress_cb)
+        if not fresh:
+            return {"ok": True, "updated": 0, "added": 0, "msg": "수집된 후기 없음"}
+        fresh_by_no = {str(r.get("review_no", "")): r for r in fresh if r.get("review_no")}
+
+        updated = added = 0
+
+        def merge_into(path):
+            nonlocal updated, added
+            data = load_json(path, [])
+            existing_nos = {str(r.get("review_no", "")) for r in data if r.get("review_no")}
+            out = []
+            for r in data:
+                rno = str(r.get("review_no", ""))
+                if rno in fresh_by_no:
+                    out.append(fresh_by_no[rno])  # 전문 버전으로 교체
+                    updated += 1
+                else:
+                    out.append(r)
+            safe_save(path, out)
+            return existing_nos
+
+        # base와 new 양쪽에서 교체
+        nos_base = await asyncio.get_event_loop().run_in_executor(None, merge_into, JASAOL_BASE_PATH)
+        nos_new = await asyncio.get_event_loop().run_in_executor(None, merge_into, JASAOL_NEW_PATH)
+        all_existing = nos_base | nos_new
+
+        # 기존에 없던 신규 후기는 new에 추가
+        to_add = [r for no, r in fresh_by_no.items() if no not in all_existing]
+        if to_add:
+            new_data = load_json(JASAOL_NEW_PATH, [])
+            new_data.extend(to_add)
+            safe_save(JASAOL_NEW_PATH, new_data)
+            added = len(to_add)
+
+        invalidate_cache()
+        return {"ok": True, "fetched": len(fresh), "updated": updated, "added": added,
+                "with_images": sum(1 for r in fresh if r.get("images"))}
+    except Exception as e:
+        import traceback
+        return JSONResponse(status_code=500, content={"ok": False, "error": str(e), "detail": traceback.format_exc()[:500]})
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
