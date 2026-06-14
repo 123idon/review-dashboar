@@ -346,6 +346,17 @@ footer { text-align:center; padding:0 28px 32px; font-size:11px; color:var(--tex
   background:var(--green);
   animation:pulseDot 2s ease-in-out infinite;
 }
+/* 준비중(비활성) 카드 */
+.menu-card.soon { cursor:default; opacity:.62; filter:grayscale(.35); pointer-events:none; }
+.menu-card.soon:hover { transform:none; border-color:var(--border); box-shadow:none; }
+.menu-card.soon:hover::after { opacity:0; }
+.menu-card.soon .card-arrow { display:none; }
+.soon-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  height:22px; padding:0 10px; border-radius:50px;
+  background:var(--bg2); color:var(--text3);
+  font-size:10px; font-weight:700; letter-spacing:.4px;
+}
 </style>
 <script>(function(){
   document.documentElement.setAttribute('data-theme','day');
@@ -372,13 +383,13 @@ footer { text-align:center; padding:0 28px 32px; font-size:11px; color:var(--tex
   <div class="grid-label">메뉴</div>
   <div class="menu-grid">
 
-    <a class="menu-card c-purple anim-up d1" href="/insights">
+    <div class="menu-card c-purple soon anim-up d1">
       <div class="card-icon">📊</div>
       <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
       <div class="card-body"><div class="card-name">인사이트 리포트</div>
       <div class="card-desc">주간·월간 브랜드 분석 리포트. 핵심 지표를 한눈에.</div></div>
-      <div class="card-badges"><span class="live-dot">LIVE</span></div>
-    </a>
+      <div class="card-badges"><span class="soon-badge">준비중</span></div>
+    </div>
 
     <a class="menu-card c-brand anim-up d2" href="/dashboard">
       <div class="card-icon">⭐</div>
@@ -404,15 +415,12 @@ footer { text-align:center; padding:0 28px 32px; font-size:11px; color:var(--tex
       <div class="card-badges"><span class="live-dot">LIVE</span></div>
     </a>
 
-    <div class="menu-card c-teal anim-up d5" onclick="location.href='/inventory'" style="cursor:pointer">
+    <div class="menu-card c-teal soon anim-up d5">
       <div class="card-icon">📦</div>
       <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
       <div class="card-body"><div class="card-name">재고 현황</div>
       <div class="card-desc">상품별 재고 조회·관리. 매진 임박 알림, 판매 추이 분석.</div></div>
-      <div class="card-badges">
-        <span class="live-dot">LIVE</span>
-        <a href="/100yearinventory" onclick="event.stopPropagation()" class="sub-link">+ 재고 입력</a>
-      </div>
+      <div class="card-badges"><span class="soon-badge">준비중</span></div>
       </div>
 
     <a class="menu-card c-amber anim-up d6" href="/memo">
