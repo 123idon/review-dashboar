@@ -33,6 +33,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .notice{background:var(--accent-soft);border:1px solid #e8d5bf;border-radius:12px;padding:11px 14px;font-size:12px;color:#7a4a13;line-height:1.6;margin-bottom:16px;display:none}
 .notice.show{display:block}
 
+.date-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:18px}
+.date-presets{display:flex;gap:6px;flex-wrap:wrap}
+.date-preset{height:30px;padding:0 12px;border-radius:50px;border:1.5px solid var(--border);background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;transition:all 150ms ease}
+.date-preset:hover{border-color:var(--accent);color:var(--accent)}
+.date-preset.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.date-inputs{display:flex;align-items:center;gap:8px}
+.date-input{height:30px;padding:0 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:12px;color:var(--text);outline:none;font-variant-numeric:tabular-nums}
+.date-input:focus{border-color:var(--accent)}
+.date-sep{color:var(--text4);font-size:12px}
+.date-apply{height:30px;padding:0 14px;border-radius:50px;border:none;background:var(--text);color:var(--surface);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.date-apply:hover{opacity:.85}
+@media(max-width:600px){.date-bar{flex-direction:column;align-items:stretch}.date-inputs{justify-content:space-between}.date-input{flex:1}}
+
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
 .kpi{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px}
 .kpi-label{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px}
@@ -98,6 +111,23 @@ tr:hover td{background:var(--bg2)}
 
   <div class="notice" id="notice"></div>
 
+  <!-- 기간 필터 -->
+  <div class="date-bar" id="dateBar">
+    <div class="date-presets">
+      <button class="date-preset" data-days="7">최근 7일</button>
+      <button class="date-preset active" data-days="14">최근 14일</button>
+      <button class="date-preset" data-days="30">최근 30일</button>
+      <button class="date-preset" data-days="90">최근 90일</button>
+      <button class="date-preset" data-days="0">전체</button>
+    </div>
+    <div class="date-inputs">
+      <input type="date" id="dateFrom" class="date-input">
+      <span class="date-sep">~</span>
+      <input type="date" id="dateTo" class="date-input">
+      <button class="date-apply" id="dateApply">적용</button>
+    </div>
+  </div>
+
   <!-- 영역 1: KPI -->
   <div class="kpi-row" id="kpiRow"></div>
 
@@ -149,14 +179,29 @@ tr:hover td{background:var(--bg2)}
 <script>
 const PALETTE=['#b5651d','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#EC4899','#84CC16','#6366F1'];
 let RAW=null, STATS=null, charts={}, curKw='improve_product', curPage=1;
+let curFrom='', curTo='';   // 현재 적용된 날짜 범위 (YYYY-MM-DD)
 const PER=10;
 
 function fmtDate(s){if(!s)return'';return s.replace(/-/g,'.');}
+function toISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+function setRangeDays(days){
+  // days=0 → 전체 (빈 범위)
+  if(!days){ curFrom=''; curTo=''; }
+  else{
+    const to=new Date();
+    const from=new Date(); from.setDate(from.getDate()-(days-1));
+    curFrom=toISO(from); curTo=toISO(to);
+  }
+  document.getElementById('dateFrom').value=curFrom;
+  document.getElementById('dateTo').value=curTo;
+}
 
 async function load(){
   try{
+    const qs = (curFrom||curTo) ? `?date_from=${curFrom}&date_to=${curTo}` : '';
     const [rs, rd] = await Promise.all([
-      fetch('/api/survey').then(r=>r.json()),
+      fetch('/api/survey'+qs).then(r=>r.json()),
       fetch('/api/survey/records').then(r=>r.json())
     ]);
     STATS = rs; RAW = rd.records||[];
@@ -171,9 +216,45 @@ async function load(){
 }
 function showNotice(msg){const n=document.getElementById('notice');n.textContent=msg;n.classList.add('show');}
 
+// ── 날짜 컨트롤 이벤트 ──
+document.querySelectorAll('.date-preset').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.date-preset').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    setRangeDays(parseInt(b.dataset.days,10));
+    curPage=1; reloadStats();
+  });
+});
+document.getElementById('dateApply').addEventListener('click',()=>{
+  const f=document.getElementById('dateFrom').value, t=document.getElementById('dateTo').value;
+  curFrom=f; curTo=t;
+  document.querySelectorAll('.date-preset').forEach(x=>x.classList.remove('active'));
+  curPage=1; reloadStats();
+});
+
+async function reloadStats(){
+  // 통계만 다시 받아 다시 그림 (records는 이미 보유)
+  const qs = (curFrom||curTo) ? `?date_from=${curFrom}&date_to=${curTo}` : '';
+  try{
+    STATS = await fetch('/api/survey'+qs).then(r=>r.json());
+    render();
+  }catch(e){ showNotice('기간 적용 실패: '+e.message); }
+}
+
 function render(){
-  if(!STATS||STATS.total===0){
-    document.getElementById('kpiRow').innerHTML='<div class="kpi"><div class="kpi-label">응답</div><div class="kpi-value">0</div><div class="kpi-sub">아직 수집된 응답이 없습니다</div></div>';
+  const totalAll = STATS ? (STATS.total_all ?? STATS.total) : 0;
+  if(!STATS || STATS.total===0){
+    let msg;
+    if(totalAll>0){
+      const fp=STATS.full_period||{};
+      msg=`선택한 기간에 응답이 없습니다. 전체 데이터 범위: ${fmtDate(fp.from)} ~ ${fmtDate(fp.to)}`;
+    }else{
+      msg='아직 수집된 응답이 없습니다';
+    }
+    document.getElementById('kpiRow').innerHTML=`<div class="kpi"><div class="kpi-label">응답</div><div class="kpi-value">0<small> 건</small></div><div class="kpi-sub">${msg}</div></div>`;
+    destroyCharts();
+    document.getElementById('kwList').innerHTML='<div class="empty">데이터 없음</div>';
+    RAW_render_empty();
     return;
   }
   document.getElementById('lastUpd').textContent = STATS.last_updated ? '갱신 '+fmtDate(STATS.last_updated.slice(0,10)) : '';
@@ -182,6 +263,10 @@ function render(){
   renderKeywords();
   setupFilters();
   renderTable();
+}
+function RAW_render_empty(){
+  // 기간 내 데이터가 없을 때 표/차트 영역 정리
+  if(RAW){ setupFilters(); renderTable(); }
 }
 
 function renderKpi(){
@@ -254,10 +339,15 @@ function filterByKeyword(w){
   document.querySelector('.table-controls').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
+let _filtersReady=false;
 function setupFilters(){
+  if(_filtersReady)return;
+  _filtersReady=true;
   const gsel=document.getElementById('filGender'), psel=document.getElementById('filPath');
-  (STATS.gender_dist||[]).forEach(g=>{const o=document.createElement('option');o.value=g.label;o.textContent=g.label;gsel.appendChild(o);});
-  (STATS.order_path_dist||[]).forEach(p=>{const o=document.createElement('option');o.value=p.label;o.textContent=p.label;psel.appendChild(o);});
+  // 옵션은 전체 데이터 기준(full)으로 채워야 기간 바꿔도 선택지 유지됨 → 현재 STATS 분포 사용
+  const seenG=new Set(), seenP=new Set();
+  (STATS.gender_dist||[]).forEach(g=>{if(seenG.has(g.label))return;seenG.add(g.label);const o=document.createElement('option');o.value=g.label;o.textContent=g.label;gsel.appendChild(o);});
+  (STATS.order_path_dist||[]).forEach(p=>{if(seenP.has(p.label))return;seenP.add(p.label);const o=document.createElement('option');o.value=p.label;o.textContent=p.label;psel.appendChild(o);});
   ['searchBox','filSat','filGender','filPath'].forEach(id=>{
     document.getElementById(id).addEventListener('input',()=>{curPage=1;renderTable();});
     document.getElementById(id).addEventListener('change',()=>{curPage=1;renderTable();});
@@ -270,6 +360,9 @@ function filteredRows(){
   const fg=document.getElementById('filGender').value;
   const fp=document.getElementById('filPath').value;
   return RAW.filter(r=>{
+    const ts=r.ts||'';
+    if(curFrom && ts<curFrom)return false;
+    if(curTo && ts>curTo)return false;
     if(fs && String(r.satisfaction)!==fs)return false;
     if(fg && r.gender!==fg)return false;
     if(fp && r.order_path!==fp)return false;
@@ -326,6 +419,7 @@ function renderPager(total,count){
 }
 function goPage(p){curPage=p;renderTable();window.scrollTo({top:document.querySelector('.table-controls').offsetTop-20,behavior:'smooth'});}
 
+setRangeDays(14);  // 기본값: 최근 14일
 load();
 </script>
 </body>
