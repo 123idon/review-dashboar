@@ -294,11 +294,5 @@ def compute_survey_stats(payload: dict, date_from: str = None, date_to: str = No
         "gender_dist": dist("gender"),
         "age_dist": dist("age"),
         "recommend_dist": dist("recommend"),
-        "keywords": {
-            "reason": _extract_keywords([r.get("reason", "") for r in records]),
-            "improve_product": _extract_keywords([r.get("improve_product", "") for r in records]),
-            "improve_order": _extract_keywords([r.get("improve_order", "") for r in records]),
-            "wish_product": _extract_keywords([r.get("wish_product", "") for r in records]),
-        },
         "last_updated": payload.get("last_updated"),
     }
