@@ -238,8 +238,25 @@ def _extract_keywords(texts, top_n=15):
     return [{"word": w, "count": c} for w, c in counter.most_common(top_n)]
 
 
-def compute_survey_stats(payload: dict) -> dict:
-    records = payload.get("records", [])
+def compute_survey_stats(payload: dict, date_from: str = None, date_to: str = None) -> dict:
+    all_records = payload.get("records", [])
+    # 전체 기간 (필터와 무관하게 데이터의 실제 범위 — UI 기본값/안내용)
+    all_dates = sorted([r["ts"] for r in all_records if r.get("ts")])
+    full_period = {"from": all_dates[0] if all_dates else None,
+                   "to": all_dates[-1] if all_dates else None}
+
+    # 날짜 필터 적용 (ts는 YYYY-MM-DD 문자열, 문자열 비교로 충분)
+    if date_from or date_to:
+        records = []
+        for r in all_records:
+            ts = r.get("ts") or ""
+            if date_from and ts < date_from:
+                continue
+            if date_to and ts > date_to:
+                continue
+            records.append(r)
+    else:
+        records = all_records
     total = len(records)
 
     # 만족도 분포
@@ -261,13 +278,15 @@ def compute_survey_stats(payload: dict) -> dict:
                 c[v] += 1
         return [{"label": k, "count": v} for k, v in c.most_common()]
 
-    # 기간
+    # 기간 (필터 적용된 범위)
     dates = sorted([r["ts"] for r in records if r.get("ts")])
     period = {"from": dates[0] if dates else None, "to": dates[-1] if dates else None}
 
     return {
         "total": total,
+        "total_all": len(all_records),
         "period": period,
+        "full_period": full_period,
         "avg_satisfaction": avg_sat,
         "satisfaction_dist": [{"score": k, "count": v} for k, v in sat_dist.items()],
         "channel_dist": dist("channel"),
