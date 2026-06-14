@@ -61,39 +61,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .chart-title{font-size:13px;font-weight:700;color:var(--text2);letter-spacing:-.2px;margin-bottom:14px}
 .chart-box{position:relative;height:230px}
 
-/* 주관식 키워드 탭 */
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.tab{height:32px;padding:0 14px;border-radius:50px;border:1.5px solid var(--border);background:transparent;font-family:inherit;font-size:12px;font-weight:700;color:var(--text3);cursor:pointer;transition:all 150ms ease}
-.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.kw-list{display:flex;flex-direction:column;gap:8px}
-.kw-row{display:flex;align-items:center;gap:10px;cursor:pointer;padding:3px 0}
-.kw-row:hover .kw-word{color:var(--accent)}
-.kw-word{font-size:13px;font-weight:700;color:var(--text2);width:78px;flex-shrink:0}
-.kw-bar-bg{flex:1;height:8px;background:var(--bg2);border-radius:50px;overflow:hidden}
-.kw-bar{height:100%;background:var(--accent);border-radius:50px;transition:width .5s ease}
-.kw-cnt{font-size:11px;color:var(--text3);width:34px;text-align:right;font-variant-numeric:tabular-nums}
-.kw-hint{font-size:11px;color:var(--text4);margin-top:10px}
-
-/* 원본 테이블 */
-.table-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+/* 응답 카드 리스트 */
+.table-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
 .search-box{flex:1;min-width:160px;height:34px;padding:0 14px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:13px;color:var(--text);outline:none}
 .search-box:focus{border-color:var(--accent)}
 .filter-sel{height:34px;padding:0 12px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;outline:none}
-.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px}
-table{width:100%;border-collapse:collapse;font-size:12px;min-width:760px}
-th{background:var(--bg2);color:var(--text3);font-weight:700;text-align:left;padding:10px 12px;white-space:nowrap;position:sticky;top:0}
-td{padding:10px 12px;border-top:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.5}
-tr:hover td{background:var(--bg2)}
-.badge{display:inline-block;padding:2px 8px;border-radius:50px;font-size:11px;font-weight:700}
+
+.resp-list{display:flex;flex-direction:column;gap:12px}
+.resp-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px}
+.resp-card.low{border-color:#fecaca;background:#fffafa}
+.resp-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.resp-stars{color:var(--amber);font-size:14px;letter-spacing:1px}
+.badge{display:inline-block;padding:2px 9px;border-radius:50px;font-size:11px;font-weight:700}
 .b-sat5{background:#dcfce7;color:#15803d}.b-sat4{background:#dbeafe;color:#1d4ed8}
 .b-sat3{background:#fef9c3;color:#a16207}.b-sat12{background:#fee2e2;color:#b91c1c}
-.cell-text{max-width:240px;white-space:normal}
-.pager{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap}
+.resp-date{font-size:12px;color:var(--text4);font-variant-numeric:tabular-nums}
+.resp-product{font-size:13px;font-weight:700;color:var(--text);background:var(--accent-soft);padding:2px 10px;border-radius:50px}
+.resp-tags{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.resp-tag{font-size:11px;color:var(--text3);background:var(--bg2);padding:2px 9px;border-radius:50px}
+.resp-qa{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px}
+.qa-item{display:flex;flex-direction:column;gap:3px}
+.qa-label{font-size:11px;font-weight:700;color:var(--text4)}
+.qa-text{font-size:13px;color:var(--text2);line-height:1.6;word-break:break-word}
+.qa-empty{color:var(--text4)}
+.resp-foot{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text4)}
+.resp-foot b{color:var(--text3);font-weight:600}
+
+.pager{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:18px;flex-wrap:wrap}
 .pg-btn{min-width:32px;height:32px;padding:0 8px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer}
 .pg-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .pg-btn:disabled{opacity:.4;cursor:default}
 .empty{text-align:center;padding:40px 0;color:var(--text4);font-size:13px}
-@media(max-width:600px){.page-title{font-size:16px}.kpi-value{font-size:22px}}
+@media(max-width:600px){.page-title{font-size:16px}.kpi-value{font-size:22px}.resp-qa{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -142,20 +141,7 @@ tr:hover td{background:var(--bg2)}
     <div class="card"><div class="chart-title">추천 의향</div><div class="chart-box"><canvas id="chRec"></canvas></div></div>
   </div>
 
-  <!-- 영역 2: 주관식 키워드 -->
-  <div class="section-title">주관식 키워드 분석</div>
-  <div class="card" style="margin-bottom:22px">
-    <div class="tabs" id="kwTabs">
-      <button class="tab active" data-k="improve_product">상품 개선점</button>
-      <button class="tab" data-k="improve_order">주문과정 개선점</button>
-      <button class="tab" data-k="wish_product">출시 희망 상품</button>
-      <button class="tab" data-k="reason">만족 이유</button>
-    </div>
-    <div class="kw-list" id="kwList"></div>
-    <div class="kw-hint">키워드를 클릭하면 아래 표가 해당 단어를 포함한 응답으로 필터링됩니다.</div>
-  </div>
-
-  <!-- 영역 3: 원본 테이블 -->
+  <!-- 영역 2: 응답 원본 (카드형) -->
   <div class="section-title">응답 원본 <span style="color:var(--text4);font-weight:400;text-transform:none;letter-spacing:0">· 휴대폰번호는 보호를 위해 마스킹 표시됩니다</span></div>
   <div class="table-controls">
     <input class="search-box" id="searchBox" placeholder="응답 내용 검색…">
@@ -163,22 +149,13 @@ tr:hover td{background:var(--bg2)}
     <select class="filter-sel" id="filGender"><option value="">성별 전체</option></select>
     <select class="filter-sel" id="filPath"><option value="">주문경로 전체</option></select>
   </div>
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr>
-        <th>날짜</th><th>만족</th><th>주문상품</th><th>인지경로</th><th>주문경로</th>
-        <th>만족이유</th><th>상품개선</th><th>주문과정개선</th><th>출시희망</th>
-        <th>성별</th><th>나이</th><th>연락처</th>
-      </tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
+  <div class="resp-list" id="respList"></div>
   <div class="pager" id="pager"></div>
 </div>
 
 <script>
 const PALETTE=['#b5651d','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#EC4899','#84CC16','#6366F1'];
-let RAW=null, STATS=null, charts={}, curKw='improve_product', curPage=1;
+let RAW=null, STATS=null, charts={}, curPage=1;
 let curFrom='', curTo='';   // 현재 적용된 날짜 범위 (YYYY-MM-DD)
 const PER=10;
 
@@ -253,20 +230,14 @@ function render(){
     }
     document.getElementById('kpiRow').innerHTML=`<div class="kpi"><div class="kpi-label">응답</div><div class="kpi-value">0<small> 건</small></div><div class="kpi-sub">${msg}</div></div>`;
     destroyCharts();
-    document.getElementById('kwList').innerHTML='<div class="empty">데이터 없음</div>';
-    RAW_render_empty();
+    if(RAW){ setupFilters(); renderCards(); }
     return;
   }
   document.getElementById('lastUpd').textContent = STATS.last_updated ? '갱신 '+fmtDate(STATS.last_updated.slice(0,10)) : '';
   renderKpi();
   renderCharts();
-  renderKeywords();
   setupFilters();
-  renderTable();
-}
-function RAW_render_empty(){
-  // 기간 내 데이터가 없을 때 표/차트 영역 정리
-  if(RAW){ setupFilters(); renderTable(); }
+  renderCards();
 }
 
 function renderKpi(){
@@ -316,41 +287,17 @@ function donut(id,dist){
     options:donutOpts()});
 }
 
-function renderKeywords(){
-  const list=(STATS.keywords&&STATS.keywords[curKw])||[];
-  const max=list.length?list[0].count:1;
-  const el=document.getElementById('kwList');
-  if(!list.length){el.innerHTML='<div class="empty">키워드가 없습니다</div>';return;}
-  el.innerHTML=list.map(k=>`
-    <div class="kw-row" onclick="filterByKeyword('${k.word.replace(/'/g,"")}')">
-      <span class="kw-word">${k.word}</span>
-      <span class="kw-bar-bg"><span class="kw-bar" style="width:${Math.round(k.count/max*100)}%"></span></span>
-      <span class="kw-cnt">${k.count}</span>
-    </div>`).join('');
-}
-document.getElementById('kwTabs').addEventListener('click',e=>{
-  const b=e.target.closest('.tab');if(!b)return;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  b.classList.add('active');curKw=b.dataset.k;renderKeywords();
-});
-function filterByKeyword(w){
-  document.getElementById('searchBox').value=w;
-  curPage=1;renderTable();
-  document.querySelector('.table-controls').scrollIntoView({behavior:'smooth',block:'center'});
-}
-
 let _filtersReady=false;
 function setupFilters(){
   if(_filtersReady)return;
   _filtersReady=true;
   const gsel=document.getElementById('filGender'), psel=document.getElementById('filPath');
-  // 옵션은 전체 데이터 기준(full)으로 채워야 기간 바꿔도 선택지 유지됨 → 현재 STATS 분포 사용
   const seenG=new Set(), seenP=new Set();
   (STATS.gender_dist||[]).forEach(g=>{if(seenG.has(g.label))return;seenG.add(g.label);const o=document.createElement('option');o.value=g.label;o.textContent=g.label;gsel.appendChild(o);});
   (STATS.order_path_dist||[]).forEach(p=>{if(seenP.has(p.label))return;seenP.add(p.label);const o=document.createElement('option');o.value=p.label;o.textContent=p.label;psel.appendChild(o);});
   ['searchBox','filSat','filGender','filPath'].forEach(id=>{
-    document.getElementById(id).addEventListener('input',()=>{curPage=1;renderTable();});
-    document.getElementById(id).addEventListener('change',()=>{curPage=1;renderTable();});
+    document.getElementById(id).addEventListener('input',()=>{curPage=1;renderCards();});
+    document.getElementById(id).addEventListener('change',()=>{curPage=1;renderCards();});
   });
 }
 
@@ -382,28 +329,47 @@ function satBadge(s){
   return'-';
 }
 function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function starStr(s){s=Number(s)||0;return '★'.repeat(s)+'☆'.repeat(Math.max(0,5-s));}
+function qaItem(label,val){
+  const v=(val||'').trim();
+  return `<div class="qa-item"><span class="qa-label">${label}</span><span class="qa-text ${v?'':'qa-empty'}">${v?esc(v):'—'}</span></div>`;
+}
 
-function renderTable(){
+function renderCards(){
   const rows=filteredRows().slice().reverse(); // 최신순
-  const tb=document.getElementById('tbody');
-  if(!rows.length){tb.innerHTML='<tr><td colspan="12"><div class="empty">조건에 맞는 응답이 없습니다</div></td></tr>';document.getElementById('pager').innerHTML='';return;}
+  const el=document.getElementById('respList');
+  if(!rows.length){el.innerHTML='<div class="empty">조건에 맞는 응답이 없습니다</div>';document.getElementById('pager').innerHTML='';return;}
   const totalPg=Math.ceil(rows.length/PER);
   if(curPage>totalPg)curPage=totalPg;
   const slice=rows.slice((curPage-1)*PER,curPage*PER);
-  tb.innerHTML=slice.map(r=>`<tr>
-    <td style="white-space:nowrap">${fmtDate(r.ts)}</td>
-    <td>${satBadge(r.satisfaction)}</td>
-    <td style="white-space:nowrap">${esc(r.product)}</td>
-    <td class="cell-text">${esc(r.channel)}</td>
-    <td style="white-space:nowrap">${esc(r.order_path)}</td>
-    <td class="cell-text">${esc(r.reason)}</td>
-    <td class="cell-text">${esc(r.improve_product)}</td>
-    <td class="cell-text">${esc(r.improve_order)}</td>
-    <td class="cell-text">${esc(r.wish_product)}</td>
-    <td style="white-space:nowrap">${esc(r.gender)}</td>
-    <td style="white-space:nowrap">${esc(r.age)}</td>
-    <td style="white-space:nowrap;color:var(--text4)">${esc(r.phone)}</td>
-  </tr>`).join('');
+  el.innerHTML=slice.map(r=>{
+    const s=r.satisfaction;
+    const isLow = s>0 && s<=3;
+    return `<div class="resp-card ${isLow?'low':''}">
+      <div class="resp-top">
+        ${satBadge(s)}
+        <span class="resp-stars">${starStr(s)}</span>
+        ${r.product?`<span class="resp-product">${esc(r.product)}</span>`:''}
+        <span class="resp-tags">
+          ${r.order_path?`<span class="resp-tag">${esc(r.order_path)}</span>`:''}
+          ${r.channel?`<span class="resp-tag">${esc(r.channel)}</span>`:''}
+        </span>
+      </div>
+      <div class="resp-qa">
+        ${qaItem('만족 이유', r.reason)}
+        ${qaItem('상품 개선점', r.improve_product)}
+        ${qaItem('주문과정 개선점', r.improve_order)}
+        ${qaItem('출시 희망 상품', r.wish_product)}
+      </div>
+      <div class="resp-foot">
+        <span><b>날짜</b> ${fmtDate(r.ts)}</span>
+        ${r.gender?`<span><b>성별</b> ${esc(r.gender)}</span>`:''}
+        ${r.age?`<span><b>연령</b> ${esc(r.age)}</span>`:''}
+        ${r.recommend?`<span><b>추천</b> ${esc(r.recommend)}</span>`:''}
+        <span><b>연락처</b> ${esc(r.phone)}</span>
+      </div>
+    </div>`;
+  }).join('');
   renderPager(totalPg,rows.length);
 }
 function renderPager(total,count){
@@ -414,10 +380,10 @@ function renderPager(total,count){
   for(let i=start;i<=end;i++)h+=`<button class="pg-btn ${i===curPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
   if(end<total)h+=(end<total-1?'<span style="color:var(--text4)">…</span>':'')+`<button class="pg-btn" onclick="goPage(${total})">${total}</button>`;
   h+=`<button class="pg-btn" onclick="goPage(${curPage+1})" ${curPage===total?'disabled':''}>›</button>`;
-  h+=`<span style="font-size:11px;color:var(--text4);margin-left:8px">총 ${count}건</span>`;
+  h+=`<span style="font-size:11px;color:var(--text4);margin-left:8px">총 ${count.toLocaleString()}건</span>`;
   document.getElementById('pager').innerHTML=h;
 }
-function goPage(p){curPage=p;renderTable();window.scrollTo({top:document.querySelector('.table-controls').offsetTop-20,behavior:'smooth'});}
+function goPage(p){curPage=p;renderCards();window.scrollTo({top:document.querySelector('.table-controls').offsetTop-20,behavior:'smooth'});}
 
 setRangeDays(14);  // 기본값: 최근 14일
 load();
