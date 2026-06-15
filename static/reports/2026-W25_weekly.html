@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>백년화편 주간 리포트 2026-W25</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Malgun Gothic", "맑은 고딕", sans-serif; color: #1f2328; background: #f5f6f8; line-height: 1.65; }
+  .report-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #2d2a26; color: #fff; padding: 12px 24px; height: 62px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+  .report-header h1 { font-size: 18px; font-weight: 700; }
+  .report-header .meta { font-size: 12px; color: #c9b88f; }
+  .nav-bar { position: fixed; top: 62px; left: 0; right: 0; z-index: 99; background: #fff; border-bottom: 1px solid #e3e5e8; height: 46px; display: flex; align-items: center; gap: 4px; padding: 0 24px; overflow-x: auto; }
+  .nav-bar a { font-size: 13px; color: #57606a; text-decoration: none; padding: 6px 10px; border-radius: 6px; white-space: nowrap; }
+  .nav-bar a:hover { background: #f0f1f3; color: #1f2328; }
+  .container { margin-top: 108px; max-width: 1080px; margin-left: auto; margin-right: auto; padding: 24px; }
+  section { background: #fff; border: 1px solid #e3e5e8; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+  h2 { font-size: 19px; border-left: 4px solid #b89a4e; padding-left: 10px; margin-bottom: 14px; color: #2d2a26; }
+  h3 { font-size: 15px; margin: 16px 0 8px; color: #3a3a3a; }
+  p { margin-bottom: 10px; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  th, td { border: 1px solid #e3e5e8; padding: 8px 10px; }
+  th { background: #f6f3ec; color: #5a4d2e; font-weight: 600; }
+  .kpi-table { table-layout: fixed; width: 100%; text-align: center; }
+  .kpi-table td .big { font-size: 22px; font-weight: 700; color: #2d2a26; display: block; }
+  .kpi-table td .lbl { font-size: 12px; color: #6a737d; }
+  .label { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; vertical-align: middle; }
+  .l-fact { background: #e6f4ea; color: #1a7f37; }
+  .l-est { background: #fff4e0; color: #9a6700; }
+  .l-na { background: #fde8e8; color: #b42318; }
+  .conclusion { background: #f6f3ec; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; font-weight: 500; }
+  ul { margin: 6px 0 10px 20px; }
+  li { font-size: 14px; margin-bottom: 6px; }
+  .note { font-size: 12px; color: #8a8a8a; }
+  .warn { background: #fff8e6; border: 1px solid #f0d98a; color: #8a6d00; padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+  .up { color: #b42318; font-weight: 700; }
+  .down { color: #1a7f37; font-weight: 700; }
+  footer { text-align: center; color: #9aa0a6; font-size: 12px; padding: 24px; }
+  a.src { color: #6a5a2e; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="report-header">
+  <h1>백년화편 주간 리서치 리포트</h1>
+  <div class="meta">2026-W25 · 작성일 2026-06-15</div>
+</div>
+<div class="nav-bar">
+  <a href="#kpi">① 주간 KPI</a>
+  <a href="#channel">② 채널별 리뷰</a>
+  <a href="#competitor">③ 경쟁사 동향</a>
+  <a href="#keyword">④ 키워드·시장 트렌드</a>
+  <a href="#action">⑤ 액션 아이템</a>
+</div>
+
+<div class="container">
+
+  <div class="warn">
+    <strong>⚠ 데이터 수집 제약 (이번 주)</strong><br>
+    리뷰 대시보드(Railway) 데이터는 API로 정상 수집됐다(최종 갱신 <b>2026-06-14 15:06</b>). 단, ① <b>네이버스토어 단독 수집은 쿠키 만료로 5/4 이후 멈춰</b> 주간 신규 리뷰가 0건으로 표시되고, ② <b>창억떡 탭은 수집 데이터가 비어 있어</b>(0건) 정량 비교가 불가하다. 해당 항목은 <span class="label l-na">확인 불가</span>로 처리했다. 경쟁사·시장 정성 분석은 웹 검색(<b>2026-06-15 시점</b>) 기반이다.
+  </div>
+
+  <!-- 섹션 1 -->
+  <section id="kpi">
+    <h2>① 주간 KPI 요약</h2>
+    <div class="conclusion">결론: 자사(백년화편) 누적 리뷰는 <b>17.7만 건·평점 4.9</b>로 품질은 안정적이나, <b>주간 신규 리뷰 156건은 명가삼대떡집(469건)의 약 1/3</b>에 그친다. 최근 구매·후기 발생 속도에서 명확히 열위다(사실, 대시보드 2026-06-14 기준).</div>
+    <table class="kpi-table">
+      <tr><th>총 리뷰 건수</th><th>평균 평점</th><th>주간 신규 리뷰</th><th>네이버 수집 상태</th></tr>
+      <tr>
+        <td><span class="big">177,444</span><span class="lbl">자사 누적 <span class="label l-fact">사실</span></span></td>
+        <td><span class="big">4.9</span><span class="lbl">5점 만점</span></td>
+        <td><span class="big">156</span><span class="lbl">최근 7일</span></td>
+        <td><span class="big">⚠</span><span class="lbl">쿠키 만료</span></td>
+      </tr>
+    </table>
+    <p class="note">부정 리뷰: 누적 1,710건(전체의 0.96%), 주간 2건. 평점 분포 — 5점 160,412 / 4점 4,405 / 3점 968 / 2점 256 / 1점 486. 출처: Railway <code>/api/data</code>, 최종 갱신 2026-06-14 15:06 <span class="label l-fact">사실</span></p>
+  </section>
+
+  <!-- 섹션 2 -->
+  <section id="channel">
+    <h2>② 채널별 리뷰 현황 (백년화편)</h2>
+    <div class="conclusion">결론: 자사 리뷰는 <b>자사몰(direct) 60.6%</b>에 집중돼 있고, 카카오 25.5%, 네이버 13.9% 순이다(사실). 단 <b>네이버스토어 단독 수집은 쿠키 만료로 5/4에 멈춰</b> 이번 주 네이버 채널 변동은 측정 불가.</div>
+    <table>
+      <tr><th>채널(대시보드 분류)</th><th>리뷰 건수</th><th>평점</th><th>부정</th><th>비고</th></tr>
+      <tr><td>자사몰 (direct)</td><td>107,604</td><td>5.0</td><td>802</td><td>최대 채널 <span class="label l-fact">사실</span></td></tr>
+      <tr><td>카카오 (선물하기)</td><td>45,168</td><td>5.0</td><td>338</td><td>2위 채널 <span class="label l-fact">사실</span></td></tr>
+      <tr><td>네이버 (자사 집계)</td><td>24,672</td><td>4.9</td><td>570</td><td>자사 데이터 내 네이버분 <span class="label l-fact">사실</span></td></tr>
+      <tr><td>네이버스토어 (단독 수집)</td><td>21,649</td><td>4.9</td><td>545</td><td>주간 0건 — <span class="label l-na">쿠키 만료, 5/4 이후 미수집</span></td></tr>
+    </table>
+    <p class="note">자사 고정정보상 매출 순위는 자사몰 &gt; 네이버스토어 &gt; 쿠팡이며, 리뷰 건수 분포도 자사몰 집중과 일치한다(사실). 쿠팡 채널은 대시보드 탭에 분리 집계되지 않아 리뷰 단위 추적은 <span class="label l-na">확인 불가</span>.</p>
+  </section>
+
+  <!-- 섹션 3 -->
+  <section id="competitor">
+    <h2>③ 경쟁사 동향</h2>
+    <div class="conclusion">결론: 이번 주 핵심 위협은 <b>명가삼대떡집</b>이다. 주간 신규 리뷰 469건으로 자사(156건)의 3배이며, 쑥 라인·SNS 화제 상품(코코넛 눈꽃 콩달떡 대왕모찌)으로 후기 발생 속도를 유지한다(사실). <b>창억떡</b>은 3월 SNS 바이럴 이후 화제성이 이어지나 자사 대시보드 수집은 비어 있어 정량 추적이 불가하다.</div>
+
+    <h3>명가삼대떡집 <span class="label l-fact">사실(대시보드)</span></h3>
+    <p>누적 리뷰 128,645건·평점 4.9, <b>주간 신규 469건</b>으로 측정 경쟁사 중 가장 활발하다. 주간 인기 상품은 ①쑥인절미+콩고물 증정(66건) ②진도 해풍쑥 쑥개떡(48건) ③SNS 화제 '코코넛 눈꽃 콩달떡 찹쌀떡 대왕모찌'(35건). 자사몰(myeonggashop.com)·신세계몰 멀티채널, 인스타·틱톡 운영. 부정 리뷰 비율 0.93%로 품질도 자사와 동급.</p>
+    <p class="note">시사점: 명가삼대는 '쑥 라인 + SNS형 신상(대왕모찌·눈꽃)'으로 신규 후기를 끌어낸다. 자사는 밥알 시리즈 외 SNS형 신상 부재가 주간 리뷰 격차의 가설적 원인 <span class="label l-est">추정</span>.</p>
+
+    <h3>창억떡 <span class="label l-na">대시보드 확인 불가</span> · <span class="label l-fact">웹 사실</span></h3>
+    <p>대시보드 수집 데이터 0건으로 리뷰 정량 비교 불가. 웹 검색 기준, 2026년 3월 중순 SNS 바이럴로 오프라인 오픈런이 발생했고(사실) 공영홈쇼핑·이마트몰·쿠팡 등 전국 유통을 유지한다. 단호박 찰떡·호박 인절미가 대표 상품.</p>
+    <p class="note">신제품 단위 프로모션 이벤트는 검색 결과에 구체 정보 없음 <span class="label l-na">확인 불가</span> — changeok.co.kr·@changeok_official 직접 확인 필요.</p>
+
+    <h3>압구정공주떡집 <span class="label l-fact">웹 사실</span></h3>
+    <p>1965년 창업, 강남 압구정 소재. 흑임자 인절미가 시그니처이며 '서울 떡집' 프리미엄 포지션. 특허 받은 낱개 포장 떡(냉동 후 1~2시간 해동), 영양떡 세트(1~6호)·흑임자떡 세트 등 선물 라인 운영. 2026년 4월 음식 매체 기사 노출로 화제성 유지, 띵굴마켓 등에서 월요일 출고·전국택배 판매.</p>
+
+    <h3>포지셔닝 비교 <span class="label l-est">사실+추정 혼합</span></h3>
+    <table>
+      <tr><th>브랜드</th><th>주간 신규 리뷰</th><th>핵심 축</th><th>이번 주 모멘텀</th></tr>
+      <tr><td>백년화편</td><td>156 <span class="label l-fact">사실</span></td><td>선물·명인/한일특허·밥알찹쌀떡</td><td>유지 (품질 안정, 신규 속도 둔화)</td></tr>
+      <tr><td>명가삼대떡집</td><td>469 <span class="label l-fact">사실</span></td><td>쑥 라인·SNS 신상·멀티채널</td><td><span class="up">상승</span> (자사의 3배 후기 발생)</td></tr>
+      <tr><td>창억떡</td><td>확인 불가</td><td>전국 유통·SNS 바이럴</td><td>화제성 지속 (3월 바이럴 여파)</td></tr>
+      <tr><td>압구정공주떡집</td><td>미수집</td><td>흑임자·강남 프리미엄</td><td>유지 (매체 노출)</td></tr>
+      <tr><td>파파공방(참고)</td><td>10 <span class="label l-fact">사실</span></td><td>무설탕·현미 밥알떡(자사 유사군)</td><td>소규모 유지</td></tr>
+    </table>
+  </section>
+
+  <!-- 섹션 4 -->
+  <section id="keyword">
+    <h2>④ 키워드·시장 트렌드</h2>
+    <div class="conclusion">결론: 자사 주간 긍정 키워드는 '맛있어요·간식으로'로 <b>맛·일상 간식 인식</b>이 중심이다(사실). 반면 2026 떡 시장은 <b>SNS 화제형 신상</b>(버터떡·두바이찹쌀떡)과 <b>식감 자극</b>이 성장 축이다. 자사 강점(명인·특허·선물)은 프리미엄 선물 수요엔 부합하나, SNS 화제성 축에서는 경쟁 열위다.</div>
+
+    <h3>자사 주간 긍정 키워드 (대시보드) <span class="label l-fact">사실</span></h3>
+    <p>맛있어요(24) · 간식으로(12) · 맛있게(12) · 먹고(11) · 맛있어서(10). → 선물보다 '일상 간식·맛' 만족이 후기 주류. 부정 키워드는 의미있는 빈도 없음(주간 부정 2건).</p>
+    <p class="note">네이버 검색 키워드 트렌드는 쿠키 만료로 <span class="label l-na">확인 불가</span>. 네이버스토어 단독 수집 복구 후 재측정 필요.</p>
+
+    <h3>2026 떡·디저트 시장 트렌드 (웹) <span class="label l-fact">사실</span></h3>
+    <table>
+      <tr><th>트렌드</th><th>내용</th><th>자사 시사점</th></tr>
+      <tr><td>SNS 화제형 신상</td><td>CU '버터떡'(상하이발) 출시, 메고지고 '두바이찹쌀떡'(카다이프+피스타치오) SNS 인기</td><td>약점 — 화제성 신상 부재. 명가삼대 대왕모찌와 대비됨</td></tr>
+      <tr><td>식감 자극</td><td>두쫀쿠·얼먹젤리 등 '한 입에 두 가지 식감' 공식 반복</td><td>밥알찹쌀떡의 '밥알 살아있는' 식감을 식감 마케팅으로 재해석 가능</td></tr>
+      <tr><td>전통+프리미엄 선물</td><td>메고지고 한국소비자만족지수 떡 부문 8년 연속 1위, 떡의 프리미엄 선물 가치 상승</td><td>강점 — 명인/특허/선물 포지션 강화 적기</td></tr>
+      <tr><td>오프라인 바이럴</td><td>창억떡 사례처럼 SNS·콘서트 노출이 오프라인 오픈런으로 직결</td><td>체험 기반 확산(팝업박스·나눔) 설계 필요</td></tr>
+    </table>
+  </section>
+
+  <!-- 섹션 5 -->
+  <section id="action">
+    <h2>⑤ 이번 주 액션 아이템</h2>
+    <p>문제부터: ①네이버스토어 데이터 파이프라인이 5/4 이후 끊겼고, ②자사 주간 신규 리뷰가 명가삼대의 1/3 수준이며, ③SNS 화제형 신상이 자사에 없다.</p>
+    <ul>
+      <li><b>[긴급] 네이버스토어 쿠키 갱신</b> — 집 PC(<span class="note">C:\Users\atoda\OneDrive\바탕 화면\review_dashboard</span>)에서 쿠키 갱신. 미복구 시 네이버 채널·검색 키워드 모니터링 계속 공백.</li>
+      <li><b>[긴급] 창억떡 수집 복구</b> — 대시보드 창억떡 탭이 0건. 스크래퍼 점검 후 경쟁사 정량 비교 정상화.</li>
+      <li><b>[진단] 명가삼대 3배 격차 원인 분석</b> — 명가삼대 주간 469건 vs 자사 156건. 신상(대왕모찌·눈꽃) 유무, 채널 노출, 리뷰 유도 정책 차이를 비교해 자사 후기 발생 속도 둔화 원인 규명.</li>
+      <li><b>[기회] SNS 화제형 한정 신상 검토</b> — 버터떡·두바이찹쌀떡 흐름에 대응할 밥알 시리즈 기반 한정판/시즌 신상(식감·비주얼 강조)을 기획. 단, 당일생산·명인 원칙과 충돌 없는 범위로.</li>
+      <li><b>[차별화] '밥알 살아있는 + 한·일 특허' 메시지 전면화</b> — 식감 트렌드에 맞춰 '세계 유일 밥알 방식'을 식감 마케팅 언어로 재포장. 프리미엄 선물 포지션 방어.</li>
+    </ul>
+  </section>
+
+  <footer>
+    백년화편 주간 리서치 · 2026-W25 · 대시보드 데이터 2026-06-14 15:06 기준 · 경쟁사/시장은 웹 검색 2026-06-15 기준<br>
+    출처: Railway 대시보드 /api/data · changeok.co.kr · myeonggashop.com · namu.wiki(창억떡) · siksinhot.com(압구정공주떡) · some.co.kr · magazine.hankyung.com
+  </footer>
+</div>
+</body>
+</html>
