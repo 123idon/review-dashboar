@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>백년화편 주간 리포트 — 2026-W26</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: #1f2933; background: #f4f5f7; line-height: 1.6; font-size: 15px; }
+
+  .report-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 62px;
+    background: #2d3a4a; color: #fff; display: flex; align-items: center; padding: 0 24px; }
+  .report-header h1 { font-size: 18px; font-weight: 700; }
+  .report-header .meta { margin-left: auto; font-size: 13px; opacity: .85; }
+
+  .nav-bar { position: fixed; top: 62px; left: 0; right: 0; z-index: 99; height: 46px;
+    background: #fff; border-bottom: 1px solid #e1e4e8; display: flex; align-items: center;
+    gap: 18px; padding: 0 24px; overflow-x: auto; }
+  .nav-bar a { color: #44515f; text-decoration: none; font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+  .nav-bar a:hover { color: #c0392b; }
+
+  .container { margin-top: 108px; max-width: 1080px; margin-left: auto; margin-right: auto; padding: 24px; }
+
+  section { background: #fff; border: 1px solid #e6e8eb; border-radius: 10px; padding: 22px 24px; margin-bottom: 22px; }
+  section h2 { font-size: 17px; color: #2d3a4a; border-left: 4px solid #c0392b; padding-left: 10px; margin-bottom: 14px; }
+  section h3 { font-size: 14.5px; margin: 16px 0 8px; color: #34404e; }
+  p { margin-bottom: 10px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-size: 13.5px; }
+  th, td { border: 1px solid #e0e3e7; padding: 8px 10px; }
+  th { background: #f0f2f5; font-weight: 700; }
+
+  .kpi-table { table-layout: fixed; width: 100%; text-align: center; }
+  .kpi-table td .num { font-size: 22px; font-weight: 800; color: #2d3a4a; display: block; }
+  .kpi-table td .label { font-size: 12px; color: #6b7682; }
+
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; vertical-align: middle; }
+  .tag-fact { background: #e8f5e9; color: #2e7d32; }
+  .tag-est  { background: #fff3e0; color: #e65100; }
+  .tag-na   { background: #fdecea; color: #c0392b; }
+
+  .callout { background: #fef6f5; border: 1px solid #f3c9c4; border-radius: 8px; padding: 12px 16px; margin: 12px 0; font-size: 13.5px; }
+  .callout strong { color: #c0392b; }
+
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin-bottom: 6px; }
+  .src { font-size: 11.5px; color: #8a939c; }
+  .src a { color: #8a939c; }
+  footer { text-align: center; color: #99a1a9; font-size: 12px; padding: 20px; }
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <h1>백년화편 주간 리서치 리포트</h1>
+  <span class="meta">2026년 26주차 (2026-06-22 기준) · 자동 생성</span>
+</header>
+
+<nav class="nav-bar">
+  <a href="#kpi">① 주간 KPI</a>
+  <a href="#channel">② 채널별 리뷰</a>
+  <a href="#competitor">③ 경쟁사 동향</a>
+  <a href="#keyword">④ 키워드 트렌드</a>
+  <a href="#action">⑤ 액션 아이템</a>
+</nav>
+
+<div class="container">
+
+  <div class="callout">
+    <strong>⚠️ 데이터 수집 제약 안내</strong><br>
+    이번 회차는 리뷰 대시보드(Railway) 접속에 필요한 <b>Chrome 확장이 연결되지 않아</b> 리뷰 수·평점·최신 리뷰 텍스트 등
+    <b>대시보드 정량 데이터를 수집하지 못했습니다</b>. 해당 항목은 모두 <span class="tag tag-na">확인 불가</span>로 표기합니다.
+    또한 대시보드 화면에 <b>"네이버 쿠키 만료 — 집 PC에서 갱신 필요"</b> 경고가 떠 있어, 쿠키 갱신 전에는 네이버 데이터 수집도 막혀 있는 상태입니다.
+    경쟁사·시장 트렌드 섹션은 웹 검색(2026-06-22 시점) 기반으로 정상 작성되었습니다.
+  </div>
+
+  <!-- ① KPI -->
+  <section id="kpi">
+    <h2>① 주간 KPI 요약</h2>
+    <table class="kpi-table">
+      <tr>
+        <td><span class="num">—</span><span class="label">누적 리뷰 건수</span></td>
+        <td><span class="num">—</span><span class="label">평균 평점</span></td>
+        <td><span class="num">—</span><span class="label">주간 신규 리뷰</span></td>
+        <td><span class="num">—</span><span class="label">부정 리뷰 비율</span></td>
+      </tr>
+    </table>
+    <p style="margin-top:12px;"><span class="tag tag-na">확인 불가</span> 대시보드 미접속으로 이번 주 KPI 수치를 채우지 못했습니다.
+    다음 회차 정상 수집을 위해 <b>집 PC에서 네이버 쿠키 갱신 + Chrome 확장 연결</b>이 선행되어야 합니다.</p>
+  </section>
+
+  <!-- ② 채널별 -->
+  <section id="channel">
+    <h2>② 채널별 리뷰 현황 (백년화편)</h2>
+    <table>
+      <tr><th>채널</th><th>리뷰 건수</th><th>평점</th><th>주간 신규</th><th>비고</th></tr>
+      <tr><td>자사몰</td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-na">확인 불가</span></td></tr>
+      <tr><td>네이버스토어</td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-na">확인 불가</span> 쿠키 만료</td></tr>
+      <tr><td>쿠팡</td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-na">확인 불가</span></td></tr>
+    </table>
+    <p class="src">대시보드 탭(백년화편/창억떡/명가삼대떡집/파파공방/네이버)은 클라이언트 렌더링 방식으로, 정적 fetch로는 데이터가 로드되지 않아 수집 불가.</p>
+  </section>
+
+  <!-- ③ 경쟁사 -->
+  <section id="competitor">
+    <h2>③ 경쟁사 동향 <span class="tag tag-fact">웹 검색 · 2026-06-22</span></h2>
+
+    <h3>창억떡 — 가장 주목할 변화</h3>
+    <p><b>결론: 이번 주 경쟁사 중 모멘텀이 가장 강한 곳은 창억떡.</b> SNS·홈쇼핑 동시 노출로 브랜드 인지도가 급상승 중이다.</p>
+    <ul>
+      <li>2026년 3월 유튜브 채널 '하말넘많' 언급 → 3월 14~15일 가수(DAY6 Young K) 콘서트 언급으로 <b>SNS 바이럴</b> 발생. <span class="tag tag-fact">사실</span></li>
+      <li>대표 상품 <b>호박인절미</b>(단호박 찰떡 + 카스테라 고명)가 시그니처로 부상. <span class="tag tag-fact">사실</span></li>
+      <li>NS홈쇼핑이 'SNS 잇템' 특집방송 편성 등 <b>홈쇼핑 채널 적극 활용</b>. 공영홈쇼핑·마켓컬리·쿠팡 입점, 전국 고속버스터미널 유통. <span class="tag tag-fact">사실</span></li>
+      <li>시사점: 창억떡은 "바이럴 식감 디저트" 포지션. 백년화편의 "전통·명인·선물" 포지션과 직접 충돌은 아니나, <b>젊은 선물 수요를 빠르게 흡수</b>하고 있어 위협 요인. <span class="tag tag-est">추정</span></li>
+    </ul>
+
+    <h3>명가삼대떡집</h3>
+    <ul>
+      <li>쑥 카스테라 찹쌀떡, 콩달떡 개별포장 선물박스 등 <b>선물용 라인 운영</b>. 신세계몰 입점, 인스타·틱톡 공식 계정 활발. <span class="tag tag-fact">사실</span></li>
+      <li>자사몰에서 "역대 최대 할인 — 30년 전통 쑥떡/쑥인절미" 프로모션 진행 페이지 확인. <span class="tag tag-fact">사실</span></li>
+      <li>2026년 구체적 신제품·이벤트 일정은 <span class="tag tag-na">확인 불가</span> (공식몰/SNS 직접 확인 필요).</li>
+      <li>시사점: 백년화편과 <b>"전통·선물박스" 포지션이 가장 유사</b>한 경쟁사. 개별포장 선물박스·SNS 운영 모두 겹쳐 직접 경쟁 강도 높음. <span class="tag tag-est">추정</span></li>
+    </ul>
+
+    <h3>압구정공주떡집</h3>
+    <ul>
+      <li>시그니처 <b>흑임자인절미</b>가 베스트셀러, 강남 부촌 입지의 프리미엄 떡집 포지션. 띵굴마켓 등 입점. <span class="tag tag-fact">사실</span></li>
+      <li>2026년 신제품 정보는 검색 결과에 없음 → <span class="tag tag-na">확인 불가</span>.</li>
+      <li>시사점: 백년화편의 <b>밥알흑임자</b>와 제품군이 직접 겹침. 다만 압구정공주떡집은 매장·소량 중심으로 보여 전국 택배·대량 선물 시장에서는 백년화편이 상대적 우위 가능. <span class="tag tag-est">추정</span></li>
+    </ul>
+  </section>
+
+  <!-- ④ 키워드 -->
+  <section id="keyword">
+    <h2>④ 시장 · 키워드 트렌드 <span class="tag tag-fact">웹 검색 · 2026-06-22</span></h2>
+    <p><b>결론: 떡 시장은 성장 중이지만, 성장의 엔진은 "바이럴 식감 디저트"이지 "전통 선물떡"이 아니다.</b> 백년화편의 정체는 시장 둔화가 아니라 트렌드 축에서 벗어나 있기 때문일 가능성이 크다. <span class="tag tag-est">추정</span></p>
+    <table>
+      <tr><th>지표 / 키워드</th><th>내용</th><th>레이블</th></tr>
+      <tr><td>시장 규모</td><td>떡류 국내 판매액 2024년 약 9,291억 원, 6년 새 약 65% 성장 — '1조 클럽' 목전</td><td><span class="tag tag-fact">사실</span></td></tr>
+      <tr><td>식감 트렌드</td><td>'두쫀쿠' 유행(2월 2주 피크 후 하락) → 얼먹젤리·버터떡으로 식감 유행 이동</td><td><span class="tag tag-fact">사실</span></td></tr>
+      <tr><td>선물형 디저트</td><td>2026년 음료보다 초콜릿·케이크·쿠키 등 선물형 디저트 소비 확대 전망</td><td><span class="tag tag-fact">사실</span></td></tr>
+      <tr><td>간편성</td><td>실온 20~30분 해동 후 바로 섭취 가능한 '굳지 않는/냉동 떡' 수요 증가</td><td><span class="tag tag-fact">사실</span></td></tr>
+      <tr><td>네이버 검색 키워드</td><td>대시보드 미접속 — 자사/경쟁사 검색량·연관어 수집 불가</td><td><span class="tag tag-na">확인 불가</span></td></tr>
+    </table>
+    <p style="margin-top:8px;">시사점: 트렌드의 핵심은 <b>① 화제성 있는 식감 + ② 간편한 해동·보관 + ③ 선물 패키지</b>. 백년화편은 ③(명인·특허·선물박스)에 강점이 있으나 ①②에서 노출이 약하다. <span class="tag tag-est">추정</span></p>
+  </section>
+
+  <!-- ⑤ 액션 -->
+  <section id="action">
+    <h2>⑤ 이번 주 액션 아이템</h2>
+    <p><b>우선순위 0 (시스템 복구) — 가장 시급</b></p>
+    <ul>
+      <li><b>네이버 쿠키 갱신 + Chrome 확장 연결</b> (집 PC). 이게 안 되면 다음 회차 리포트도 KPI 공란이 반복됨. 리포트 신뢰도와 직결된 가장 시급한 조치.</li>
+    </ul>
+    <p><b>경쟁 대응 (마케팅)</b></p>
+    <ul>
+      <li><b>창억떡 바이럴 모니터링.</b> 호박인절미 SNS·홈쇼핑 흐름이 선물 수요로 번지는지 2~3주 추적. 백년화편은 "명인·한일 특허·1996년 불변 레시피" 차별 메시지를 같은 채널(숏폼/홈쇼핑 MD 접촉)에서 강화 검토.</li>
+      <li><b>명가삼대떡집 선물박스와 직접 비교.</b> 개별포장·가격대·구성에서 백년화편 팝업박스(2/4/7만원대 설계안)의 차별점(재사용 수납함, 명인 카드)을 명확히 부각.</li>
+      <li><b>흑임자 제품군 점검.</b> 압구정공주떡집 흑임자인절미가 강세 → 밥알흑임자의 리뷰·검색 노출 보강.</li>
+    </ul>
+    <p><b>트렌드 정합성 (제품·콘텐츠)</b></p>
+    <ul>
+      <li>시장 성장축이 "식감·간편성"이므로, <b>밥알이 살아있는 식감</b>(세계 유일·한일 특허)을 숏폼의 핵심 후크로 재정의 — 단순 제품 노출이 아니라 '식감 콘텐츠'로.</li>
+      <li>"먹어보고 산다" 구매 트리거와 정합 → 체험·나눔을 쉽게 만드는 <b>팝업 선물박스</b> 출시를 트렌드 윈도우 안에서 앞당기는 것 검토. <span class="tag tag-est">추정</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>출처</h2>
+    <p class="src">
+      검색 시점: 2026-06-22 ·
+      창억떡: <a href="https://www.greened.kr/news/articleView.html?idxno=338277">녹색경제신문</a>,
+      <a href="https://namu.wiki/w/%EC%B0%BD%EC%96%B5%EB%96%A1">나무위키</a> ·
+      명가삼대떡집: <a href="https://myeonggashop.com/">공식몰</a>,
+      <a href="https://www.instagram.com/myeongga_official/">인스타그램</a> ·
+      압구정공주떡집: <a href="https://www.kongjudduk.co.kr/">공식몰</a>,
+      <a href="https://www.diningcode.com/profile.php?rid=52Tg7rLvTk66">다이닝코드</a> ·
+      시장: <a href="https://www.etoday.co.kr/news/view/2550722">이투데이(떡 시장 1조)</a>,
+      <a href="https://some.co.kr/briefing/korean-dessert-texture-trend-report-2026">썸트렌드</a>,
+      <a href="https://www.youthdaily.co.kr/mobile/article.html?no=213226">청년일보(요기요 트렌드)</a>
+    </p>
+  </section>
+
+  <footer>백년화편 주간 리서치 리포트 · 2026-W26 · 자동 생성 (data-collection partial: dashboard 미접속)</footer>
+</div>
+
+</body>
+</html>
