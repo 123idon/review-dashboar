@@ -206,6 +206,13 @@ function setRangeDays(days){
   document.getElementById('dateTo').value=curTo;
 }
 
+function splitProducts(s){
+  if(!s) return [];
+  // 괄호 안 쉼표 보호
+  const protectedStr = s.replace(/\([^)]*\)/g, m=>m.replace(/,/g,'\u00a7'));
+  return protectedStr.split(/\s*,\s*/).map(p=>p.replace(/\u00a7/g,',').trim()).filter(Boolean);
+}
+
 function buildQS(){
   const p = new URLSearchParams();
   if(curFrom) p.set('date_from', curFrom);
@@ -254,6 +261,21 @@ document.querySelectorAll('.date-preset').forEach(b=>{
     curPage=1; reloadStats();
   });
 });
+// ── 상품 필터 이벤트 ──
+document.getElementById('productSel').addEventListener('change',e=>{
+  curProduct=e.target.value;
+  curPage=1;
+  reloadStats();
+  if(RAW) renderCards();
+});
+document.getElementById('productClear').addEventListener('click',()=>{
+  curProduct='';
+  document.getElementById('productSel').value='';
+  curPage=1;
+  reloadStats();
+  if(RAW) renderCards();
+});
+
 document.getElementById('dateApply').addEventListener('click',()=>{
   const f=document.getElementById('dateFrom').value, t=document.getElementById('dateTo').value;
   curFrom=f; curTo=t;
@@ -292,10 +314,12 @@ function render(){
     }
     document.getElementById('kpiRow').innerHTML=`<div class="kpi"><div class="kpi-label">응답</div><div class="kpi-value">0<small> 건</small></div><div class="kpi-sub">${msg}</div></div>`;
     destroyCharts();
+    fillProductDropdown();
     if(RAW){ setupFilters(); renderCards(); }
     return;
   }
   document.getElementById('lastUpd').textContent = STATS.last_updated ? '갱신 '+fmtDate(STATS.last_updated.slice(0,10)) : '';
+  fillProductDropdown();
   renderKpi();
   renderCharts();
   setupFilters();
@@ -372,6 +396,7 @@ function filteredRows(){
     const ts=r.ts||'';
     if(curFrom && ts<curFrom)return false;
     if(curTo && ts>curTo)return false;
+    if(curProduct && !splitProducts(r.product||'').includes(curProduct))return false;
     if(fs && String(r.satisfaction)!==fs)return false;
     if(fg && r.gender!==fg)return false;
     if(fp && r.order_path!==fp)return false;
