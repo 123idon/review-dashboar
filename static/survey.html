@@ -67,6 +67,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 .search-box:focus{border-color:var(--accent)}
 .filter-sel{height:34px;padding:0 12px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;outline:none}
 
+
+.product-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:18px}
+.product-bar-label{font-size:12px;font-weight:700;color:var(--text4);display:flex;align-items:center;gap:5px}
+.product-sel{flex:1;min-width:200px;height:36px;padding:0 14px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface);font-family:inherit;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;outline:none}
+.product-sel:focus{border-color:var(--accent)}
+.product-clear{height:36px;padding:0 14px;border-radius:50px;border:1.5px solid var(--border);background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;transition:all 150ms ease}
+.product-clear:hover{border-color:var(--accent);color:var(--accent)}
+.product-badge{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:50px}
 .field-toggle{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 .field-toggle-label{font-size:12px;font-weight:700;color:var(--text4);margin-right:4px}
 .field-btn{height:30px;padding:0 13px;border-radius:50px;border:1.5px solid var(--border);background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;transition:all 150ms ease}
@@ -134,6 +142,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
     </div>
   </div>
 
+  <!-- 상품 필터 -->
+  <div class="product-bar" id="productBar">
+    <div class="product-bar-label">🍡 상품별 보기</div>
+    <select class="product-sel" id="productSel">
+      <option value="">전체 상품</option>
+    </select>
+    <button class="product-clear" id="productClear">초기화</button>
+  </div>
+
   <!-- 영역 1: KPI -->
   <div class="kpi-row" id="kpiRow"></div>
 
@@ -170,7 +187,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 
 <script>
 const PALETTE=['#b5651d','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#EC4899','#84CC16','#6366F1'];
-let RAW=null, STATS=null, charts={}, curPage=1, curField='all';
+let RAW=null, STATS=null, charts={}, curPage=1, curField='all', curProduct='';
 let curFrom='', curTo='';   // 현재 적용된 날짜 범위 (YYYY-MM-DD)
 const PER=10;
 
@@ -189,9 +206,29 @@ function setRangeDays(days){
   document.getElementById('dateTo').value=curTo;
 }
 
+function buildQS(){
+  const p = new URLSearchParams();
+  if(curFrom) p.set('date_from', curFrom);
+  if(curTo)   p.set('date_to', curTo);
+  if(curProduct) p.set('product', curProduct);
+  const s = p.toString();
+  return s ? '?'+s : '';
+}
+
+function fillProductDropdown(){
+  const sel = document.getElementById('productSel');
+  if(!sel || !STATS || !STATS.product_list) return;
+  const cur = curProduct;
+  sel.innerHTML = '<option value="">전체 상품</option>' +
+    STATS.product_list.map(p =>
+      `<option value="${p.label.replace(/"/g,'&quot;')}">${p.label} (${p.count.toLocaleString()}건)</option>`
+    ).join('');
+  sel.value = cur;
+}
+
 async function load(){
   try{
-    const qs = (curFrom||curTo) ? `?date_from=${curFrom}&date_to=${curTo}` : '';
+    const qs = buildQS();
     const [rs, rd] = await Promise.all([
       fetch('/api/survey'+qs).then(r=>r.json()),
       fetch('/api/survey/records').then(r=>r.json())
@@ -236,11 +273,11 @@ document.getElementById('fieldToggle').addEventListener('click',e=>{
 
 async function reloadStats(){
   // 통계만 다시 받아 다시 그림 (records는 이미 보유)
-  const qs = (curFrom||curTo) ? `?date_from=${curFrom}&date_to=${curTo}` : '';
+  const qs = buildQS();
   try{
     STATS = await fetch('/api/survey'+qs).then(r=>r.json());
     render();
-  }catch(e){ showNotice('기간 적용 실패: '+e.message); }
+  }catch(e){ showNotice('적용 실패: '+e.message); }
 }
 
 function render(){
