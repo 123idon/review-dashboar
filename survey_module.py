@@ -238,7 +238,30 @@ def _extract_keywords(texts, top_n=15):
     return [{"word": w, "count": c} for w, c in counter.most_common(top_n)]
 
 
-def compute_survey_stats(payload: dict, date_from: str = None, date_to: str = None) -> dict:
+def split_products(s: str) -> list[str]:
+    """주문 상품 문자열을 개별 상품으로 분해. 괄호 안 쉼표는 보호.
+    예: '밥알찹쌀떡, 떡 선물세트 (백년건강, 백년화편)' → ['밥알찹쌀떡', '떡 선물세트 (백년건강, 백년화편)']"""
+    if not s:
+        return []
+    # 괄호 안 쉼표를 임시 치환
+    protected = re.sub(r"\([^)]*\)", lambda m: m.group(0).replace(",", "\u00a7"), s)
+    parts = re.split(r"\s*,\s*", protected)
+    return [p.replace("\u00a7", ",").strip() for p in parts if p.strip()]
+
+
+def product_list(records: list[dict]) -> list[dict]:
+    """설문 응답에 등장한 개별 상품 목록 + 건수 (응답수 기준 내림차순).
+    '있음', '없음' 등 무응답성 항목은 제외."""
+    NOISE = {"있음", "없음", "유", "무", "예", "아니오", "기타"}
+    c = Counter()
+    for r in records:
+        for item in split_products(r.get("product", "")):
+            if item and item not in NOISE and len(item) >= 2:
+                c[item] += 1
+    return [{"label": k, "count": v} for k, v in c.most_common()]
+
+
+def compute_survey_stats(payload: dict, date_from: str = None, date_to: str = None, product: str = None) -> dict:
     all_records = payload.get("records", [])
     # 전체 기간 (필터와 무관하게 데이터의 실제 범위 — UI 기본값/안내용)
     all_dates = sorted([r["ts"] for r in all_records if r.get("ts")])
@@ -257,6 +280,11 @@ def compute_survey_stats(payload: dict, date_from: str = None, date_to: str = No
             records.append(r)
     else:
         records = all_records
+
+    # 상품 필터: 해당 상품이 포함된 응답만 (쉼표 분해 기준)
+    if product:
+        records = [r for r in records if product in split_products(r.get("product", ""))]
+
     total = len(records)
 
     # 만족도 분포
@@ -294,5 +322,7 @@ def compute_survey_stats(payload: dict, date_from: str = None, date_to: str = No
         "gender_dist": dist("gender"),
         "age_dist": dist("age"),
         "recommend_dist": dist("recommend"),
+        "product_list": product_list(all_records),
+        "selected_product": product or "",
         "last_updated": payload.get("last_updated"),
     }
