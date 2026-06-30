@@ -671,14 +671,30 @@ async def survey_debug_columns():
                     out.append(v)
                 if len(out) >= n: break
             return out
+        # 14칸/13칸/12칸 행을 각각 하나씩 전체 값 표시
+        examples = {}
+        for r in data_rows:
+            L = len(r)
+            if L not in examples and L in (12,13,14):
+                examples[L] = [f"[{i}] {c[:35]}" for i,c in enumerate(r)]
+            if len(examples) == 3: break
+        # 휴대폰 번호 패턴(숫자 9자리 이상)을 모든 컬럼에서 탐색
+        import re as _re
+        phone_hits = {}
+        for r in data_rows[:2000]:
+            for i,c in enumerate(r):
+                d = _re.sub(r"\D","",c)
+                if len(d) >= 9 and d[:2] in ("01","10","00"):
+                    phone_hits[i] = phone_hits.get(i,0)+1
         return {
             "col_count": len(header),
             "row_count": len(data_rows),
             "len_distribution": dict(len_dist),
-            "phone_idx": phone_i, "phone_samples": col_samples(phone_i),
-            "age_idx": age_i, "age_samples": col_samples(age_i),
-            "gender_idx": gender_i, "gender_samples": col_samples(gender_i),
-            "header": header,
+            "header": [f"[{i}] {h[:35]}" for i,h in enumerate(header)],
+            "example_14": examples.get(14),
+            "example_13": examples.get(13),
+            "example_12": examples.get(12),
+            "phone_pattern_by_col": phone_hits,
         }
     except Exception as e:
         return {"error": str(e)}
