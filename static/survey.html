@@ -209,6 +209,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
       <option value="len_asc">내용 짧은 순</option>
     </select>
   </div>
+  <div class="export-bar" id="exportBar">
+    <div class="export-bar-label">📷 선택 내보내기</div>
+    <span class="export-count" id="exportCount">0건 선택</span>
+    <button class="export-sub" id="selPageBtn">현재 페이지 전체</button>
+    <button class="export-sub" id="selClearBtn">선택 해제</button>
+    <button class="export-btn" id="exportPngBtn" disabled>PNG 다운로드</button>
+  </div>
   <div class="field-toggle" id="fieldToggle">
     <span class="field-toggle-label">주관식 보기</span>
     <button class="field-btn active" data-f="all">전체</button>
@@ -224,6 +231,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 <script>
 const PALETTE=['#b5651d','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#EC4899','#84CC16','#6366F1'];
 let RAW=null, STATS=null, charts={}, curPage=1, curField='all', curProduct='', curSort='recent';
+let selectedIds=new Set();
 let curFrom='', curTo='';   // 현재 적용된 날짜 범위 (YYYY-MM-DD)
 const PER=10;
 
@@ -276,7 +284,7 @@ async function load(){
       fetch('/api/survey'+qs).then(r=>r.json()),
       fetch('/api/survey/records').then(r=>r.json())
     ]);
-    STATS = rs; RAW = rd.records||[];
+    STATS = rs; RAW = (rd.records||[]).map((r,i)=>({...r,_id:i}));
     if(rs.error){ showNotice(rs.error); }
     render();
   }catch(e){
