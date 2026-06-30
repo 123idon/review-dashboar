@@ -39,8 +39,7 @@ COL = {
     "improve_order": 7,    # 6. 주문과정 개선 (주관식)
     "gender": 8,      # 9-1 성별
     "age": 9,         # 9-2 나이
-    "phone": 10,      # 9-3 휴대폰 (마스킹)
-    "etc": 11,        # 10. (정체불명 - 일단 보존)
+    "phone": 10,      # 9-3 휴대폰 (원본 보존)
     "recommend": 12,  # 8. 추천 의향
     "wish_product": 13,  # 7. 출시 희망 상품
 }
@@ -98,9 +97,21 @@ def _parse_timestamp(raw: str) -> str:
     return s[:10]
 
 
+# 수집 대상 최소 연도 (이전 응답은 폼 구조가 달라 제외)
+MIN_YEAR = int(os.environ.get("SURVEY_MIN_YEAR", "2026"))
+
+
+def _row_year(ts_raw: str) -> int:
+    """타임스탬프 문자열에서 연도(int) 추출. 실패시 0."""
+    m = re.match(r"\s*(\d{4})", ts_raw or "")
+    return int(m.group(1)) if m else 0
+
+
 def parse_csv(csv_text: str) -> list[dict]:
     """CSV 문자열을 설문 응답 레코드 리스트로 변환. 헤더 행은 건너뜀.
-    휴대폰번호는 이 단계에서 마스킹되어 phone 필드에 저장됨 (원본 폐기)."""
+    - MIN_YEAR(기본 2026) 이전 응답은 제외 (구형 폼 구조라 컬럼이 어긋남).
+    - 2026년 이후 응답은 13~14칸 신형 구조: [8]성별 [9]나이 [10]휴대폰 [11]동의 [12]추천 [13]희망상품.
+    - 휴대폰번호는 내부 공유/적립금 지급용이므로 원본 보존 (비공개 시트)."""
     reader = csv.reader(io.StringIO(csv_text))
     rows = list(reader)
     if not rows:
@@ -111,6 +122,9 @@ def parse_csv(csv_text: str) -> list[dict]:
             continue  # 헤더
         if not any(cell.strip() for cell in row):
             continue  # 빈 행
+        # 연도 필터: MIN_YEAR 이전 제외
+        if _row_year(row[0] if row else "") < MIN_YEAR:
+            continue
         def g(key):
             idx = COL[key]
             return row[idx].strip() if idx < len(row) else ""
@@ -126,7 +140,6 @@ def parse_csv(csv_text: str) -> list[dict]:
             "gender": g("gender"),
             "age": g("age"),
             "phone": _normalize_phone(g("phone")),   # 내부용 — 원본 보존
-            "etc": g("etc"),
             "recommend": g("recommend"),
             "wish_product": g("wish_product"),
         }
