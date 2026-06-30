@@ -327,6 +327,93 @@ document.getElementById('sortSel').addEventListener('change',e=>{
   if(RAW) renderCards();
 });
 
+// ── 내보내기: 현재 페이지 전체 선택 ──
+document.getElementById('selPageBtn').addEventListener('click',()=>{
+  document.querySelectorAll('.resp-check').forEach(cb=>{
+    const id=parseInt(cb.dataset.id,10);
+    selectedIds.add(id);
+    cb.checked=true;
+    cb.closest('.resp-card').classList.add('checked');
+  });
+  updateExportBar();
+});
+
+// ── 내보내기: 선택 해제 ──
+document.getElementById('selClearBtn').addEventListener('click',()=>{
+  selectedIds.clear();
+  document.querySelectorAll('.resp-check').forEach(cb=>{
+    cb.checked=false;
+    cb.closest('.resp-card').classList.remove('checked');
+  });
+  updateExportBar();
+});
+
+// ── 내보내기: PNG 다운로드 ──
+document.getElementById('exportPngBtn').addEventListener('click',async()=>{
+  if(!selectedIds.size) return;
+  const btn=document.getElementById('exportPngBtn');
+  const orig=btn.textContent;
+  btn.textContent='생성 중…'; btn.disabled=true;
+  try{
+    // 선택된 응답을 RAW에서 추출 (선택 순서 무관, _id 오름차순)
+    const picked=RAW.filter(r=>selectedIds.has(r._id));
+    const stage=buildCaptureStage(picked);
+    document.body.appendChild(stage);
+    const canvas=await html2canvas(stage,{scale:2,backgroundColor:'#ffffff',logging:false});
+    document.body.removeChild(stage);
+    const url=canvas.toDataURL('image/png');
+    const a=document.createElement('a');
+    const today=new Date().toISOString().slice(0,10);
+    a.href=url;
+    a.download=`설문응답_${picked.length}건_${today}.png`;
+    a.click();
+  }catch(e){
+    alert('이미지 생성 실패: '+e.message);
+  }finally{
+    btn.textContent=orig; btn.disabled=selectedIds.size===0;
+  }
+});
+
+function buildCaptureStage(rows){
+  const FIELDS={reason:'만족 이유',improve_product:'상품 개선점',improve_order:'주문과정 개선점',wish_product:'출시 희망 상품'};
+  const stage=document.createElement('div');
+  stage.className='capture-stage';
+  const today=new Date().toISOString().slice(0,10);
+  const prodLabel=curProduct?` · ${esc(curProduct)}`:'';
+  let cardsHtml=rows.map(r=>{
+    const s=r.satisfaction;
+    const isLow=s>0&&s<=3;
+    let qa=Object.entries(FIELDS).map(([k,lbl])=>{
+      const v=(r[k]||'').trim();
+      if(!v) return '';
+      return `<div class="cap-qa"><span class="cap-qa-label">${lbl}</span><span class="cap-qa-text">${esc(v)}</span></div>`;
+    }).join('');
+    if(!qa) qa='<div class="cap-qa-text" style="color:#aaa">주관식 응답 없음</div>';
+    return `<div class="cap-card">
+      <div class="cap-top">
+        <span class="cap-sat ${isLow?'low':''}">${s||'-'}점</span>
+        <span class="cap-stars">${starStr(s)}</span>
+        ${r.product?`<span class="cap-prod">${esc(r.product)}</span>`:''}
+      </div>
+      ${qa}
+      <div class="cap-foot">
+        <span><b>날짜</b> ${fmtDate(r.ts)}</span>
+        ${r.gender?`<span><b>성별</b> ${esc(r.gender)}</span>`:''}
+        ${r.age?`<span><b>연령</b> ${esc(r.age)}</span>`:''}
+        ${r.recommend?`<span><b>추천</b> ${esc(r.recommend)}</span>`:''}
+        <span><b>연락처</b> ${esc(r.phone)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  stage.innerHTML=`
+    <div class="capture-head">
+      <div class="capture-title">백년화편 설문 응답${prodLabel}</div>
+      <div class="capture-meta">${rows.length}건 · ${today}<br>고객만족 설문조사</div>
+    </div>
+    ${cardsHtml}`;
+  return stage;
+}
+
 document.getElementById('dateApply').addEventListener('click',()=>{
   const f=document.getElementById('dateFrom').value, t=document.getElementById('dateTo').value;
   curFrom=f; curTo=t;
@@ -510,7 +597,9 @@ function renderCards(){
     const qaBlock = qaHtml
       ? `<div class="resp-qa ${curField==='all'?'':'single'}">${qaHtml}</div>`
       : `<div class="resp-noqa">주관식 응답 없음</div>`;
-    return `<div class="resp-card ${isLow?'low':''}">
+    const checked = selectedIds.has(r._id);
+    return `<div class="resp-card has-check ${isLow?'low':''} ${checked?'checked':''}">
+      <input type="checkbox" class="resp-check" data-id="${r._id}" ${checked?'checked':''}>
       <div class="resp-top">
         ${satBadge(s)}
         <span class="resp-stars">${starStr(s)}</span>
@@ -531,6 +620,23 @@ function renderCards(){
     </div>`;
   }).join('');
   renderPager(totalPg,rows.length);
+  // 체크박스 이벤트 바인딩
+  el.querySelectorAll('.resp-check').forEach(cb=>{
+    cb.addEventListener('change',e=>{
+      const id=parseInt(e.target.dataset.id,10);
+      if(e.target.checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+      e.target.closest('.resp-card').classList.toggle('checked',e.target.checked);
+      updateExportBar();
+    });
+  });
+  updateExportBar();
+}
+
+function updateExportBar(){
+  const n=selectedIds.size;
+  document.getElementById('exportCount').textContent=`${n}건 선택`;
+  document.getElementById('exportPngBtn').disabled = n===0;
 }
 function renderPager(total,count){
   if(total<=1){document.getElementById('pager').innerHTML=`<span style="font-size:11px;color:var(--text4)">${count}건</span>`;return;}
