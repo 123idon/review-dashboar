@@ -1,8 +1,8 @@
 """
 백년화편 고객만족 설문조사 연동 모듈
 - 구글 서비스 계정으로 비공개 시트를 읽음 (시트는 공개하지 않음)
-- 휴대폰번호는 수집 즉시 마스킹하여 저장 (원본은 서버에 남기지 않음)
-- 통계 + 주관식 키워드 + 마스킹 원본을 제공
+- 휴대폰번호는 원본 보존 (내부 공유 + 적립금 지급용, 비공개 시트)
+- 통계 + 주관식 키워드 + 원본 레코드를 제공
 
 환경변수:
   GOOGLE_SERVICE_ACCOUNT_JSON : 서비스 계정 키 JSON 전체 문자열
@@ -54,16 +54,21 @@ SURVEY_EXTRA_STOP = {
 }
 
 
-def _mask_phone(raw: str) -> str:
-    """휴대폰번호를 010-****-XXXX 형태로 마스킹. 원본은 절대 반환하지 않음."""
+def _normalize_phone(raw: str) -> str:
+    """휴대폰번호를 010-1234-5678 형태로 정리. 내부 공유/적립금 지급용이므로 원본 보존.
+    (이 시트는 비공개이며 서비스 계정으로만 접근 — 외부 공개되지 않음)"""
     if not raw:
         return ""
-    digits = re.sub(r"\D", "", raw)
-    if len(digits) >= 8:
-        head = digits[:3] if len(digits) >= 11 else digits[:3]
-        tail = digits[-4:]
-        return f"{head}-****-{tail}"
-    return "****"  # 형식 불명은 통째 마스킹
+    s = str(raw).strip()
+    digits = re.sub(r"\D", "", s)
+    # 11자리 휴대폰 (010xxxxxxxx)
+    if len(digits) == 11:
+        return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+    # 10자리 (구형 011 등, 또는 앞 0 누락)
+    if len(digits) == 10:
+        return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
+    # 그 외(앞자리 0이 엑셀에서 떨어진 경우 등)는 원본 텍스트 그대로 반환
+    return s
 
 
 def _norm_satisfaction(raw: str):
@@ -120,7 +125,7 @@ def parse_csv(csv_text: str) -> list[dict]:
             "improve_order": g("improve_order"),
             "gender": g("gender"),
             "age": g("age"),
-            "phone": _mask_phone(g("phone")),   # ★ 즉시 마스킹
+            "phone": _normalize_phone(g("phone")),   # 내부용 — 원본 보존
             "etc": g("etc"),
             "recommend": g("recommend"),
             "wish_product": g("wish_product"),
