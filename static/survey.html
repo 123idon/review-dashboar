@@ -172,6 +172,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
     <select class="filter-sel" id="filSat"><option value="">만족도 전체</option><option value="5">5점</option><option value="4">4점</option><option value="3">3점</option><option value="2">2점</option><option value="1">1점</option></select>
     <select class="filter-sel" id="filGender"><option value="">성별 전체</option></select>
     <select class="filter-sel" id="filPath"><option value="">주문경로 전체</option></select>
+    <select class="filter-sel" id="sortSel">
+      <option value="recent">최신순</option>
+      <option value="oldest">오래된순</option>
+      <option value="len_desc">내용 긴 순</option>
+      <option value="len_asc">내용 짧은 순</option>
+    </select>
   </div>
   <div class="field-toggle" id="fieldToggle">
     <span class="field-toggle-label">주관식 보기</span>
@@ -187,7 +193,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
 
 <script>
 const PALETTE=['#b5651d','#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#EC4899','#84CC16','#6366F1'];
-let RAW=null, STATS=null, charts={}, curPage=1, curField='all', curProduct='';
+let RAW=null, STATS=null, charts={}, curPage=1, curField='all', curProduct='', curSort='recent';
 let curFrom='', curTo='';   // 현재 적용된 날짜 범위 (YYYY-MM-DD)
 const PER=10;
 
@@ -273,6 +279,13 @@ document.getElementById('productClear').addEventListener('click',()=>{
   document.getElementById('productSel').value='';
   curPage=1;
   reloadStats();
+  if(RAW) renderCards();
+});
+
+// ── 정렬 이벤트 ──
+document.getElementById('sortSel').addEventListener('change',e=>{
+  curSort=e.target.value;
+  curPage=1;
   if(RAW) renderCards();
 });
 
@@ -425,8 +438,22 @@ function qaItem(label,val){
   return `<div class="qa-item"><span class="qa-label">${label}</span><span class="qa-text">${esc(v)}</span></div>`;
 }
 
+function contentLen(r){
+  // 현재 보기 모드에 해당하는 주관식 내용 길이 합산
+  const FK = ['reason','improve_product','improve_order','wish_product'];
+  if(curField==='all'){
+    return FK.reduce((sum,k)=>sum+((r[k]||'').trim().length),0);
+  }
+  return (r[curField]||'').trim().length;
+}
+
 function renderCards(){
-  const rows=filteredRows().slice().reverse(); // 최신순
+  let rows=filteredRows().slice();
+  // 정렬
+  if(curSort==='recent'){ rows.reverse(); }            // RAW는 오래된→최신 순이므로 reverse=최신순
+  else if(curSort==='oldest'){ /* 그대로 = 오래된순 */ }
+  else if(curSort==='len_desc'){ rows.sort((a,b)=>contentLen(b)-contentLen(a)); }
+  else if(curSort==='len_asc'){ rows.sort((a,b)=>contentLen(a)-contentLen(b)); }
   const el=document.getElementById('respList');
   if(!rows.length){el.innerHTML='<div class="empty">조건에 맞는 응답이 없습니다</div>';document.getElementById('pager').innerHTML='';return;}
   const totalPg=Math.ceil(rows.length/PER);
