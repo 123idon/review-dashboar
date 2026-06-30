@@ -686,15 +686,27 @@ async def survey_debug_columns():
                 d = _re.sub(r"\D","",c)
                 if len(d) >= 9 and d[:2] in ("01","10","00"):
                     phone_hits[i] = phone_hits.get(i,0)+1
+        # 칸 수별로 5개씩 샘플 (구형 12칸 구조 정밀 파악)
+        by_len = {12: [], 13: [], 14: []}
+        for r in data_rows:
+            L = len(r)
+            if L in by_len and len(by_len[L]) < 5:
+                by_len[L].append([c[:30] for c in r])
+        # 전화번호: 숫자 9자리 이상(앞0 떨어진 것 포함)
+        import re as _re
+        phone_hits = {}
+        for r in data_rows[:5000]:
+            for i,c in enumerate(r):
+                d = _re.sub(r"\D","",c)
+                if 9 <= len(d) <= 11 and ("01" in c or d.startswith("1") or d.startswith("01")):
+                    phone_hits[i] = phone_hits.get(i,0)+1
         return {
-            "col_count": len(header),
-            "row_count": len(data_rows),
             "len_distribution": dict(len_dist),
-            "header": [f"[{i}] {h[:35]}" for i,h in enumerate(header)],
-            "example_14": examples.get(14),
-            "example_13": examples.get(13),
-            "example_12": examples.get(12),
-            "phone_pattern_by_col": phone_hits,
+            "header": [f"[{i}] {h[:30]}" for i,h in enumerate(header)],
+            "samples_12": by_len[12],
+            "samples_13": by_len[13],
+            "samples_14": by_len[14],
+            "phone_by_col": phone_hits,
         }
     except Exception as e:
         return {"error": str(e)}
