@@ -649,12 +649,37 @@ async def survey_debug_columns():
         if not rows:
             return {"error": "빈 시트"}
         header = rows[0]
-        samples = rows[1:4]
-        cols = []
-        for i, h in enumerate(header):
-            vals = [r[i] if i < len(r) else "" for r in samples]
-            cols.append({"idx": i, "header": h, "samples": vals})
-        return {"col_count": len(header), "columns": cols}
+        data_rows = rows[1:]
+        # 컬럼 수 분포
+        from collections import Counter as _C
+        len_dist = _C(len(r) for r in data_rows)
+        # 헤더에서 휴대폰/나이/성별 컬럼 인덱스
+        def find_col(kw):
+            for i,h in enumerate(header):
+                if kw in h: return i
+            return -1
+        phone_i = find_col("휴대폰")
+        age_i = find_col("나이")
+        gender_i = find_col("성별")
+        # 해당 컬럼들의 실제 값 샘플 (다양한 행에서)
+        def col_samples(i, n=8):
+            if i < 0: return []
+            out = []
+            for r in data_rows:
+                v = r[i] if i < len(r) else ""
+                if v.strip():
+                    out.append(v)
+                if len(out) >= n: break
+            return out
+        return {
+            "col_count": len(header),
+            "row_count": len(data_rows),
+            "len_distribution": dict(len_dist),
+            "phone_idx": phone_i, "phone_samples": col_samples(phone_i),
+            "age_idx": age_i, "age_samples": col_samples(age_i),
+            "gender_idx": gender_i, "gender_samples": col_samples(gender_i),
+            "header": header,
+        }
     except Exception as e:
         return {"error": str(e)}
 
