@@ -686,27 +686,27 @@ async def survey_debug_columns():
                 d = _re.sub(r"\D","",c)
                 if len(d) >= 9 and d[:2] in ("01","10","00"):
                     phone_hits[i] = phone_hits.get(i,0)+1
-        # 칸 수별로 5개씩 샘플 (구형 12칸 구조 정밀 파악)
-        by_len = {12: [], 13: [], 14: []}
-        for r in data_rows:
-            L = len(r)
-            if L in by_len and len(by_len[L]) < 5:
-                by_len[L].append([c[:30] for c in r])
-        # 전화번호: 숫자 9자리 이상(앞0 떨어진 것 포함)
         import re as _re
-        phone_hits = {}
-        for r in data_rows[:5000]:
-            for i,c in enumerate(r):
-                d = _re.sub(r"\D","",c)
-                if 9 <= len(d) <= 11 and ("01" in c or d.startswith("1") or d.startswith("01")):
-                    phone_hits[i] = phone_hits.get(i,0)+1
+        from collections import Counter as _C2
+        # 2026년 이후만 (타임스탬프 [0]에서 연도 추출)
+        def year_of(r):
+            m = _re.match(r"\s*(\d{4})", r[0] if r else "")
+            return int(m.group(1)) if m else 0
+        rows_2026 = [r for r in data_rows if year_of(r) >= 2026]
+        len_2026 = _C2(len(r) for r in rows_2026)
+        # [10] 컬럼의 휴대폰 패턴 비율
+        phone_ok = 0
+        for r in rows_2026:
+            if len(r) > 10:
+                d = _re.sub(r"\D","",r[10])
+                if 9 <= len(d) <= 12: phone_ok += 1
+        samp = [[c[:30] for c in r] for r in rows_2026[:3]]
         return {
-            "len_distribution": dict(len_dist),
-            "header": [f"[{i}] {h[:30]}" for i,h in enumerate(header)],
-            "samples_12": by_len[12],
-            "samples_13": by_len[13],
-            "samples_14": by_len[14],
-            "phone_by_col": phone_hits,
+            "total_rows": len(data_rows),
+            "rows_2026": len(rows_2026),
+            "len_dist_2026": dict(len_2026),
+            "phone_ok_at_col10": phone_ok,
+            "samples_2026": samp,
         }
     except Exception as e:
         return {"error": str(e)}
