@@ -637,6 +637,28 @@ async def sync_survey(background_tasks: BackgroundTasks):
     background_tasks.add_task(run_survey_collect)
     return {"ok": True, "msg": "동기화 시작"}
 
+@app.get("/api/survey/debug-columns")
+async def survey_debug_columns():
+    """진단: 시트 헤더 + 첫 3행 raw 값 (컬럼 매핑 확인용, 임시)."""
+    import asyncio
+    loop = asyncio.get_event_loop()
+    try:
+        csv_text = await loop.run_in_executor(None, survey_module.fetch_sheet_csv)
+        import csv as _csv, io as _io
+        rows = list(_csv.reader(_io.StringIO(csv_text)))
+        if not rows:
+            return {"error": "빈 시트"}
+        header = rows[0]
+        samples = rows[1:4]
+        cols = []
+        for i, h in enumerate(header):
+            vals = [r[i] if i < len(r) else "" for r in samples]
+            cols.append({"idx": i, "header": h, "samples": vals})
+        return {"col_count": len(header), "columns": cols}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.get("/api/survey/status")
 async def survey_status():
     """설문 수집 상태 + 서비스 계정 이메일(공유 요청용)."""
