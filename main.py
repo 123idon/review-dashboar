@@ -370,6 +370,7 @@ async def get_reviews(
     filter_type: str = "all",
     date_from: str = None,
     date_to: str = None,
+    keyword: str = None,
 ):
     """후기 목록 페이지네이션 전용 API"""
     import asyncio
@@ -384,6 +385,7 @@ async def get_reviews(
         page=page,
         size=size,
         filter_type=filter_type,
+        keyword=keyword,
     )
     return result
 
