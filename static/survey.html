@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 <title>고객만족 설문 분석 · 백년화편</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 :root{
@@ -214,6 +215,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretend
     <span class="export-count" id="exportCount">0건 선택</span>
     <button class="export-sub" id="selPageBtn">현재 페이지 전체</button>
     <button class="export-sub" id="selClearBtn">선택 해제</button>
+    <button class="export-btn" id="exportXlsxBtn" disabled>엑셀 다운로드</button>
     <button class="export-btn" id="exportPngBtn" disabled>PNG 다운로드</button>
   </div>
   <div class="field-toggle" id="fieldToggle">
@@ -369,6 +371,55 @@ document.getElementById('exportPngBtn').addEventListener('click',async()=>{
     a.click();
   }catch(e){
     alert('이미지 생성 실패: '+e.message);
+  }finally{
+    btn.textContent=orig; btn.disabled=selectedIds.size===0;
+  }
+});
+
+// ── 내보내기: 엑셀(XLSX) 다운로드 ──
+document.getElementById('exportXlsxBtn').addEventListener('click',()=>{
+  if(!selectedIds.size) return;
+  const btn=document.getElementById('exportXlsxBtn');
+  const orig=btn.textContent;
+  btn.textContent='생성 중…'; btn.disabled=true;
+  try{
+    const picked=RAW.filter(r=>selectedIds.has(r._id));
+    // 응답 1건 = 1행, 필드를 컬럼으로 정리
+    const aoa=[[
+      '번호','날짜','만족도','상품','만족 이유','상품 개선점',
+      '주문과정 개선점','출시 희망 상품','성별','연령','추천 의향','연락처','인지경로','주문경로'
+    ]];
+    picked.forEach((r,i)=>{
+      aoa.push([
+        i+1,
+        fmtDate(r.ts),
+        r.satisfaction||'',
+        r.product||'',
+        (r.reason||'').trim(),
+        (r.improve_product||'').trim(),
+        (r.improve_order||'').trim(),
+        (r.wish_product||'').trim(),
+        r.gender||'',
+        r.age||'',
+        r.recommend||'',
+        r.phone||'',
+        r.channel||'',
+        r.order_path||'',
+      ]);
+    });
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    // 컬럼 너비 지정
+    ws['!cols']=[
+      {wch:5},{wch:12},{wch:7},{wch:22},{wch:34},{wch:28},
+      {wch:28},{wch:24},{wch:6},{wch:9},{wch:9},{wch:15},{wch:22},{wch:16}
+    ];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'설문응답');
+    const today=new Date().toISOString().slice(0,10);
+    const prodTag=curProduct?`_${curProduct}`:'';
+    XLSX.writeFile(wb,`설문응답_${picked.length}건${prodTag}_${today}.xlsx`);
+  }catch(e){
+    alert('엑셀 생성 실패: '+e.message);
   }finally{
     btn.textContent=orig; btn.disabled=selectedIds.size===0;
   }
@@ -637,6 +688,7 @@ function updateExportBar(){
   const n=selectedIds.size;
   document.getElementById('exportCount').textContent=`${n}건 선택`;
   document.getElementById('exportPngBtn').disabled = n===0;
+  document.getElementById('exportXlsxBtn').disabled = n===0;
 }
 function renderPager(total,count){
   if(total<=1){document.getElementById('pager').innerHTML=`<span style="font-size:11px;color:var(--text4)">${count}건</span>`;return;}
