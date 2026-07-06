@@ -662,8 +662,6 @@ body {
 (function(){
   document.documentElement.setAttribute('data-theme','day');
 })();
-})();
-})();
 </script>
 </head>
 <body>
@@ -2183,7 +2181,7 @@ setInterval(async ()=>{
       return '<div class="mp-card">' +
         '<div class="mp-card-text">' + m.content.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
         '<div class="mp-card-date">' + mpFmt(m.id) + '</div>' +
-        '<button class="mp-del-btn" onclick="mpDel('' + m.id + '')" title="삭제">×</button>' +
+        '<button class="mp-del-btn" onclick="mpDel(\'' + m.id + '\')" title="삭제">×</button>' +
       '</div>';
     }).join('');
   }
