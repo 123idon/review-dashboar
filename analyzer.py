@@ -187,7 +187,7 @@ def compute_stats(reviews: list[dict], date_from: str = None, date_to: str = Non
 
 def get_reviews_page(reviews: list[dict], date_from: str = None, date_to: str = None,
                      page: int = 1, size: int = 20,
-                     filter_type: str = "all") -> dict:
+                     filter_type: str = "all", keyword: str = None) -> dict:
     """후기 목록 페이지네이션 전용 함수"""
     # 날짜 필터
     if date_from or date_to:
@@ -215,6 +215,13 @@ def get_reviews_page(reviews: list[dict], date_from: str = None, date_to: str = 
         filtered = [r for r in filtered if r.get("platform") != "smartstore"]
     elif filter_type == "ss":
         filtered = [r for r in filtered if r.get("platform") == "smartstore"]
+
+    # 키워드 검색 필터 (제목+본문 대소문자 무시)
+    if keyword and keyword.strip():
+        kw = keyword.strip().lower()
+        filtered = [r for r in filtered
+                    if kw in (r.get("content") or "").lower()
+                    or kw in (r.get("title") or "").lower()]
 
     # 날짜 내림차순 정렬
     filtered = sorted(filtered, key=lambda x: x.get("date", ""), reverse=True)
