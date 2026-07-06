@@ -1516,6 +1516,7 @@ async function renderReviewPage(){
     _pageReviewMap={};
     (data.items||[]).forEach(r=>{ _pageReviewMap[revKey(r)]=r; });
     bindReviewChecks();
+    setupRevExportEvents();
 
     // 페이지네이션 버튼
     let btns=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${!data.has_prev?'disabled':''}>◀</button>`;
@@ -1547,6 +1548,7 @@ function highlightKeyword(text, kw){
   return text.replace(new RegExp('('+escaped+')', 'gi'), '<mark class="keyword-highlight">$1</mark>');
 }
 
+function esc(t){return String(t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function esc2(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function revKey(r){
   // 고유키: review_no 있으면 사용, 없으면 platform+date+content 조합
@@ -1582,6 +1584,134 @@ function buildReviewCards(reviews, kw){
   }).join('');
 }
 
+
+// ── 후기 선택 내보내기 ──
+let _pageReviewMap={};
+
+function bindReviewChecks(){
+  document.querySelectorAll('.rev-check').forEach(cb=>{
+    cb.addEventListener('change',e=>{
+      const k=e.target.dataset.key;
+      if(e.target.checked){
+        const data=_pageReviewMap[k];
+        if(data) revSelected.set(k,data);
+      }else{
+        revSelected.delete(k);
+      }
+      e.target.closest('.review-card').classList.toggle('rev-checked',e.target.checked);
+      updateRevExportBar();
+    });
+  });
+  updateRevExportBar();
+}
+
+function updateRevExportBar(){
+  const n=revSelected.size;
+  const cEl=document.getElementById('revExportCount');
+  if(cEl) cEl.textContent=`${n}건 선택`;
+  const png=document.getElementById('revPngBtn'), xls=document.getElementById('revXlsxBtn');
+  if(png) png.disabled=n===0;
+  if(xls) xls.disabled=n===0;
+}
+
+function setupRevExportEvents(){
+  const selPage=document.getElementById('revSelPageBtn');
+  const selClear=document.getElementById('revSelClearBtn');
+  const pngBtn=document.getElementById('revPngBtn');
+  const xlsBtn=document.getElementById('revXlsxBtn');
+  if(!selPage || selPage._bound) return;
+  selPage._bound=true;
+
+  selPage.addEventListener('click',()=>{
+    document.querySelectorAll('.rev-check').forEach(cb=>{
+      const k=cb.dataset.key, data=_pageReviewMap[k];
+      if(data){ revSelected.set(k,data); cb.checked=true; cb.closest('.review-card').classList.add('rev-checked'); }
+    });
+    updateRevExportBar();
+  });
+
+  selClear.addEventListener('click',()=>{
+    revSelected.clear();
+    document.querySelectorAll('.rev-check').forEach(cb=>{ cb.checked=false; cb.closest('.review-card').classList.remove('rev-checked'); });
+    updateRevExportBar();
+  });
+
+  // PNG
+  pngBtn.addEventListener('click',async()=>{
+    if(!revSelected.size) return;
+    const btn=pngBtn, orig=btn.textContent;
+    btn.textContent='생성중'; btn.disabled=true;
+    try{
+      const rows=[...revSelected.values()];
+      const stage=buildRevCaptureStage(rows);
+      document.body.appendChild(stage);
+      const canvas=await html2canvas(stage,{scale:2,backgroundColor:'#ffffff',logging:false});
+      document.body.removeChild(stage);
+      const a=document.createElement('a');
+      const today=new Date().toISOString().slice(0,10);
+      a.href=canvas.toDataURL('image/png');
+      a.download=`후기_${rows.length}건_${today}.png`;
+      a.click();
+    }catch(e){ alert('PNG 생성 실패: '+e.message); }
+    finally{ btn.textContent=orig; btn.disabled=revSelected.size===0; }
+  });
+
+  // XLSX
+  xlsBtn.addEventListener('click',()=>{
+    if(!revSelected.size) return;
+    const btn=xlsBtn, orig=btn.textContent;
+    btn.textContent='생성중'; btn.disabled=true;
+    try{
+      const rows=[...revSelected.values()];
+      const platLabel={direct:'자사몰',kakao:'카카오',naver:'네이버',smartstore:'스마트스토어'};
+      const aoa=[['번호','날짜','평점','플랫폼','상품','작성자','후기 내용']];
+      rows.forEach((r,i)=>{
+        aoa.push([
+          i+1, r.date||'', r.score||'',
+          platLabel[r.platform]||r.platform||'',
+          r.product||'', r.author||'',
+          (r.content||r.title||'').trim()
+        ]);
+      });
+      const ws=XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols']=[{wch:5},{wch:12},{wch:6},{wch:13},{wch:24},{wch:10},{wch:60}];
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,'후기');
+      const today=new Date().toISOString().slice(0,10);
+      XLSX.writeFile(wb,`후기_${rows.length}건_${today}.xlsx`);
+    }catch(e){ alert('엑셀 생성 실패: '+e.message); }
+    finally{ btn.textContent=orig; btn.disabled=revSelected.size===0; }
+  });
+}
+
+function buildRevCaptureStage(rows){
+  const stage=document.createElement('div');
+  stage.className='rev-capture-stage';
+  const today=new Date().toISOString().slice(0,10);
+  const platLabel={direct:'자사몰',kakao:'카카오',naver:'네이버',smartstore:'스마트스토어'};
+  const cards=rows.map(r=>{
+    const isLow=r.score<=3;
+    const stars='★'.repeat(Math.round(r.score))+'☆'.repeat(Math.max(0,5-Math.round(r.score)));
+    const c=(r.content||r.title||'').trim()||'본문 없음';
+    return `<div class="rcap-card">
+      <div class="rcap-top">
+        <span class="rcap-score ${isLow?'low':''}">${r.score}점</span>
+        <span class="rcap-stars">${stars}</span>
+        <span class="rcap-plat">${platLabel[r.platform]||r.platform||''}</span>
+        <span class="rcap-date">${r.date||''}</span>
+      </div>
+      ${r.product?`<div class="rcap-prod">${esc(r.product)}</div>`:''}
+      <div class="rcap-content">${esc(c)}</div>
+    </div>`;
+  }).join('');
+  stage.innerHTML=`
+    <div class="rcap-head">
+      <div class="rcap-title">백년화편 후기 모음</div>
+      <div class="rcap-meta">${rows.length}건 · ${today}</div>
+    </div>
+    ${cards}`;
+  return stage;
+}
 
 // ── 키워드 검색 ──
 let keywordDebounceTimer = null;
