@@ -592,7 +592,43 @@ body {
 /* platform-meta, review-list */
 .platform-meta { font-size:12px; color:var(--text3); }
 .review-list   { display:flex; flex-direction:column; }
-</style>
+
+  /* ── 키워드 검색 ── */
+  .review-search-wrap {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px; flex-wrap: wrap;
+  }
+  .review-search-box {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--bg2, var(--surface));
+    border: 1.5px solid var(--border); border-radius: 20px;
+    padding: 5px 12px; flex: 1; min-width: 180px; max-width: 340px;
+    transition: border-color .15s;
+  }
+  .review-search-box:focus-within { border-color: var(--blue); }
+  .search-icon { color: var(--text3); flex-shrink: 0; }
+  .review-search-input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-size: 13px; font-family: inherit;
+  }
+  .review-search-input::placeholder { color: var(--text3); }
+  .search-clear {
+    background: none; border: none; color: var(--text3);
+    cursor: pointer; font-size: 12px; padding: 0 2px;
+    line-height: 1; flex-shrink: 0;
+  }
+  .search-clear:hover { color: var(--red, #f87171); }
+  .search-result-badge {
+    font-size: 11px; font-weight: 700; color: var(--blue);
+    background: rgba(96,165,250,.12); border-radius: 20px;
+    padding: 3px 10px; white-space: nowrap;
+  }
+  .keyword-highlight {
+    background: rgba(250,204,21,.35); border-radius: 2px;
+    padding: 0 1px;
+  }
+
+  </style>
 <script>
 (function(){
   document.documentElement.setAttribute('data-theme','day');
@@ -664,6 +700,7 @@ let allData     = null;
 let filteredData = null;  // 날짜 필터 적용된 데이터
 let currentShop = 'jasaol';
 let reviewFilter  = 'all';
+let reviewKeyword = '';
 let keywordPeriod = 'all';
 let collectPollTimer = null;
 
@@ -1359,7 +1396,15 @@ let _reviewTotal=0, _reviewTotalPages=1;  // 서버 페이지네이션용
 function renderReviews(d){
   filteredReviews=d.reviews||[]; currentPage=1;
   return `<div class="card"><div class="card-title">후기 목록</div>
-    <div class="filter-row">
+    <div class="review-search-wrap">
+        <div class="review-search-box">
+          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="search" id="reviewSearchInput" class="review-search-input" placeholder="후기 내용 검색..." autocomplete="off" oninput="handleKeywordInput(this.value)" />
+          <button class="search-clear" id="searchClearBtn" onclick="clearKeyword()" style="display:none">✕</button>
+        </div>
+        <span class="search-result-badge" id="searchResultBadge" style="display:none"></span>
+      </div>
+      <div class="filter-row">
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="filter-btn active" onclick="setFilter('all',this)">전체</button>
         <button class="filter-btn" onclick="setFilter('low',this)">3점 이하</button>
@@ -1407,6 +1452,7 @@ async function renderReviewPage(){
     });
     if(dateFilterStart) params.set('date_from', dateFilterStart);
     if(dateFilterEnd)   params.set('date_to',   dateFilterEnd);
+    if(reviewKeyword && reviewKeyword.trim()) params.set('keyword', reviewKeyword.trim());
 
     const res = await fetch('/api/reviews?'+params.toString());
     if(!res.ok) throw new Error();
@@ -1416,7 +1462,18 @@ async function renderReviewPage(){
     _reviewTotalPages = data.total_pages;
     currentPage = data.page;
 
-    listEl.innerHTML = buildReviewCards(data.items);
+    // 키워드 검색 결과 배지 업데이트
+    const badge = document.getElementById('searchResultBadge');
+    if(badge){
+      if(reviewKeyword && reviewKeyword.trim()){
+        badge.textContent = `"${reviewKeyword.trim()}" 검색 결과 ${_reviewTotal.toLocaleString()}건`;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    listEl.innerHTML = buildReviewCards(data.items, reviewKeyword);
 
     // 페이지네이션 버튼
     let btns=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${!data.has_prev?'disabled':''}>◀</button>`;
@@ -1442,7 +1499,13 @@ function setPageSize(n,el){
   el.classList.add('active');
   renderReviewPage();
 }
-function buildReviewCards(reviews){
+function highlightKeyword(text, kw){
+  if(!kw || !kw.trim() || !text) return text||'';
+  const escaped = kw.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return text.replace(new RegExp('('+escaped+')', 'gi'), '<mark class="keyword-highlight">$1</mark>');
+}
+
+function buildReviewCards(reviews, kw){
   if(!reviews.length)return'<div style="text-align:center;padding:32px 0;color:var(--text3);font-size:13px">해당 후기가 없어요</div>';
   return reviews.map(r=>{
     const isLow=r.score<=3;
@@ -1450,6 +1513,7 @@ function buildReviewCards(reviews){
     const platLabel={direct:'자사몰',kakao:'카카오',naver:'네이버',smartstore:'스마트스토어'}[r.platform]||r.platform;
     const badgeCls=r.platform==='smartstore'?'smartstore':r.platform==='kakao'?'kakao':'jasa';
     const c = r.content||r.title||'';
+    const cHighlighted = kw ? highlightKeyword(c, kw) : c;
     const imgs = Array.isArray(r.images) ? r.images : [];
     const imgHtml = imgs.length
       ? `<div class="review-imgs">${imgs.map(u=>`<a href="${u}" target="_blank" rel="noopener"><img src="${u}" loading="lazy" class="review-thumb" onerror="this.parentNode.style.display='none'"></a>`).join('')}</div>`
@@ -1460,10 +1524,35 @@ function buildReviewCards(reviews){
         <div class="review-meta"><span class="rev-badge ${badgeCls}">${platLabel}</span><span class="rev-date">${r.date}</span></div>
       </div>
       ${r.product?`<div class="review-product">${r.product}</div>`:''}
-      <div class="review-content">${c||'<span style="color:var(--text3)">본문 없음</span>'}</div>
+      <div class="review-content">${cHighlighted||'<span style="color:var(--text3)">본문 없음</span>'}</div>
       ${imgHtml}
     </div>`;
   }).join('');
+}
+
+
+// ── 키워드 검색 ──
+let keywordDebounceTimer = null;
+function handleKeywordInput(val){
+  const clearBtn = document.getElementById('searchClearBtn');
+  if(clearBtn) clearBtn.style.display = val ? 'inline' : 'none';
+  clearTimeout(keywordDebounceTimer);
+  keywordDebounceTimer = setTimeout(()=>{
+    reviewKeyword = val;
+    currentPage = 1;
+    renderReviewPage();
+  }, 350);
+}
+function clearKeyword(){
+  reviewKeyword = '';
+  const inp = document.getElementById('reviewSearchInput');
+  if(inp) inp.value = '';
+  const clearBtn = document.getElementById('searchClearBtn');
+  if(clearBtn) clearBtn.style.display = 'none';
+  const badge = document.getElementById('searchResultBadge');
+  if(badge) badge.style.display = 'none';
+  currentPage = 1;
+  renderReviewPage();
 }
 
 // ════════════════════════════════════════
