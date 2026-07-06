@@ -1418,6 +1418,7 @@ function setKwPeriod(period){
 // ════════════════════════════════════════
 // 후기 목록
 // ════════════════════════════════════════
+let revSelected=new Map();
 let currentPage=1, filteredReviews=[];
 let PAGE_SIZE=20;
 let _reviewTotal=0, _reviewTotalPages=1;  // 서버 페이지네이션용
@@ -1445,6 +1446,14 @@ function renderReviews(d){
         <button class="ps-btn \${PAGE_SIZE===50?'active':''}" onclick="setPageSize(50,this)">50개</button>
         <button class="ps-btn \${PAGE_SIZE===100?'active':''}" onclick="setPageSize(100,this)">100개</button>
       </div>
+    </div>
+    <div class="rev-export-bar" id="revExportBar">
+      <div class="rev-export-label">📷 선택 내보내기</div>
+      <span class="rev-export-count" id="revExportCount">0건 선택</span>
+      <button class="rev-x-sub" id="revSelPageBtn">현재 페이지 전체</button>
+      <button class="rev-x-sub" id="revSelClearBtn">선택 해제</button>
+      <button class="rev-x-btn" id="revXlsxBtn" disabled>엑셀</button>
+      <button class="rev-x-btn" id="revPngBtn" disabled>PNG</button>
     </div>
     <div class="review-list" id="reviewList"></div>
     <div class="pagination" id="pagination"></div>
@@ -1503,6 +1512,10 @@ async function renderReviewPage(){
     }
 
     listEl.innerHTML = buildReviewCards(data.items, reviewKeyword);
+    // 현재 페이지 후기 데이터를 키로 매핑 (내보내기용)
+    _pageReviewMap={};
+    (data.items||[]).forEach(r=>{ _pageReviewMap[revKey(r)]=r; });
+    bindReviewChecks();
 
     // 페이지네이션 버튼
     let btns=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${!data.has_prev?'disabled':''}>◀</button>`;
@@ -1534,10 +1547,19 @@ function highlightKeyword(text, kw){
   return text.replace(new RegExp('('+escaped+')', 'gi'), '<mark class="keyword-highlight">$1</mark>');
 }
 
+function esc2(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function revKey(r){
+  // 고유키: review_no 있으면 사용, 없으면 platform+date+content 조합
+  if(r.review_no) return r.platform+'_'+r.review_no;
+  return (r.platform||'')+'_'+(r.date||'')+'_'+((r.content||r.title||'').slice(0,40));
+}
+
 function buildReviewCards(reviews, kw){
   if(!reviews.length)return'<div style="text-align:center;padding:32px 0;color:var(--text3);font-size:13px">해당 후기가 없어요</div>';
   return reviews.map(r=>{
     const isLow=r.score<=3;
+    const _k=revKey(r);
+    const _checked=revSelected.has(_k);
     const stars=[1,2,3,4,5].map(i=>`<span class="star ${i<=r.score?'on':'off'}">★</span>`).join('');
     const platLabel={direct:'자사몰',kakao:'카카오',naver:'네이버',smartstore:'스마트스토어'}[r.platform]||r.platform;
     const badgeCls=r.platform==='smartstore'?'smartstore':r.platform==='kakao'?'kakao':'jasa';
@@ -1547,7 +1569,8 @@ function buildReviewCards(reviews, kw){
     const imgHtml = imgs.length
       ? `<div class="review-imgs">${imgs.map(u=>`<a href="${u}" target="_blank" rel="noopener"><img src="${u}" loading="lazy" class="review-thumb" onerror="this.parentNode.style.display='none'"></a>`).join('')}</div>`
       : '';
-    return `<div class="review-card ${isLow?'low':''}">
+    return `<div class="review-card has-check ${isLow?'low':''} ${_checked?'rev-checked':''}">
+      <input type="checkbox" class="rev-check" data-key="${esc2(_k)}" ${_checked?'checked':''}>
       <div class="review-header">
         <div style="display:flex;align-items:center"><div class="stars">${stars}</div><span class="score-num ${isLow?'low':''}">${Number(r.score)%1===0?r.score+'.0':r.score}</span>${isLow?'<span class="low-tag">주의</span>':''}</div>
         <div class="review-meta"><span class="rev-badge ${badgeCls}">${platLabel}</span><span class="rev-date">${r.date}</span></div>
