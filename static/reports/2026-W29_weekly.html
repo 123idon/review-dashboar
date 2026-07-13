@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>백년화편 주간 리포트 · 2026-W29</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; color: #1f2933; background: #f4f5f7; line-height: 1.6; }
+  .report-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #2d2a26; color: #fff; padding: 10px 24px; height: 62px; display: flex; align-items: center; justify-content: space-between; }
+  .report-header h1 { font-size: 18px; font-weight: 700; }
+  .report-header .meta { font-size: 12px; color: #c9c4bc; }
+  .nav-bar { position: fixed; top: 62px; left: 0; right: 0; z-index: 99; background: #fff; border-bottom: 1px solid #e2e2e2; padding: 8px 24px; height: 46px; display: flex; gap: 16px; align-items: center; overflow-x: auto; }
+  .nav-bar a { font-size: 13px; color: #555; text-decoration: none; white-space: nowrap; }
+  .nav-bar a:hover { color: #b5651d; }
+  .container { margin-top: 108px; max-width: 1080px; margin-left: auto; margin-right: auto; padding: 24px; }
+  section { background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  h2 { font-size: 20px; color: #2d2a26; border-left: 5px solid #b5651d; padding-left: 12px; margin-bottom: 16px; }
+  h3 { font-size: 15px; margin: 18px 0 8px; color: #444; }
+  p { font-size: 14px; margin-bottom: 10px; }
+  .kpi-table { table-layout: fixed; width: 100%; text-align: center; border-collapse: collapse; margin: 12px 0; }
+  .kpi-table th, .kpi-table td { border: 1px solid #e2e2e2; padding: 12px 8px; font-size: 14px; word-break: keep-all; }
+  .kpi-table th { background: #f0ede8; font-weight: 600; }
+  .kpi-table .big { font-size: 22px; font-weight: 700; color: #b5651d; }
+  table.data { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+  table.data th, table.data td { border: 1px solid #e2e2e2; padding: 9px 10px; text-align: left; }
+  table.data th { background: #f7f5f2; }
+  table.data td.c, table.data th.c { text-align: center; }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 4px; font-weight: 600; }
+  .t-fact { background: #e3f0e6; color: #2f7a43; }
+  .t-est { background: #fdf0d9; color: #a06a12; }
+  .t-na { background: #f0e2e2; color: #99494b; }
+  .concl { background: #fbf7f0; border: 1px solid #ecdcc4; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; font-size: 14px; }
+  .concl b { color: #b5651d; }
+  ul { padding-left: 20px; font-size: 14px; }
+  ul li { margin-bottom: 7px; }
+  .quote { color: #666; font-style: italic; font-size: 13px; border-left: 3px solid #ddd; padding-left: 10px; margin: 6px 0; }
+  .warn { color: #99494b; font-weight: 600; }
+  .foot { text-align: center; color: #999; font-size: 12px; padding: 16px; }
+  .src a { color: #8a6d3b; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <h1>백년화편 주간 리서치 리포트</h1>
+  <div class="meta">2026-W29 (7/7~7/13) · 작성 2026-07-14 · 자동 생성</div>
+</div>
+
+<div class="nav-bar">
+  <a href="#kpi">① 주간 KPI</a>
+  <a href="#channel">② 채널별 현황</a>
+  <a href="#comp">③ 경쟁사 동향</a>
+  <a href="#keyword">④ 키워드 트렌드</a>
+  <a href="#action">⑤ 액션 아이템</a>
+</div>
+
+<div class="container">
+
+  <p style="font-size:12.5px;color:#888;margin-bottom:18px;">
+    데이터 출처: 리뷰 대시보드(Railway, "10시간 전 갱신" 기준) + 웹 검색(2026-07-14 시점).
+    <span class="tag t-fact">사실</span> = 대시보드/검색 확인값,
+    <span class="tag t-est">추정</span> = 해석·추론,
+    <span class="tag t-na">확인 불가</span> = 데이터 없음.
+  </p>
+
+  <!-- 1. KPI -->
+  <section id="kpi">
+    <h2>① 주간 KPI 요약 (백년화편)</h2>
+    <div class="concl">
+      <b>결론:</b> 누적 리뷰·평점은 안정적(★4.9, 17.7만 건)이나 <b>이번 주 신규 리뷰 지표가 비정상적으로 낮게(17건) 집계</b>됨.
+      리뷰 목록에는 7/12~7/13자 신규 후기가 다수 확인되므로, 대시보드의 "최근 7일" 카운터는 실제와 불일치 → <span class="warn">지표 신뢰도 점검 필요</span>.
+    </div>
+    <table class="kpi-table">
+      <tr>
+        <th>전체 리뷰 (자사몰 통합)</th>
+        <th>평균 평점</th>
+        <th>3점 이하 누적</th>
+        <th>최근 7일 신규</th>
+        <th>최근 7일 부정</th>
+      </tr>
+      <tr>
+        <td class="big">177,315</td>
+        <td class="big">★4.9</td>
+        <td class="big">1,708<br><span style="font-size:12px;color:#888;">(1%)</span></td>
+        <td class="big">17<span class="tag t-na">확인 필요</span></td>
+        <td class="big">0</td>
+      </tr>
+    </table>
+    <h3>별점 분포 <span class="tag t-fact">사실</span></h3>
+    <table class="data">
+      <tr><th class="c">5★</th><th class="c">4★</th><th class="c">3★</th><th class="c">2★</th><th class="c">1★</th></tr>
+      <tr>
+        <td class="c">160,287 (96%)</td>
+        <td class="c">4,403 (3%)</td>
+        <td class="c">968 (1%)</td>
+        <td class="c">255 (0%)</td>
+        <td class="c">485 (0%)</td>
+      </tr>
+    </table>
+    <p style="font-size:12.5px;color:#888;">※ 위 "최근 7일 17건"은 대시보드 원본값 그대로 표기. 리뷰 목록에 7/13자 후기가 다수 존재해 실제 주간 유입은 이보다 큼(추정). 정확한 주간 유입 수치는 대시보드 카운터 로직 확인 후 재산출 필요.</p>
+  </section>
+
+  <!-- 2. 채널별 -->
+  <section id="channel">
+    <h2>② 채널별 리뷰 현황 (백년화편)</h2>
+    <div class="concl">
+      <b>결론:</b> 리뷰의 <b>약 61%가 자사몰 직접 채널</b>에 집중. 네이버 비중은 상대적으로 낮고,
+      네이버 탭의 "최근 7일 0건"은 해당 소스가 이번 주 미갱신됐을 가능성 → <span class="warn">수집 파이프라인 점검 필요</span>.
+    </div>
+    <table class="data">
+      <tr><th>채널</th><th class="c">누적 리뷰</th><th class="c">평점</th><th class="c">비고</th></tr>
+      <tr><td>자사몰 (직접)</td><td class="c">107,475</td><td class="c">★5.0</td><td class="c">주력 채널 (약 61%)</td></tr>
+      <tr><td>자사몰 (카카오)</td><td class="c">45,168</td><td class="c">★5.0</td><td class="c">선물하기 유입</td></tr>
+      <tr><td>자사몰 (네이버)</td><td class="c">24,672</td><td class="c">★4.9</td><td class="c">통합탭 기준</td></tr>
+      <tr><td>네이버 스토어 (별도탭)</td><td class="c">21,649</td><td class="c">★4.9</td><td class="c">최근 7일 0건 — <span class="tag t-na">미갱신 추정</span></td></tr>
+    </table>
+    <h3>후기 많은 상품 TOP 3 <span class="tag t-fact">사실</span></h3>
+    <table class="data">
+      <tr><th>순위</th><th>상품</th><th class="c">누적 후기</th><th class="c">부정 후기</th></tr>
+      <tr><td class="c">1</td><td>밥알찹쌀떡 32개 (팥 앙금)</td><td class="c">72,997</td><td class="c">463</td></tr>
+      <tr><td class="c">2</td><td>밥알흑임자 32개</td><td class="c">15,244</td><td class="c">128</td></tr>
+      <tr><td class="c">3</td><td>옛날밥알쑥떡 32개</td><td class="c">11,254</td><td class="c">—</td></tr>
+    </table>
+    <p style="font-size:12.5px;color:#888;">※ 대표 상품(밥알찹쌀떡)에 매출·리뷰가 과도하게 집중. 단일 SKU 의존도가 높아 카테고리 확장 여지 존재(추정).</p>
+  </section>
+
+  <!-- 3. 경쟁사 -->
+  <section id="comp">
+    <h2>③ 경쟁사 동향</h2>
+    <div class="concl">
+      <b>결론:</b> 이번 주 최대 변수는 <b>창억떡의 SNS·홈쇼핑 화력</b>과 <b>명가삼대의 높은 주간 리뷰 유입(398건)</b>.
+      두 브랜드 모두 "선물 관심"을 흡수 중이며, 백년화편은 <span class="warn">채널 수·바이럴 노출에서 열세</span>.
+    </div>
+
+    <h3>대시보드 기반 리뷰 비교 <span class="tag t-fact">사실</span></h3>
+    <table class="data">
+      <tr><th>브랜드</th><th class="c">누적 리뷰</th><th class="c">평점</th><th class="c">최근 7일 신규</th><th class="c">최근 7일 부정</th></tr>
+      <tr><td><b>백년화편</b></td><td class="c">177,315</td><td class="c">★4.9</td><td class="c">17 <span style="color:#a06a12">(점검要)</span></td><td class="c">0</td></tr>
+      <tr><td>명가삼대떡집</td><td class="c">130,761</td><td class="c">★4.9</td><td class="c"><b>398</b></td><td class="c">14 (4%)</td></tr>
+      <tr><td>파파공방</td><td class="c">7,313</td><td class="c">★4.9</td><td class="c">0</td><td class="c">0</td></tr>
+      <tr><td>창억떡</td><td class="c" colspan="4"><span class="tag t-na">수집 불가</span> — 자사몰 로그인 필요, 스마트스토어 연동 준비 중 (대시보드 명시)</td></tr>
+    </table>
+    <p style="font-size:12.5px;color:#888;">※ 명가삼대 최근 7일 398건은 백년화편 집계값(17)의 23배. 단, 백년화편 카운터 오류 가능성 있어 절대 비교는 유보. 다만 명가삼대의 주간 유입 활력은 사실로 확인됨.</p>
+
+    <h3>웹 검색 동향 (2026-07-14 시점)</h3>
+    <table class="data">
+      <tr><th>경쟁사</th><th>이번 분기 동향</th><th class="c">라벨</th></tr>
+      <tr>
+        <td><b>창억떡</b></td>
+        <td>2026년 3월 SNS 바이럴 폭발 — 유튜브 '하말넘많' 언급, DAY6 영케이 콘서트에서 '호박인절미' 언급으로 확산. NS홈쇼핑 특집방송 편성. 공영홈쇼핑·마켓컬리·쿠팡·SSG 등 냉동떡 유통 확대.</td>
+        <td class="c"><span class="tag t-fact">사실</span></td>
+      </tr>
+      <tr>
+        <td><b>명가삼대떡집</b></td>
+        <td>신제품 '쑥 카스테라 찹쌀떡·콩달떡' 및 '여름 제철 떡' 라인 운영. 자사몰·인스타(@myeongga_official)·쿠팡·신세계몰 등 멀티채널.</td>
+        <td class="c"><span class="tag t-fact">사실</span></td>
+      </tr>
+      <tr>
+        <td><b>압구정공주떡집</b></td>
+        <td>흑임자인절미 대표 상품, 3대 경영 승계. 2026년 4월 언론(중도일보 등) 소개. 강남 오프라인 중심, 씽굴마켓 등 소량 온라인 유통. 이번 분기 대형 프로모션 <span class="tag t-na">확인 불가</span>.</td>
+        <td class="c"><span class="tag t-est">추정</span></td>
+      </tr>
+    </table>
+
+    <h3>주목: 파파공방 (미투 위협) <span class="tag t-est">추정</span></h3>
+    <p>파파공방 주력이 '현미 밥알쑥떡/현미 밥알찹쌀떡 32개입' — 백년화편 '밥알 시리즈'를 <b>'현미·저염·무설탕' 건강 각도로 변형한 미투 라인</b>. 리뷰 규모는 작지만(7,313건) 건강 트렌드에 올라탄 포지셔닝이라 예의주시 대상.</p>
+  </section>
+
+  <!-- 4. 키워드 -->
+  <section id="keyword">
+    <h2>④ 키워드 & 시장 트렌드</h2>
+    <div class="concl">
+      <b>결론:</b> 자사 긍정 키워드는 <b>'맛있어요·선물로'</b>에 집중돼 선물 포지셔닝은 유효.
+      시장은 <b>냉동떡·쫄깃 식감·SNS 바이럴</b>로 이동 중이나, 백년화편의 '당일 생산' 원칙상 냉동·바이럴 대응이 구조적으로 제한됨.
+    </div>
+    <h3>백년화편 키워드 (자사몰) <span class="tag t-fact">사실</span></h3>
+    <table class="data">
+      <tr><th class="c">긍정 (4~5점)</th><th class="c">부정 (1~3점)</th></tr>
+      <tr>
+        <td>맛있어요(26,941) · 맛있다고(11,402) · <b>선물로(9,792)</b> · 맛있게(9,222) · 먹고(8,440)</td>
+        <td>떡이(211) · 많이(142) · 맛이(121) · 떡은(94) · 바로(90)</td>
+      </tr>
+    </table>
+    <p style="font-size:12.5px;color:#888;">※ 부정 키워드가 절대량·특이성 모두 낮음 → 품질 리스크는 현재 미미(사실). 부정 후기의 맥락(식감/배송) 심층 분석은 별도 필요.</p>
+
+    <h3>국내 떡 시장 트렌드 (검색 기반) <span class="tag t-fact">사실</span></h3>
+    <ul>
+      <li>떡류 국내 판매액 <b>2024년 약 9,291억 원</b>, 6년 새 65% 급증 — '1조 클럽' 진입 목전. 매년 5~7% 성장.</li>
+      <li><b>냉동떡</b>이 성장 견인 — 신제품 효과로 매출 84.9% 급증(롯데마트 냉동떡 +58.4%).</li>
+      <li>'두쫀쿠' 등 <b>쫄깃한 식감</b> + 건강 소비 결합이 핵심 동력. 20·30 여성 주도 컬러·캐릭터 상품화.</li>
+      <li>선물 수요는 유지되나, 경쟁력의 무게중심이 <b>보관 편의(냉동)·SNS 바이럴</b>로 이동.</li>
+    </ul>
+    <p style="font-size:12.5px;color:#888;">※ 시사점: 백년화편의 '당일 생산·냉장' 원칙은 신선도 강점이자 냉동 시장 대응의 구조적 제약. 트렌드와 자사 원칙의 충돌 지점(추정).</p>
+  </section>
+
+  <!-- 5. 액션 -->
+  <section id="action">
+    <h2>⑤ 이번 주 액션 아이템</h2>
+    <div class="concl">
+      <b>우선순위 결론:</b> 이번 주는 ①<b>대시보드 지표 오류부터 바로잡고</b>, ②<b>창억떡 바이럴 대응</b>과 ③<b>명가삼대 대비 채널 열세</b>를 좁히는 데 집중.
+    </div>
+    <ul>
+      <li><b>[긴급] 대시보드 카운터 점검</b> — 백년화편 "최근 7일 17건"이 실제 유입(7/13자 후기 다수)과 불일치. 네이버·파파공방 탭 "최근 7일 0" 동반 → 수집 파이프라인/집계 로직 확인. <span class="warn">지표 신뢰도 확보가 모든 판단의 전제.</span></li>
+      <li><b>[경쟁 대응] 창억떡 바이럴 모니터링</b> — '호박인절미' 발 SNS 확산 + NS홈쇼핑 특집. 선물 수요 분산 리스크. 카카오 선물하기 노출·검색 키워드 방어 점검.</li>
+      <li><b>[채널] 명가삼대 대비 채널 수 열세 해소</b> — 명가삼대는 자사몰·인스타·쿠팡·신세계몰 등 멀티채널로 주간 유입 398건. 백년화편은 자사몰 편중. 네이버 리뷰 유도 강화 + 신규 채널 등록 검토.</li>
+      <li><b>[방어] 파파공방 미투 추적</b> — '현미·저염·무설탕 밥알' 라인의 리뷰 증가 추이 주간 관찰. 건강 각도 선점 여부 판단.</li>
+      <li><b>[강점 활용] 선물 포지셔닝 유지</b> — 긍정 키워드 '선물로' 상위. 답례떡·명절 선물 각도의 콘텐츠·패키지 소구 지속.</li>
+    </ul>
+  </section>
+
+  <section class="src">
+    <h2>출처</h2>
+    <p style="font-size:12.5px;">
+      · 리뷰 대시보드: <a href="https://web-production-ce7ca1.up.railway.app/dashboard">web-production-ce7ca1.up.railway.app/dashboard</a> (2026-07-14, "10시간 전 갱신")<br>
+      · 창억떡: <a href="https://biz.newdaily.co.kr/site/data/html/2026/03/20/2026032000082.html">뉴데일리 NS홈쇼핑 특집</a>, <a href="https://namu.wiki/w/%EC%B0%BD%EC%96%B5%EB%96%A1">나무위키</a><br>
+      · 명가삼대떡집: <a href="https://myeonggashop.com/">공식몰</a>, <a href="https://www.instagram.com/myeongga_official/">인스타그램</a><br>
+      · 압구정공주떡: <a href="https://www.kongjudduk.co.kr/">공식몰</a>, <a href="https://v.daum.net/v/20260420164740365">중도일보 소개</a><br>
+      · 시장 트렌드: <a href="https://www.etoday.co.kr/news/view/2550722">이투데이 '떡 시장 1조'</a>, <a href="https://www.hankyung.com/amp/202605044747g">한경 선물 특수</a>
+    </p>
+  </section>
+
+  <div class="foot">백년화편 주간 리서치 리포트 · 2026-W29 · 자동 생성 (검증 지표는 대시보드 카운터 점검 후 재확인 권장)</div>
+
+</div>
+</body>
+</html>
