@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>백년화편 주간 리포트 | 2026-W34</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", "맑은 고딕", sans-serif;
+    background: #f5f6f8; color: #1f2933; line-height: 1.65;
+  }
+  .report-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 62px; background: #12263f; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  }
+  .report-header .title { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
+  .report-header .meta { font-size: 12px; opacity: .8; }
+  .nav-bar {
+    position: fixed; top: 62px; left: 0; right: 0; z-index: 99;
+    height: 46px; background: #fff; border-bottom: 1px solid #e3e6ea;
+    display: flex; align-items: center; gap: 4px; padding: 0 16px; overflow-x: auto;
+  }
+  .nav-bar a {
+    font-size: 13px; color: #52606d; text-decoration: none;
+    padding: 6px 12px; border-radius: 6px; white-space: nowrap;
+  }
+  .nav-bar a:hover { background: #eef1f5; color: #12263f; }
+  .container { margin-top: 108px; max-width: 1120px; margin-left: auto; margin-right: auto; padding: 24px 20px 80px; }
+  section { background: #fff; border: 1px solid #e3e6ea; border-radius: 10px; padding: 22px 24px; margin-bottom: 22px; }
+  h2 { font-size: 19px; margin: 0 0 6px; letter-spacing: -.4px; border-left: 4px solid #12263f; padding-left: 10px; }
+  h3 { font-size: 15px; margin: 24px 0 8px; color: #12263f; }
+  .sub { font-size: 12.5px; color: #7b8794; margin: 0 0 16px; padding-left: 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 10px 0 4px; }
+  th, td { border: 1px solid #e3e6ea; padding: 8px 10px; }
+  th { background: #f0f2f5; font-weight: 600; color: #3e4c59; }
+  td.l, th.l { text-align: left; }
+  table.kpi { table-layout: fixed; width: 100%; text-align: center; }
+  table.kpi td, table.kpi th { text-align: center; }
+  table.kpi .big { font-size: 20px; font-weight: 700; color: #12263f; }
+  .lab { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 3px; vertical-align: middle; }
+  .lab-f { background: #e3f0e6; color: #1c6b34; }
+  .lab-e { background: #fff2d9; color: #8a5a00; }
+  .lab-x { background: #f0e2e2; color: #8c2f2f; }
+  .callout { background: #fbf7ec; border-left: 4px solid #d9a600; padding: 12px 16px; border-radius: 4px; font-size: 13.5px; margin: 14px 0; }
+  .callout.risk { background: #fdf1f1; border-left-color: #c0392b; }
+  .callout.win { background: #eef7f1; border-left-color: #1c8a4b; }
+  ul { padding-left: 20px; margin: 8px 0; font-size: 13.5px; }
+  li { margin-bottom: 5px; }
+  .quote { font-size: 13px; color: #52606d; background: #f7f8fa; border-left: 3px solid #cbd2d9; padding: 8px 12px; margin: 6px 0; border-radius: 3px; }
+  .neg { color: #c0392b; font-weight: 600; }
+  .pos { color: #1c8a4b; font-weight: 600; }
+  footer { font-size: 12px; color: #7b8794; text-align: center; padding: 10px 0 0; }
+  .legend { font-size: 11.5px; color: #7b8794; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="title">백년화편 주간 리서치 리포트 — 2026-W34</div>
+  <div class="meta">작성 2026-08-17 (월) · 데이터 기준 대시보드 2026-08-16 갱신분</div>
+</div>
+
+<div class="nav-bar">
+  <a href="#s0">요약</a>
+  <a href="#s1">1. 주간 KPI</a>
+  <a href="#s2">2. 채널별 리뷰</a>
+  <a href="#s3">3. 경쟁사 동향</a>
+  <a href="#s4">4. 키워드 트렌드</a>
+  <a href="#s5">5. 액션 아이템</a>
+  <a href="#s6">데이터 신뢰성</a>
+</div>
+
+<div class="container">
+
+<section id="s0">
+  <h2>결론 요약</h2>
+  <p class="sub">먼저 결론, 근거는 각 섹션에서.</p>
+
+  <div class="callout risk">
+    <b>1. 이번 주 최대 문제 — 리뷰 생성량이 경쟁사의 1/28로 붕괴</b><br>
+    최근 7일 신규 리뷰: 백년화편 <b>22건</b> vs 명가삼대떡집 <b>612건</b> <span class="lab lab-f">사실</span>.
+    누적 리뷰는 백년화편 177,315건이 명가삼대 134,670건보다 많다. 즉 <b>과거에는 앞섰으나 현재 유입/구매 속도에서 완전히 밀리고 있다</b>는 뜻이다.
+    성장 정체의 가장 직접적인 계량 지표다.
+  </div>
+
+  <div class="callout risk">
+    <b>2. 별점은 무의미해졌다 — 5.0점 리뷰 본문에 불만이 들어있다</b><br>
+    8/16자 5.0점 리뷰 중 "직접 매장으로 가지로 갔는데도 따뜻하지 않았습니다", "받았을 때 조금 차가워서 놀랐습니다" 등 <b>온도 불만이 만점 리뷰 안에 숨어 있다</b> <span class="lab lab-f">사실</span>.
+    최근 7일 부정 리뷰 0건 / 평균 ★4.9라는 지표는 실제 불만을 전혀 잡아내지 못한다. 별점 기반 모니터링을 본문 기반으로 바꿔야 한다.
+  </div>
+
+  <div class="callout risk">
+    <b>3. 파파공방이 '밥알쑥떡·밥알찹쌀떡' 명칭을 그대로 사용 중</b><br>
+    파파공방 상위 상품이 "무염/저염 무설탕 현미 밥알쑥떡 32개입", "현미 쑥 밥알찹쌀떡 32개입" — <b>제품명·개수 규격(32개입)까지 동일 구조</b> <span class="lab lab-f">사실</span>.
+    한국·일본 특허 보유 브랜드로서 상표·특허 침해 여부 법률 검토가 필요하다. 규모는 7,313건으로 아직 작지만 방치하면 '밥알떡'이 일반명사화된다 <span class="lab lab-e">추정</span>.
+  </div>
+
+  <div class="callout">
+    <b>4. 창억떡은 바이럴로 시장을 가져갔다 — 백년화편이 못 만든 그림</b><br>
+    2026년 3월, 구독자 77만 유튜브 '하말넘많' 소개 + 데이식스 영케이 공연 중 언급으로 화제 → 배송 지연 공지 → NS홈쇼핑 특집방송(3/23, 6종 70개 52,900원) 편성 <span class="lab lab-f">사실</span>.
+    백년화편의 PPL·숏폼이 "반응 미미"했던 것과 정확히 대조된다. 차이는 예산이 아니라 <b>레퍼런스가 될 소재(향토 60년 떡집 서사)</b>였다.
+  </div>
+
+  <div class="callout win">
+    <b>5. 유일한 명확한 강점 — 만족도 품질은 여전히 1위</b><br>
+    5점 비율 백년화편 <b>96%</b> vs 명가삼대 <b>89%</b>, 파파공방 91% <span class="lab lab-f">사실</span>.
+    제품 문제가 아니다. <b>제품은 이기고 있고, 유입과 리뷰 유도에서 지고 있다.</b> 개선 레버는 상품 개발이 아니라 트래픽·리뷰 구조에 있다.
+  </div>
+</section>
+
+<section id="s1">
+  <h2>1. 주간 KPI 요약</h2>
+  <p class="sub">출처: 자체 후기 대시보드(Railway), 2026-08-16 갱신분 <span class="lab lab-f">사실</span></p>
+
+  <table class="kpi">
+    <tr>
+      <th>구분</th><th>누적 리뷰</th><th>평균 평점</th><th>3점 이하</th><th>최근 7일 신규</th><th>최근 7일 부정</th><th>5점 비율</th>
+    </tr>
+    <tr>
+      <td class="l"><b>백년화편</b></td>
+      <td class="big">177,315</td><td>★4.9</td><td>1,708 (1%)</td>
+      <td class="big neg">22</td><td>0</td><td class="pos">96%</td>
+    </tr>
+    <tr>
+      <td class="l">명가삼대떡집</td>
+      <td>134,670</td><td>★4.9</td><td>1,286 (1%)</td>
+      <td class="big pos">612</td><td>8 (1%)</td><td>89%</td>
+    </tr>
+    <tr>
+      <td class="l">창억떡</td>
+      <td colspan="6"><span class="lab lab-x">확인 불가</span> 자사몰(changeok.co.kr) 로그인 필요로 수집 미구현. 스마트스토어 연동 준비 중</td>
+    </tr>
+    <tr>
+      <td class="l">파파공방</td>
+      <td>7,313</td><td>★4.9</td><td>195 (3%)</td>
+      <td>0<span class="lab lab-x">수집 정지</span></td><td>0</td><td>91%</td>
+    </tr>
+    <tr>
+      <td class="l">네이버(자사)</td>
+      <td>21,649</td><td>★4.9</td><td>545 (3%)</td>
+      <td>0<span class="lab lab-x">수집 정지</span></td><td>0</td><td>89%</td>
+    </tr>
+  </table>
+  <p class="legend">압구정공주떡집은 대시보드 수집 대상에 미포함 — 3장에서 공개 정보로만 다룸.</p>
+
+  <h3>주간 신규 리뷰 격차 (핵심 지표)</h3>
+  <table class="kpi">
+    <tr><th>지표</th><th>백년화편</th><th>명가삼대떡집</th><th>격차</th></tr>
+    <tr><td class="l">최근 7일 신규 리뷰</td><td>22건</td><td>612건</td><td class="neg">27.8배 열위</td></tr>
+    <tr><td class="l">누적 리뷰</td><td>177,315건</td><td>134,670건</td><td class="pos">1.32배 우위</td></tr>
+    <tr><td class="l">누적 대비 주간 리뷰율 <span class="lab lab-e">추정 지표</span></td><td>0.012%</td><td>0.454%</td><td class="neg">38배 열위</td></tr>
+  </table>
+  <p class="legend">누적은 앞서고 주간은 뒤진다 = 과거 자산으로 버티는 구조. 이 추세가 유지되면 누적 리뷰도 <b>약 1.5~2년 내 역전</b>된다 <span class="lab lab-e">추정, 현재 주간 속도 단순 연장 가정</span>.</p>
+
+  <h3>백년화편 별점 분포</h3>
+  <table class="kpi">
+    <tr><th>5점</th><th>4점</th><th>3점</th><th>2점</th><th>1점</th></tr>
+    <tr><td>160,286 (96%)</td><td>4,404 (3%)</td><td>968 (1%)</td><td>255 (0%)</td><td>485 (0%)</td></tr>
+  </table>
+</section>
+
+<section id="s2">
+  <h2>2. 채널별 리뷰 현황 (백년화편)</h2>
+  <p class="sub">출처: 대시보드 플랫폼 비교 <span class="lab lab-f">사실</span></p>
+
+  <table class="kpi">
+    <tr><th>채널</th><th>누적 리뷰</th><th>평균 평점</th><th>부정(3점 이하)</th><th>부정 비율</th></tr>
+    <tr><td class="l">자사몰</td><td>107,475</td><td>★5.0</td><td>800</td><td>0.74%</td></tr>
+    <tr><td class="l">자사몰(카카오)</td><td>45,168</td><td>★5.0</td><td>338</td><td>0.75%</td></tr>
+    <tr><td class="l">자사몰(네이버)</td><td>24,672</td><td>★4.9</td><td>570</td><td class="neg">2.31%</td></tr>
+  </table>
+
+  <p style="font-size:13.5px">
+  <b>네이버 채널의 부정 비율이 자사몰의 3.1배다</b> <span class="lab lab-f">사실</span>.
+  리뷰 수는 전체의 14%인데 부정 리뷰는 33%를 차지한다. 원인 가설 <span class="lab lab-e">추정</span>:
+  ① 네이버 유입은 신규·저관여 고객 비중이 높아 기대치 미스매치가 크다,
+  ② 검색 유입 상품명이 "답례떡 / 아침대용떡"으로 걸려 있어 <b>선물용 프리미엄이 아닌 실용 카테고리로 인식</b>된 뒤 42,000원 가격에 실망한다.
+  ②가 사실이라면 네이버 상품명·상세페이지의 포지셔닝 정비가 부정 리뷰를 직접 줄인다.
+  </p>
+
+  <h3>상품별 리뷰 TOP 3</h3>
+  <table class="kpi">
+    <tr><th>순위</th><th>상품</th><th>누적 리뷰</th><th>부정 리뷰</th><th>부정률</th></tr>
+    <tr><td>1</td><td class="l">밥알찹쌀떡 32개 (팥 앙금)</td><td>72,997</td><td>463</td><td>0.63%</td></tr>
+    <tr><td>2</td><td class="l">밥알흑임자 32개 (흑임자 앙금)</td><td>15,244</td><td>128</td><td>0.84%</td></tr>
+    <tr><td>3</td><td class="l">옛날밥알쑥떡 32개 (앙금 없음)</td><td>11,254</td><td>확인 불가</td><td>—</td></tr>
+    <tr><td>—</td><td class="l">(네이버) 밥알찹쌀떡 1박스 32개입 답례떡</td><td>6,887</td><td>150</td><td class="neg">2.18%</td></tr>
+  </table>
+  <p class="legend">밥알찹쌀떡 단일 상품이 누적 리뷰의 41%. 매출 집중도도 유사할 가능성이 높다 <span class="lab lab-e">추정</span> — 단품 의존 리스크.</p>
+
+  <h3>이번 주 리뷰 본문에서 반복된 불만 (5.0점 리뷰 포함)</h3>
+  <div class="quote">"직접 매장으로 가지로 갔는데도 따뜻하지 않았습니다" — 자사몰, 2026-08-16, <b>★5.0</b></div>
+  <div class="quote">"받았을 때 조금 차가워서 놀랐습니다. 맛은 있었는데 따뜻하진 않네요" — 자사몰, 2026-08-16, <b>★5.0</b></div>
+  <div class="quote">"떡이 그날그날 한 거라고 하는데 받자마자 냉동실에 보관합니다 근데 어떤 거는 촉촉하고 어떤 거는 떡이 굳어있어요" — 자사몰, 2026-08-16, ★4.0</div>
+  <p style="font-size:13.5px">
+  <b>패턴: '당일 생산'을 약속했지만 고객이 받는 시점의 온도·식감이 약속을 배신한다.</b>
+  3건 중 2건이 만점 리뷰다 → 별점 필터로는 절대 안 잡힌다.
+  이는 이미 확정된 <b>온도변색 스티커 · 생산일 스탬프</b> 액션의 근거를 강화한다.
+  다만 스티커는 "온도가 정상임을 증명"하는 장치인데, 위 리뷰들은 <b>실제로 온도가 정상이 아니었을 가능성</b>을 시사한다.
+  스티커를 붙이기 전에 실측 검증이 먼저다 — 검증 없이 도입하면 불만을 증거로 남기는 장치가 된다.
+  </p>
+
+  <h3>긍정 리뷰가 반복 언급하는 실제 구매 이유</h3>
+  <ul>
+    <li>"달지 않아서 좋아요 부모님께서 <b>냉동시켜 간식으로</b> 애용하세요" — 냉동 보관 후 재섭취가 실사용 패턴</li>
+    <li>"백년화편 <b>새벽배송</b>도 좋고 포장도 깔끔해요" / "새벽 배송 신선하고 파손없이 와서" — 새벽배송이 만족 요인으로 반복 등장</li>
+    <li>"개별 포장이라 휴대하기 좋아요" / "한입에 먹기 편해 선물로 보내주기 좋아요"</li>
+    <li>"떨어지기 전에 항상 미리 사둡니다" — 재구매 습관화 고객 존재</li>
+  </ul>
+  <p style="font-size:13.5px">
+  주목: 고객은 <b>"냉동 보관해두고 먹는 상비 간식"</b>으로 쓴다고 반복 진술한다. 브랜드가 밀고 있는 "당일 생산 신선함"과 실사용이 어긋난다.
+  <b>냉동 외주 라인 구축을 '보류'로 결정한 근거를 재검토할 가치가 있다</b> <span class="lab lab-e">추정</span> — 고객은 이미 스스로 냉동해서 먹고 있고, 그 상태로도 만족하고 있다.
+  </p>
+</section>
+
+<section id="s3">
+  <h2>3. 경쟁사 동향</h2>
+  <p class="sub">웹 검색 시점: 2026-08-17. 검색 결과에 없는 항목은 확인 불가로 표기.</p>
+
+  <h3>창억떡 — 이번 분기 최대 위협</h3>
+  <table>
+    <tr><th class="l" style="width:22%">항목</th><th class="l">내용</th></tr>
+    <tr><td class="l">브랜드</td><td class="l">1965년 광주 창업, 60여년 전통 떡 전문 브랜드 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">2026년 급성장 경위</td><td class="l">구독자 77만 유튜브 '하말넘많' 소개 → 그룹 데이식스 멤버 영케이 공연 중 언급 → SNS·온라인 커뮤니티 확산 → <b>공식 홈페이지에 배송 지연 공지</b> <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">홈쇼핑</td><td class="l">NS홈쇼핑 특집방송 2026-03-23 17:50 편성. 6종 구성(7봉·70개) <b>52,900원</b> <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">구성</td><td class="l">호박인절미 2팩, 모듬찰떡, 흑임자인절미, 쑥밥알 인절미, 쑥구름떡, 흑미구름떡 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">제조 방식</td><td class="l"><b>급속 냉동 공법 + 개별 포장</b> <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">유통 채널</td><td class="l">자사몰, 쿠팡, 마켓컬리, 이마트몰, 공영홈쇼핑, NS홈쇼핑 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">리뷰 데이터</td><td class="l"><span class="lab lab-x">확인 불가</span> 대시보드 수집 미구현</td></tr>
+    <tr><td class="l">2026년 신제품</td><td class="l"><span class="lab lab-x">확인 불가</span> 검색 결과에 없음</td></tr>
+  </table>
+
+  <div class="callout risk">
+    <b>창억떡이 주는 시사점 3가지 (불편한 쪽부터)</b>
+    <ul style="margin-top:6px">
+      <li><b>급속 냉동이 약점이 아니라 확장 무기였다.</b> 창억떡은 냉동으로 홈쇼핑·마켓컬리·이마트몰 전 채널을 열었다. 백년화편은 '당일 생산' 원칙 때문에 편의점·매장 확대·군납·홈쇼핑이 전부 막혀 있다. <b>동일한 원칙이 품질 자산이면서 채널 상한선이다.</b> 냉동 라인 '보류' 결정이 창억떡 사례 앞에서 유효한지 재검토가 필요하다.</li>
+      <li><b>바이럴은 광고비가 아니라 서사에서 나왔다.</b> 유튜버가 자발적으로 다룬 것은 '광주 향토 떡집'이라는 이야기였다. 백년화편은 <b>대한명인 제10-311호 + 한·일 특허 + 세계 유일 밥알 공법</b>이라는 더 강한 소재를 가지고 있으면서 PPL·숏폼 협찬 방식으로 소진했다. 소재가 없는 게 아니라 <b>협찬 포맷으로 쓰고 있는 것이 문제다</b> <span class="lab lab-e">추정</span>.</li>
+      <li><b>가격 벤치마크가 형성됐다.</b> 창억떡 6종 70개 = 52,900원 (개당 약 756원). 백년화편 32개 42,000원 = 개당 1,313원. <b>개당 1.74배</b>. 프리미엄 근거를 상세페이지에서 명시적으로 설명하지 않으면 비교 열위로 읽힌다.</li>
+    </ul>
+  </div>
+
+  <h3>명가삼대떡집 — 리뷰 볼륨에서 이미 추월 중</h3>
+  <table>
+    <tr><th class="l" style="width:22%">항목</th><th class="l">내용</th></tr>
+    <tr><td class="l">최근 7일 리뷰</td><td class="l"><b>612건</b> (백년화편 22건) <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">주력 상품</td><td class="l">① [역대최대할인가] 30년 전통 쑥떡 쑥인절미 + 콩고물 증정 — 19,820건<br>② 통팥 앙금 콩달떡 — 14,637건<br>③ 단독 계약 진도 햇쑥 쑥설기 — 11,197건 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">부정 리뷰 1위</td><td class="l">쑥설기 181건 / 11,197건 = 1.62% — 쑥 제품의 식감·쑥향 편차가 약점 <span class="lab lab-e">추정</span></td></tr>
+    <tr><td class="l">부정 키워드</td><td class="l">맛있어요 141, 많이 76, 맛은 54, 맛있게 52, <b>쑥향이 52</b> <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">채널</td><td class="l">자사몰(myeonggashop.com), 쿠팡, 신세계몰. Instagram/TikTok/Threads/Facebook @myeongga_official 전부 운영 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">2026 신제품·이벤트</td><td class="l"><span class="lab lab-x">확인 불가</span> 검색 결과에 구체 정보 없음</td></tr>
+  </table>
+  <p style="font-size:13.5px">
+  명가삼대의 전술은 명확하다: <b>상품명에 프로모션을 박아넣는다</b> ("역대최대할인가", "콩고물 증정", "단독 계약 진도 햇쑥").
+  원산지 단독 계약을 상품명에 노출해 신뢰를 만들고, 증정품으로 클릭률을 올린다.
+  백년화편의 상품명은 "밥알찹쌀떡 32개 (팥 앙금)" — 스펙 표기뿐이며 <b>구매 이유가 상품명에 없다</b>.
+  백년화편은 충청 노은쌀·국산팥·국산천일염·전량 국산이라는 소재를 가지고 있는데 상품명에서 버리고 있다.
+  <span class="lab lab-e">추정</span> 상품명 개편만으로도 유입 클릭률 개선 여지가 있다 — 비용 0원, 즉시 실행 가능.
+  </p>
+  <p style="font-size:13.5px">
+  <b>반대로 명가삼대의 약점:</b> 5점 비율 89%로 백년화편(96%)보다 7%p 낮고, 4점이 10%(12,828건)에 몰려 있다.
+  "쑥향이"가 부정 키워드 5위 — 쑥 제품의 품질 편차가 확인된다. 백년화편은 옛날밥알쑥떡·밥알약콩쑥떡 라인을 보유했으므로
+  <b>'쑥향 편차 없는 쑥떡'</b>은 직접 공략 가능한 지점이다 <span class="lab lab-e">추정</span>.
+  </p>
+
+  <h3>압구정공주떡집 — 규모 동급, 성장률은 정체</h3>
+  <table>
+    <tr><th class="l" style="width:22%">항목</th><th class="l">내용</th></tr>
+    <tr><td class="l">매출</td><td class="l">2022년 155.97억 (전년비 +4.4%) → 2024년 156.7억 (전년비 <b>+0.83%</b>) <span class="lab lab-f">사실, 공개 기업정보 기준</span></td></tr>
+    <tr><td class="l">조직</td><td class="l">전체 약 80명 (전화 주문 응대 직원 12명 포함) <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">생산 방식</td><td class="l">100% 맞춤 주문 생산 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">확장 계획</td><td class="l">성수동 떡 제조 공장 + 매장 신축 설계 중 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">대표 상품</td><td class="l">흑임자 인절미 (과거 영양떡 → 현재 흑임자로 대표 상품 전환) <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">승계</td><td class="l">창업자 박옥분 → 배미숙 → 외손자 주현우(30세) 3대 승계 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">2026년 동향</td><td class="l"><span class="lab lab-x">확인 불가</span> 2026년 신제품·프로모션 정보 검색 결과 없음</td></tr>
+  </table>
+  <p style="font-size:13.5px">
+  <b>가장 중요한 발견:</b> 압구정공주떡집은 매출 규모가 백년화편(~150억)과 거의 동일하고, <b>성장률도 +0.83%로 같이 정체 중</b>이다 <span class="lab lab-f">사실</span>.
+  즉 백년화편의 정체는 자사 실행력만의 문제가 아니라 <b>'전통 프리미엄 선물떡 세그먼트 자체의 정체'</b>일 가능성이 크다 <span class="lab lab-e">추정</span>.
+  같은 세그먼트의 두 브랜드가 멈춰 있는 동안, 성장하는 쪽은 <b>냉동·전국 유통·바이럴 카테고리(창억떡)</b>와 <b>프로모션·볼륨 카테고리(명가삼대)</b>다.
+  <br><br>
+  주목할 점 하나 더: 압구정공주떡집은 <b>전화 주문 응대에만 직원 12명</b>을 배치했다 — 전체 인력의 15%.
+  백년화편의 자체 데이터에서도 전화 주문 건당 단가가 온라인 대비 <b>26% 높다</b>. 두 브랜드 모두 전화가 핵심 채널이라는 것을 독립적으로 확인해준다.
+  또 압구정공주떡집은 '흑임자 인절미'로 대표 상품을 갈아치우며 정체를 뚫으려 했고, 명가삼대의 최대 부정률 품목은 쑥이다.
+  <b>흑임자는 경쟁 3사가 모두 밀고 있는 격전지</b>이고, 백년화편의 밥알흑임자는 15,244건으로 2위 상품이다 — 이 카테고리를 방어할 근거를 만들어야 한다.
+  </p>
+
+  <h3>파파공방 — 규모는 작지만 즉시 조치 필요</h3>
+  <table>
+    <tr><th class="l" style="width:22%">항목</th><th class="l">내용</th></tr>
+    <tr><td class="l">규모</td><td class="l">누적 리뷰 7,313건 / ★4.9 / 3점 이하 195건(3%) <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">주력 상품</td><td class="l">① 무염/저염 무설탕 <b>현미 밥알쑥떡 32개입</b> — 2,841건<br>② <b>현미 밥알쑥떡 32개입</b> — 2,633건<br>③ ★30%★ <b>현미 쑥 밥알찹쌀떡 32개입</b> — 880건 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">포지셔닝</td><td class="l">긍정 키워드에 "<b>건강한</b>" 432회 — 건강·저당 축으로 차별화 <span class="lab lab-f">사실</span></td></tr>
+    <tr><td class="l">최신 수집 리뷰</td><td class="l">2026-06-22 이후 없음 — 수집 파이프라인 정지 <span class="lab lab-f">사실</span></td></tr>
+  </table>
+  <div class="callout risk">
+    <b>즉시 조치:</b> "밥알쑥떡", "밥알찹쌀떡", "32개입" — <b>제품명과 규격 체계가 백년화편과 동일하다</b> <span class="lab lab-f">사실</span>.
+    백년화편은 밥알 공법에 한국·일본 특허를 보유하고 있다. 상표권 등록 범위와 특허 청구항 대비 침해 여부를 변리사에게 검토 요청해야 한다.
+    지금 7,313건 규모라 대응 비용이 낮다. 방치 시 '밥알떡'이 일반명사화되면 특허·명인 자격의 차별화 가치가 함께 희석된다 <span class="lab lab-e">추정</span>.
+    <br><br>
+    동시에 <b>기회</b>: 파파공방은 무염·저염·무설탕·현미로 <b>건강 세그먼트를 선점 중</b>이다.
+    백년화편의 실제 고객은 60대 이상 비중이 높고, 리뷰에 "달지 않아서 좋아요"가 반복된다.
+    백년화편은 이미 저당·건강 포지션의 실체를 갖고 있는데 <b>마케팅 언어로 쓰지 않고 있다</b>.
+  </div>
+</section>
+
+<section id="s4">
+  <h2>4. 키워드 트렌드</h2>
+  <p class="sub">출처: 대시보드 키워드 분석(전체 기간) <span class="lab lab-f">사실</span>. 형태소 미분리 원형 그대로 표기.</p>
+
+  <h3>백년화편 vs 명가삼대 — 긍정 키워드 비교</h3>
+  <table class="kpi">
+    <tr><th>순위</th><th>백년화편</th><th>건수</th><th>명가삼대떡집</th><th>건수</th></tr>
+    <tr><td>1</td><td>맛있어요</td><td>26,941</td><td>맛있어요</td><td>34,934</td></tr>
+    <tr><td>2</td><td>맛있다고</td><td>11,403</td><td>맛있게</td><td>9,180</td></tr>
+    <tr><td>3</td><td class="pos"><b>선물로</b></td><td>9,793</td><td>많이</td><td>9,113</td></tr>
+    <tr><td>4</td><td>맛있게</td><td>9,220</td><td>맛있어서</td><td>7,469</td></tr>
+    <tr><td>5</td><td>먹고</td><td>8,440</td><td>먹고</td><td>6,681</td></tr>
+  </table>
+  <p style="font-size:13.5px">
+  <b>백년화편만 상위 5위에 "선물로"(9,793건)를 갖고 있다</b> <span class="lab lab-f">사실</span>. 명가삼대 상위 5위에는 선물 관련 키워드가 없다.
+  또 "맛있다고"(11,403건)는 <b>제3자 전달 화법</b>이다 — "받은 분이 맛있다고 하셨어요". 이것도 선물 사용을 뜻한다.
+  선물 키워드 = 9,793 + 11,403 = 약 21,196건 규모.
+  <b>백년화편이 방어해야 할 진지는 '선물' 하나로 명확하다.</b> 명가삼대는 자가소비, 창억떡은 SNS 화제성, 파파공방은 건강.
+  선물 카테고리에서만 백년화편이 압도적이며, 이는 팝업박스·개인화 메시지카드·D-day 예약배송 전략과 정확히 일치한다.
+  </p>
+
+  <h3>네이버 채널 키워드 (자사)</h3>
+  <table class="kpi">
+    <tr><th>구분</th><th colspan="5">상위 키워드</th></tr>
+    <tr><td class="l">긍정</td><td>맛있어요 3,957</td><td>맛있어서 1,213</td><td>맛있다고 1,211</td><td>맛있게 1,209</td><td class="pos"><b>달지 1,190</b></td></tr>
+    <tr><td class="l">부정</td><td>떡이 59</td><td>맛이 44</td><td>맛은 37</td><td>많이 35</td><td>그냥 29</td></tr>
+  </table>
+  <p style="font-size:13.5px">
+  네이버 채널에서는 <b>"달지"(1,190건)가 긍정 5위</b>로 올라온다 — 전체 채널 순위에는 없던 키워드다 <span class="lab lab-f">사실</span>.
+  네이버 유입 고객이 <b>'안 단 떡'</b>을 명시적으로 만족 요인으로 꼽는다는 뜻이다.
+  네이버 상품명은 현재 "답례떡 개별포장 아침대용떡"으로 되어 있다.
+  <span class="lab lab-e">추정</span> 여기에 '덜 단' / '저당' 축을 반영하면, 부정률 2.31%(자사몰의 3.1배)의 기대치 미스매치를 줄이면서
+  파파공방이 선점 중인 건강 세그먼트도 함께 방어할 수 있다.
+  </p>
+
+  <h3>부정 키워드 해석</h3>
+  <table>
+    <tr><th class="l" style="width:14%">키워드</th><th class="l" style="width:10%">건수</th><th class="l">해석</th></tr>
+    <tr><td class="l">떡이</td><td>211</td><td class="l">"떡이 굳어있어요" / "떡이 딱딱" 류 — <b>식감·경화 불만</b>이 부정 1위 <span class="lab lab-e">추정, 본문 표본 기준</span></td></tr>
+    <tr><td class="l">많이</td><td>142</td><td class="l">수량·양 관련. 32개입 규격에 대한 부담 또는 파손 수량 <span class="lab lab-x">문맥 확인 필요</span></td></tr>
+    <tr><td class="l">맛이 / 맛은</td><td>121 / 94</td><td class="l">기대 대비 맛 불일치 — "맛은 있었는데 따뜻하진 않네요" 형태로 <b>조건부 만족</b> 구문에 등장</td></tr>
+    <tr><td class="l">바로</td><td>90</td><td class="l">"바로 먹어야" / "바로 냉동" — 보관·섭취 타이밍 안내 부족 <span class="lab lab-e">추정</span></td></tr>
+  </table>
+  <p style="font-size:13.5px">
+  <b>부정 1위가 '떡이'(식감·경화)라는 것은 온도·배송 문제와 같은 뿌리다.</b>
+  당일 생산 원칙이 고객 손에 도달할 때 유지되지 않는다는 신호가 별점·키워드·본문 세 곳에서 동시에 나온다.
+  이번 주 리포트에서 제품 관련 최우선 이슈는 신제품이 아니라 <b>도달 시점 품질(라스트마일)</b>이다.
+  </p>
+</section>
+
+<section id="s5">
+  <h2>5. 이번 주 액션 아이템</h2>
+  <p class="sub">우선순위: 비용 0원 &amp; 즉시 실행 순. 담당·기한은 내부 배정 필요.</p>
+
+  <table>
+    <tr><th style="width:5%">#</th><th class="l" style="width:30%">액션</th><th class="l">근거 / 실행 방법</th><th style="width:11%">비용</th><th style="width:9%">우선도</th></tr>
+    <tr>
+      <td>1</td>
+      <td class="l"><b>리뷰 모니터링을 별점 → 본문 키워드 기준으로 전환</b></td>
+      <td class="l">최근 7일 부정 0건인데 5.0점 리뷰 본문에 온도 불만 3건. '차가', '따뜻', '굳', '딱딱', '파손' 키워드 알림을 대시보드에 추가. <b>현재 지표는 문제를 못 잡는다.</b></td>
+      <td>0원</td><td class="neg">최상</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td class="l"><b>배송 도달 시점 온도 실측 (5건 표본)</b></td>
+      <td class="l">온도변색 스티커 도입 전 반드시 선행. 실제 온도가 기준 미달이면 스티커는 불만의 증거물이 된다. 새벽배송·일반택배·매장 픽업 3경로 각각 측정.</td>
+      <td>거의 0원</td><td class="neg">최상</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td class="l"><b>파파공방 상표·특허 침해 검토 의뢰</b></td>
+      <td class="l">"현미 밥알쑥떡 32개입" 등 명칭·규격 동일. 변리사에게 상표 등록 범위 + 특허 청구항 대비 검토 요청. 규모 7,313건 = 대응 비용 최저 시점.</td>
+      <td>검토비</td><td class="neg">높음</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td class="l"><b>상품명 개편 (전 채널)</b></td>
+      <td class="l">현행 "밥알찹쌀떡 32개 (팥 앙금)"에는 구매 이유가 없다. 명가삼대는 "단독 계약 진도 햇쑥"으로 원산지를 상품명에 노출. 보유 자산을 상품명에 반영: <b>대한명인 / 한·일 특허 / 충청 노은쌀 / 100% 국산 / 달지 않은</b>.</td>
+      <td>0원</td><td class="neg">높음</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td class="l"><b>네이버 채널 상세페이지 포지셔닝 정비</b></td>
+      <td class="l">부정률 2.31% = 자사몰의 3.1배. 리뷰 14%인데 부정 33% 차지. '답례떡·아침대용' 실용 프레임 → 선물·프리미엄 + '달지 않은'(긍정 5위 키워드) 축으로 조정.</td>
+      <td>0원</td><td>높음</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td class="l"><b>네이버·파파공방 수집 파이프라인 복구</b></td>
+      <td class="l">네이버 탭 최신 리뷰 2026-05-06, 파파공방 2026-06-22에서 정지. 창억떡은 미구현. <b>경쟁 데이터의 절반이 안 들어온다</b> — 리포트 신뢰도의 근본 리스크.</td>
+      <td>개발</td><td class="neg">높음</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td class="l"><b>'선물' 포지션 집중 — 팝업박스 출시 앞당기기</b></td>
+      <td class="l">"선물로" 9,793 + "맛있다고" 11,403 = 약 21,196건. 경쟁 3사 어디에도 없는 유일한 우위. 2개월 내 예정된 팝업박스(2/4/7만원대)를 <b>추석(2026-09-25) 전 출시</b>해야 시즌을 잡는다 — 지금 시작해야 물리적으로 가능.</td>
+      <td>패키지</td><td class="neg">최상</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td class="l"><b>냉동 라인 '보류' 결정 재검토 안건 상정</b></td>
+      <td class="l">창억떡은 급속 냉동으로 홈쇼핑·컬리·이마트 전 채널 확보 후 바이럴 폭발. 백년화편 고객도 리뷰에서 "냉동시켜 간식으로" 사용 중이라 반복 진술. <b>당일 생산 원칙이 품질 자산이면서 채널 상한선</b>이라는 점을 수치로 재평가.</td>
+      <td>검토</td><td>중간</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td class="l"><b>'쑥향 편차 없는 쑥떡' 소구 검토</b></td>
+      <td class="l">명가삼대 부정 키워드 5위 "쑥향이" 52건, 쑥설기 부정률 1.62%(최대). 백년화편은 옛날밥알쑥떡·밥알약콩쑥떡 보유. 경쟁사 약점 정면 공략.</td>
+      <td>0원</td><td>중간</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td class="l"><b>브랜드 서사를 협찬 → 자발적 취재 대상으로 전환</b></td>
+      <td class="l">창억떡 바이럴은 광고비가 아니라 '광주 향토 60년' 서사에서 나왔다. 백년화편은 <b>대한명인 + 한·일 특허 + 세계 유일 밥알 공법 + 1996년부터 무변경 레시피</b>라는 더 강한 소재를 PPL 포맷으로 소비 중. 협찬 예산을 언론·다큐·유튜버 취재 유도로 재배분.</td>
+      <td>예산 재배분</td><td>중간</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <b>실행하지 말 것 (이번 주 판단)</b>
+    <ul style="margin-top:6px">
+      <li><b>온도변색 스티커 즉시 도입 — 보류.</b> #2 실측 결과 확인 후 진행. 순서를 바꾸면 리스크가 커진다.</li>
+      <li><b>신제품 개발 — 불필요.</b> 5점 비율 96%로 제품 경쟁력은 1위다. 문제는 유입과 리뷰 생성량이다.</li>
+      <li><b>숏폼·PPL 물량 확대 — 비효율.</b> 이미 "반응 미미"로 확인됐고, 창억떡 사례는 자발적 확산이 결정적이었음을 보여준다.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="s6">
+  <h2>데이터 신뢰성 / 확인 필요 항목</h2>
+  <table>
+    <tr><th class="l" style="width:32%">항목</th><th class="l">상태</th></tr>
+    <tr><td class="l">창억떡 리뷰 데이터</td><td class="l"><span class="lab lab-x">확인 불가</span> 자사몰 로그인 필요로 수집 미구현. 스마트스토어(brand.naver.com/changeok) 연동 준비 중 — <b>최대 위협 경쟁사인데 데이터가 0이다</b></td></tr>
+    <tr><td class="l">네이버 탭 수집</td><td class="l"><span class="lab lab-x">정지</span> 최신 리뷰 2026-05-06. 약 3.5개월 공백</td></tr>
+    <tr><td class="l">파파공방 수집</td><td class="l"><span class="lab lab-x">정지</span> 최신 리뷰 2026-06-22. 약 2개월 공백</td></tr>
+    <tr><td class="l">네이버 리뷰 수 불일치</td><td class="l"><span class="lab lab-x">확인 필요</span> 백년화편 탭의 '자사몰(네이버)' 24,672건 vs 네이버 탭 21,649건 — <b>3,023건 차이</b>. 집계 기준 상이 여부 확인</td></tr>
+    <tr><td class="l">압구정공주떡집</td><td class="l"><span class="lab lab-x">미수집</span> 대시보드 대상 아님. 공개 기업정보 및 언론 보도로만 분석. 2025~2026 매출 미확인</td></tr>
+    <tr><td class="l">쿠팡 채널</td><td class="l"><span class="lab lab-x">미수집</span> 판매 채널 3순위인데 대시보드에 없음</td></tr>
+    <tr><td class="l">키워드 형태소 분석</td><td class="l">"맛있어요"가 명가삼대 <b>부정</b> 키워드 1위(141건)로 집계됨 — 문맥 반전("맛있어요 그런데…") 미처리. 키워드 지표는 방향성 참고용으로만 사용</td></tr>
+    <tr><td class="l">주간 리뷰율 38배 격차</td><td class="l"><span class="lab lab-e">추정</span> 계산값(주간/누적). 명가삼대의 리뷰 이벤트 운영 여부가 확인되지 않아 순수 판매량 격차로 단정할 수 없음</td></tr>
+  </table>
+  <p class="legend">
+    <span class="lab lab-f">사실</span> 대시보드 또는 출처 명시 보도 기준 &nbsp;
+    <span class="lab lab-e">추정</span> 데이터 기반 해석 &nbsp;
+    <span class="lab lab-x">확인 불가/필요</span> 검색·수집 결과 없음
+  </p>
+</section>
+
+<footer>
+  백년화편 주간 리서치 리포트 · 2026-W34 · 생성 2026-08-17<br>
+  데이터: 자체 후기 대시보드(2026-08-16 갱신) / 웹 검색 2026-08-17 시점
+</footer>
+
+</div>
+</body>
+</html>
