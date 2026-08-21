@@ -3,436 +3,371 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>백년화편 추석 경쟁사 리서치 | 2026-W34</title>
+<title>백년화편 명절 선물 시장 리서치 | 2026-W34</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
 :root{
-  --ink:#111418; --sub:#5B6470; --line:#EAECF0; --bg:#F5F6F8; --card:#FFFFFF;
+  --ink:#111418; --sub:#5B6470; --line:#EAECF0; --bg:#F5F6F8; --card:#FFF;
   --blue:#2C6BED; --red:#E5484D; --green:#12A150; --amber:#F5A524;
   --blue-bg:#EDF3FF; --red-bg:#FDEDEE; --green-bg:#E9F8F0; --amber-bg:#FFF6E5;
-  --r:18px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-  background:var(--bg); color:var(--ink); line-height:1.65;
-  -webkit-font-smoothing:antialiased; word-break:keep-all;
-}
-.wrap{max-width:880px;margin:0 auto;padding:40px 20px 100px}
+body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased;word-break:keep-all}
+.wrap{max-width:900px;margin:0 auto;padding:40px 20px 100px}
 
-/* header */
-.head{margin-bottom:32px}
-.tag{display:inline-block;background:var(--ink);color:#fff;font-size:12px;font-weight:700;
-  padding:5px 11px;border-radius:99px;letter-spacing:.02em}
+.tag{display:inline-block;background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px}
 h1{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.25;margin:16px 0 10px}
 .meta{font-size:14px;color:var(--sub)}
 .meta b{color:var(--ink);font-weight:600}
+.kpi{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 32px}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;flex:1;min-width:150px}
+.kpi span{display:block;font-size:12px;color:var(--sub);font-weight:600;margin-bottom:4px}
+.kpi strong{font-size:21px;font-weight:800;letter-spacing:-.02em}
 
-/* dday */
-.dday{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
-.dday div{background:var(--card);border-radius:14px;padding:14px 18px;flex:1;min-width:150px;
-  border:1px solid var(--line)}
-.dday span{display:block;font-size:12px;color:var(--sub);font-weight:600;margin-bottom:4px}
-.dday strong{font-size:22px;font-weight:800;letter-spacing:-.02em}
-
-/* card */
-.card{background:var(--card);border-radius:var(--r);padding:28px;margin-bottom:16px;
-  border:1px solid var(--line)}
-h2{font-size:13px;font-weight:800;color:var(--blue);letter-spacing:.06em;
-  margin:44px 0 14px;text-transform:uppercase}
-h2:first-of-type{margin-top:36px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;margin-bottom:16px}
+h2{font-size:13px;font-weight:800;color:var(--blue);letter-spacing:.06em;margin:44px 0 14px}
+h2:first-of-type{margin-top:32px}
 h3{font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 12px}
-h4{font-size:15px;font-weight:700;margin:22px 0 8px}
+h4{font-size:15px;font-weight:700;margin:24px 0 8px}
 p{font-size:15px;color:#2C333D;margin-bottom:12px}
 p:last-child{margin-bottom:0}
-strong{font-weight:700}
+code{background:#F2F4F7;padding:2px 6px;border-radius:5px;font-size:13px}
 
-/* conclusion */
 .concl{counter-reset:c;list-style:none}
-.concl li{position:relative;padding-left:40px;margin-bottom:18px;font-size:16px;line-height:1.6}
+.concl li{position:relative;padding-left:40px;margin-bottom:18px;font-size:16px}
 .concl li:last-child{margin-bottom:0}
-.concl li::before{counter-increment:c;content:counter(c);position:absolute;left:0;top:1px;
-  width:26px;height:26px;border-radius:8px;background:var(--blue);color:#fff;
-  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.concl li::before{counter-increment:c;content:counter(c);position:absolute;left:0;top:1px;width:26px;height:26px;
+  border-radius:8px;background:var(--blue);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
 
-/* table */
 .tw{overflow-x:auto;margin:16px 0 0;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
-th{background:#F7F8FA;text-align:left;padding:11px 12px;font-weight:700;font-size:13px;
-  color:var(--sub);border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:#F7F8FA;text-align:left;padding:11px 12px;font-weight:700;font-size:13px;color:var(--sub);
+  border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:none}
 td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hl{background:#FAFBFC}
 
-/* pills */
 .p{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
 .p-r{background:var(--red-bg);color:var(--red)}
 .p-g{background:var(--green-bg);color:var(--green)}
-.p-a{background:var(--amber-bg);color:var(--amber)}
+.p-a{background:var(--amber-bg);color:#B8730C}
 .p-b{background:var(--blue-bg);color:var(--blue)}
 .p-n{background:#F0F1F3;color:var(--sub)}
 
-/* callout */
-.co{border-radius:14px;padding:18px 20px;margin:18px 0;font-size:15px;line-height:1.6}
-.co b{display:block;font-size:13px;font-weight:800;margin-bottom:6px;letter-spacing:.02em}
+.co{border-radius:14px;padding:18px 20px;margin:18px 0;font-size:15px}
+.co b{display:block;font-size:13px;font-weight:800;margin-bottom:6px}
 .co-r{background:var(--red-bg)} .co-r b{color:var(--red)}
 .co-g{background:var(--green-bg)} .co-g b{color:var(--green)}
 .co-b{background:var(--blue-bg)} .co-b b{color:var(--blue)}
 .co-a{background:var(--amber-bg)} .co-a b{color:#B8730C}
 
-/* action */
 .act{list-style:none}
 .act li{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
-.act li:last-child{border-bottom:none;padding-bottom:0}
 .act li:first-child{padding-top:0}
+.act li:last-child{border-bottom:none;padding-bottom:0}
 .act .k{flex:0 0 34px;height:34px;border-radius:10px;background:var(--blue-bg);color:var(--blue);
   font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .act .no .k{background:var(--red-bg);color:var(--red)}
 .act .t{font-size:15px;font-weight:700;margin-bottom:3px}
-.act .d{font-size:14px;color:var(--sub);line-height:1.55}
-
-/* schedule block */
-.sched{background:#0F1419;color:#D7DCE3;border-radius:12px;padding:18px 20px;margin:14px 0;
-  font-size:14px;font-family:'SF Mono',Menlo,monospace;line-height:2}
-.sched em{color:#7EA6FF;font-style:normal;font-weight:700}
-
-.note{font-size:13px;color:var(--sub);margin-top:12px;padding-left:14px;
-  border-left:2px solid var(--line)}
-
-hr{border:none;border-top:1px solid var(--line);margin:22px 0}
-
-footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);
-  font-size:13px;color:var(--sub)}
-
-@media(max-width:640px){
-  .wrap{padding:28px 14px 70px}
-  h1{font-size:26px}
-  .card{padding:20px;border-radius:14px}
-  .concl li{font-size:15px}
-}
+.act .d{font-size:14px;color:var(--sub)}
+.note{font-size:13px;color:var(--sub);margin-top:12px;padding-left:14px;border-left:2px solid var(--line)}
+hr{border:none;border-top:1px solid var(--line);margin:24px 0}
+footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);font-size:13px;color:var(--sub)}
+@media(max-width:640px){.wrap{padding:28px 14px 70px}h1{font-size:25px}.card{padding:20px;border-radius:14px}}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<div class="head">
-  <span class="tag">주간 리서치 · 2026-W34</span>
-  <h1>추석 경쟁사 대응 현황과<br>백년화편의 선점 구간</h1>
-  <p class="meta">조사 시점 <b>2026년 8월 21일</b> · 조사 방법 <b>경쟁사 자사몰 직접 확인 + 웹 검색</b> · 대상 <b>떡 브랜드 5사 + 대형유통 3사</b></p>
-  <div class="dday">
-    <div><span>2026 추석</span><strong>9월 24~26일</strong></div>
-    <div><span>남은 기간</span><strong>D-34</strong></div>
-    <div><span>추석 대응 완료 떡 브랜드</span><strong>5개 중 1개</strong></div>
-  </div>
+<span class="tag">주간 리서치 · 2026-W34 · 개정판</span>
+<h1>떡집이 아니라 명절 선물 시장<br>백년화편의 실제 경쟁 지형</h1>
+<p class="meta">조사 시점 <b>2026년 8월 21일</b> · 범위 <b>명절 선물세트 시장 전체</b> · 초판(떡 브랜드 한정)에서 경쟁 정의 확장</p>
+
+<div class="kpi">
+  <div><span>2026 추석</span><strong>9월 24~26일</strong></div>
+  <div><span>남은 기간</span><strong>D-34</strong></div>
+  <div><span>온라인 선물하기 시장</span><strong>5조 → 10조</strong></div>
+  <div><span>단체선물 표준 예산</span><strong>1인 3만원</strong></div>
 </div>
 
 <div class="card">
   <h3>결론</h3>
   <ol class="concl">
-    <li>떡 경쟁사 중 추석 대응이 끝난 곳은 <strong>설봄 하나뿐</strong>이다. 창억·명가·압구정공주는 사실상 무대응 상태이며, 추석 키워드가 비어 있다.</li>
-    <li>백년화편이 지정한 경쟁 3사(창억·명가삼대·압구정공주)는 <strong>잘못된 타깃</strong>이다. 실제 위협은 설봄이고, 설봄은 백년화편이 하려는 것을 이미 하고 있다.</li>
-    <li>명절 선물 시장의 승부가 <strong>사전예약으로 이동</strong>했다. 지금까지 제약으로 다뤄온 '당일생산·예약제'가 이 시장에서는 유일하게 정합적인 구조다.</li>
+    <li>백년화편의 진짜 경쟁자는 떡집이 아니라 <strong>기프티콘</strong>이다. 1인당 3만원 예산에서 실제로 가장 많이 선택되는 건 커피 쿠폰과 편의점 금액권이다.</li>
+    <li>지난주 국내 최대 명절선물 B2B 박람회가 열렸고 <strong>백년화편은 없었다</strong>. 영업 인력 없이 "찾아오는 구조"를 만들겠다는 전략과 정확히 맞는 자리다.</li>
+    <li><strong>김영란법 한도 구조가 백년화편에 유리한데 안 쓰고 있다.</strong> 떡은 농축수산가공품이고 명절 기간 한도가 별도로 적용된다. 공공 입찰에서 결정적이다.</li>
   </ol>
 </div>
 
 <!-- 1 -->
-<h2>1 · 시장 구조</h2>
-
+<h2>1 · 경쟁 지형 재정의</h2>
 <div class="card">
-  <h3>사전예약이 시장 그 자체가 됐다</h3>
-  <p><span class="p p-b">사실</span> 롯데마트 추석 선물세트 사전예약 매출 비중은 2023년 55% → 2024년 60% → 2025년 70%로 올랐다. 이마트도 61.6% → 72.6%. 추석 선물세트 10개 중 7개 이상이 사전예약으로 팔린다.</p>
+  <h3>떡집 5사만 보면 상위권, 시장 전체로 보면 다르다</h3>
   <div class="tw">
   <table>
-    <thead><tr><th>유통사</th><th>2026 사전예약 기간</th><th>혜택 구조</th></tr></thead>
+    <thead><tr><th>층위</th><th>누구인가</th><th>겹치는 지점</th><th>위협도</th></tr></thead>
     <tbody>
-      <tr><td><b>롯데마트</b></td><td>8/6 ~ 9/16 (6주)</td><td>1차 최대 1,200만원 → 2차 800만원 → 3차 500만원 상품권</td></tr>
-      <tr><td><b>이마트</b></td><td>8/6 ~ 3차</td><td>1차 최대 600만원 → 2차 400만원 → 3차 250만원</td></tr>
-      <tr><td><b>SSG닷컴</b></td><td>동기간</td><td>최대 120만원 적립 · 쓱7클럽 VIP 한도 없음</td></tr>
+      <tr class="hl"><td><b>1층</b><br>형태 대체재</td><td>기프티콘 · 모바일 상품권 · 카카오 선물하기</td><td>임직원·거래처 선물 예산 전체</td><td><span class="p p-r">최상</span></td></tr>
+      <tr><td><b>2층</b><br>카테고리 대체재</td><td>한과·약과 · 참기름 · 견과 · 홍삼 · 통조림 · 프리미엄 디저트</td><td>"전통·건강·정성" 포지션, 3~5만원대</td><td><span class="p p-r">높음</span></td></tr>
+      <tr><td><b>3층</b><br>채널 지배자</td><td>대형마트·백화점 사전예약</td><td>소비자의 명절 구매 타이밍 자체</td><td><span class="p p-a">중</span> 규칙 설정자</td></tr>
+      <tr><td><b>4층</b><br>동종</td><td>설봄 · 창억 · 압구정공주 · 명가삼대</td><td>떡 카테고리 내부</td><td><span class="p p-a">중</span></td></tr>
     </tbody>
   </table>
   </div>
-  <div class="co co-b">
-    <b>읽어야 할 것</b>
-    혜택이 시간에 따라 계단식으로 줄어든다. 이건 할인이 아니라 <strong>조기 확정을 사는 구조</strong>다. 업계는 이 차등 혜택을 할인 경쟁이 아니라 멤버십 확보 전략으로 본다.
+  <p class="note">초판에서는 4층만 조사했다. 마스터 문서의 경쟁사 지정(창억·명가삼대·압구정공주)도 4층에 머물러 있다.</p>
+</div>
+
+<!-- 2 -->
+<h2>2 · 1층 — 기프티콘</h2>
+<div class="card">
+  <h3>임직원 선물 시장의 실제 기준선</h3>
+  <p><span class="p p-b">사실</span> 기업 단체선물 실무 기준 예산은 1~3만원대가 가장 일반적이고, 예산별 추천 베스트는 3~5만원이며 <strong>커피 쿠폰과 편의점 금액권이 사용률 TOP 2</strong>다. 대규모 발송이나 원격 근무자가 있으면 모바일 기프티콘이 가장 효율적이다.</p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>시나리오 (직원 200명)</th><th>단가</th><th>총액</th><th>차이</th></tr></thead>
+    <tbody>
+      <tr><td>표준 기준</td><td class="num">30,000원</td><td class="num">600만원</td><td>—</td></tr>
+      <tr><td>단가 소폭 상향</td><td class="num">33,000원</td><td class="num">660만원</td><td class="num">+60만원</td></tr>
+      <tr class="hl"><td><b>백년화편 밥알찹쌀떡</b></td><td class="num">42,000원</td><td class="num">840만원</td><td class="num"><b style="color:var(--red)">+240만원</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="co co-r">
+    <b>문제</b>
+    HR 담당자 입장에서 품의를 올리기 어려운 숫자다. 42,000원 실물 박스는 이 시장에서 "굳이 왜"를 설명해야 하는 상품이다.
   </div>
 
   <hr>
 
-  <h4>이 구조가 백년화편에 갖는 의미</h4>
-  <p><span class="p p-n">분석</span> 마스터 문서의 B2B 채널 조건 ③ "사전 주문 확정 구조"는 그동안 <strong>제약 조건</strong>으로 기술돼 왔다. 시장은 이미 그 방향으로 갔다.</p>
+  <h4>온라인 선물하기가 커지는 속도</h4>
+  <p><span class="p p-b">사실</span> 국내 온라인 선물하기 시장은 2016년 8,000억원대 → 2022년 5조원 → <strong>2027년 10조원 전망</strong>이다.</p>
+  <p><span class="p p-b">사실</span> 카카오 기준 선물하기 경험이 없던 고객도 약 4번 선물을 받으면 <strong>30% 이상이 구매 고객으로 전환</strong>된다. 29CM는 선물하기 유입 고객 재구매율이 21.18%라고 밝혔다.</p>
+  <div class="co co-g">
+    <b>이건 백년화편의 구매 트리거와 같은 구조다</b>
+    마스터 문서 인사이트 3번 — "먹어보고 산다". 선물로 받아본 사람이 구매자가 되는 메커니즘을 카카오가 데이터로 증명하고 있다. 백년화편은 이 구조를 오프라인 지인 나눔에만 의존하고, 온라인 선물하기 채널에서는 증폭시키지 않고 있다.
+  </div>
+
+  <h4>카카오 선물하기 구조 변화</h4>
+  <p><span class="p p-b">사실</span> 카카오는 2026년 1월 랭킹탭을 '급상승'·'카테고리'·'선물테마' 3개로 확대했고, 선물테마 탭은 생일·집들이·응원·<strong>감사</strong> 등 14개 테마별 랭킹을 제공한다. 사업자 전용 '선물하기 for Biz'로 기업 대상 명절 기획전도 운영한다.</p>
+  <div class="co co-b">
+    <b>"감사" 테마 랭킹이 생겼다</b>
+    답례떡 1위 브랜드가 들어갈 자리다. 설봄은 이미 브랜드관을 갖고 있고, 백년화편은 상품 단위 입점에 그친다. <span class="p p-n">확인 필요</span>
+  </div>
+</div>
+
+<!-- 3 -->
+<h2>3 · 2층 — 카테고리 대체재</h2>
+<div class="card">
+  <h3>같은 "전통 선물" 슬롯을 놓고 겨루는 상대</h3>
   <div class="tw">
   <table>
-    <thead><tr><th>구조</th><th>사전예약 필요성</th><th>결과</th></tr></thead>
+    <thead><tr><th>카테고리</th><th>대표 사업자</th><th>백년화편 대비 우위</th><th>열위</th></tr></thead>
     <tbody>
-      <tr><td>냉동 재고 판매 (창억)</td><td>없음</td><td>사전예약을 안 함</td></tr>
-      <tr><td>당일생산·전날 5시 마감 (백년화편)</td><td>필수</td><td><b>사전예약만 가능한 구조</b></td></tr>
+      <tr><td>한과·약과</td><td>윤의궁, 강릉부일한과</td><td>상온 보관, 긴 유통기한, 전국 택배 자유</td><td>명인 인증 없음, 차별화 약함</td></tr>
+      <tr><td>참기름·들기름</td><td>고소연 (1982, 성남 방앗간)</td><td>실용성, 보관 부담 없음, 저가 세트</td><td>선물 격 낮음</td></tr>
+      <tr><td>홍삼·건기식</td><td>정관장</td><td>브랜드 인지도, 어른 선물 정석</td><td>취향 리스크, 복용 중복</td></tr>
+      <tr><td>프리미엄 K-디저트</td><td>CJ 르 구떼, 신세계푸드 협업</td><td>유통망, 패키지 완성도</td><td>장인 서사 없음</td></tr>
+      <tr><td>통조림·생활용품</td><td>CJ 스팸, LG생활건강</td><td>압도적 저가, 대량 발송 표준</td><td>정성 표현 불가</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <hr>
+
+  <h4>한과 브랜드들이 지금 하고 있는 것</h4>
+  <p><span class="p p-b">사실</span> 2009년 설립 한과 브랜드 <b>윤의궁</b>은 8/14~16 코엑스 명절선물전에 참가해 경복궁·신세계·십장생·춘하추동 선물세트와 전통 강정을 변형한 '오곡&amp;넛츠 버무리'를 선보였다. 이를 기점으로 <strong>기업·공공기관 명절 선물·답례품 공급 확대와 백화점 입점 강화</strong>를 계획하고 있다.</p>
+  <p><span class="p p-b">사실</span> 1982년 성남 방앗간 브랜드 <b>고소연</b>도 창립 이후 처음 이 박람회에 참가해 기업·단체 고객 대상 1:1 맞춤 주문 상담을 진행했다. 원산지·구성, 수량별 견적, 맞춤 포장, 납기 일정, 개별 배송 가능 여부 문의가 이뤄졌다.</p>
+  <div class="co co-r">
+    <b>주목할 것</b>
+    두 브랜드 모두 백년화편과 같은 포지션(전통·장인·가족기업)이고, 같은 목표(기업·공공기관 납품, 백화점 입점)를 갖고 있으며, <strong>박람회를 그 수단으로 쓰고 있다.</strong>
+  </div>
+</div>
+
+<!-- 4 -->
+<h2>4 · 놓친 채널</h2>
+<div class="card">
+  <h3>명절선물전 — 6개 조건을 전부 충족한다</h3>
+  <p><span class="p p-b">사실</span> '2026 한가위 명절선물전&amp;소금박람회'는 8/14~16 코엑스 Hall D에서 열렸다. 기업·협단체 대량 구매 담당자부터 일반 소비자까지 참여하는 명절선물 전문 전시회로, 대형 유통매장이나 백화점에서 접하기 어려운 상품을 포함해 1,000여 종을 소개한다. <strong>약 300개 부스, 관람객 4만여 명 예상.</strong></p>
+
+  <h4>마스터 문서 B2B 채널 조건과 대조</h4>
+  <div class="tw">
+  <table>
+    <thead><tr><th>조건</th><th>충족</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>① 택배 발송 + 납품 당일 소진</td><td><span class="p p-g">충족</span></td><td>전시 후 개별 발주 구조</td></tr>
+      <tr><td>② HACCP 불필요</td><td><span class="p p-g">충족</span></td><td>전시 참가에 인증 요건 없음</td></tr>
+      <tr><td>③ 사전 주문 확정</td><td><span class="p p-g">충족</span></td><td>현장 상담 → 이후 발주</td></tr>
+      <tr><td>④ 대량 구매</td><td><span class="p p-g">충족</span></td><td>기업·협단체 구매 담당자 참관</td></tr>
+      <tr><td>⑤ 반복 구매</td><td><span class="p p-g">충족</span></td><td>연 2회(설·추석) 개최</td></tr>
+      <tr><td>⑥ 인바운드 구조</td><td><span class="p p-g">충족</span></td><td><b>부스에 사람이 찾아온다</b></td></tr>
     </tbody>
   </table>
   </div>
   <div class="co co-g">
-    <b>프레임 전환</b>
-    "미리 주문하셔야 합니다" → "예약 확정 순으로 혜택이 큽니다". 같은 사실, 반대 프레임.
+    <b>백년화편이 특히 유리한 자리인 이유</b>
+    대한명인 제10-311호, 한국·일본 특허, 세계 유일 밥알 공법은 300개 부스 중 <strong>시각적으로 설명 가능한 몇 안 되는 차별점</strong>이다. 그리고 시식이 가능한 환경이다 — "먹어보고 산다"는 구매 트리거가 그대로 작동한다.
   </div>
-
-  <hr>
-
-  <h4>품목 선호도</h4>
-  <p><span class="p p-b">사실</span> aT 조사 기준 명절 선물세트 선호 상위는 과일 혼합세트 · 사과 · 소고기 · 귤 · 배 순이다. 지난 추석부터 과일이 소고기를 제치고 1위로 올라섰다.</p>
-  <div class="co co-r">
-    <b>떡은 명절 선물 주력 카테고리가 아니다</b>
-    상위 5개 품목에 떡이 없다. 이 사실을 부정하는 전략은 실패한다. 떡이 이기는 자리는 두 곳 — 과일·정육을 이미 보낸 뒤 추가로 보내는 선물, 그리고 대량 임직원 선물(과일은 배송·보관 부담이 큼).
-  </div>
-  <p class="note">"평균 예산 16만원" 수치는 쿠팡 파트너스 블로그 인용이며 aT 원문 확인 불가. 내부 자료에 사용 금지.</p>
+  <h4>다음 기회</h4>
+  <p><span class="p p-b">사실</span> 설맞이 명절선물전 참가업체 모집은 <strong>11월 중순 마감</strong>, 전시는 12월 코엑스. 주최 메쎄이엔디 / 대한급식신문사, <code>fgfair.com</code></p>
 </div>
 
-<!-- 2 -->
-<h2>2 · 경쟁사 전수 조사</h2>
-
+<!-- 5 -->
+<h2>5 · 3층 — 채널 지배자가 만든 규칙</h2>
 <div class="card">
-  <h3>5사 한눈에</h3>
+  <h3>백화점까지 사전예약 전쟁에 들어왔다</h3>
+  <p><span class="p p-b">사실</span> 롯데·신세계·현대백화점은 <strong>8월 14일부터</strong> 2026 추석 사전예약 판매를 진행 중이다.</p>
   <div class="tw">
   <table>
-    <thead><tr><th>브랜드</th><th>추석 대응</th><th>가격대</th><th>답례떡</th><th>채널</th><th>위협도</th></tr></thead>
+    <thead><tr><th>백화점</th><th>규모</th><th>혜택</th></tr></thead>
     <tbody>
-      <tr>
-        <td><b>설봄</b></td>
-        <td><span class="p p-g">완료</span> 카테고리 가동</td>
-        <td class="num">6,800~90,000</td>
-        <td class="num">6,000~7,000</td>
-        <td>백화점 팝업 · 카카오 브랜드관 · 스마트스토어 · IP 콜라보 3건</td>
-        <td><span class="p p-r">높음</span></td>
-      </tr>
-      <tr>
-        <td><b>압구정공주떡</b></td>
-        <td><span class="p p-n">없음</span></td>
-        <td class="num">20,000~148,000</td>
-        <td class="num">8,500~12,500</td>
-        <td>자사몰 단독 · 씽굴마켓 위탁</td>
-        <td><span class="p p-a">중</span></td>
-      </tr>
-      <tr>
-        <td><b>창억떡</b></td>
-        <td><span class="p p-n">없음</span> 2월 배너 방치</td>
-        <td class="num">8,500~105,000</td>
-        <td class="num">3,000~5,000</td>
-        <td>컬리 · SSG · 해외(한품)</td>
-        <td><span class="p p-a">중</span></td>
-      </tr>
-      <tr>
-        <td><b>명가삼대떡집</b></td>
-        <td><span class="p p-n">없음</span></td>
-        <td class="num">11,900~18,500</td>
-        <td>없음</td>
-        <td>쿠팡 · SSG · 인스타 4.8만 · 틱톡 2.95만</td>
-        <td><span class="p p-n">낮음</span></td>
-      </tr>
-      <tr style="background:#FAFBFC">
-        <td><b>백년화편</b></td>
-        <td><span class="p p-a">부분</span> 카테고리만 존재</td>
-        <td class="num">2,200~350,000</td>
-        <td class="num">2,200~10,900</td>
-        <td>자사몰 · 스마트스토어 · 쿠팡 · 선물하기</td>
-        <td>—</td>
-      </tr>
-    </tbody>
-  </table>
-  </div>
-</div>
-
-<div class="card">
-  <h3>설봄 — 경쟁사 재정의가 필요하다</h3>
-  <p>이번 조사에서 가장 중요한 발견. 설봄은 8월 21일 현재 홈페이지 <strong>title 태그 자체가 "추석 떡선물세트 추천 BEST"</strong>이고, 메뉴에 <code>2026년 추석 선물세트 추천 BEST</code> 카테고리가 살아 있다. 검색엔진 관점에서 추석 키워드는 이미 설봄이 점유 중이다.</p>
-  <div class="tw">
-  <table>
-    <thead><tr><th>항목</th><th>설봄</th><th>백년화편</th></tr></thead>
-    <tbody>
-      <tr><td>백화점 오프라인</td><td>현대 킨텍스점 팝업(최신) · 목동 · 일산차병원 · 인천청라 상설</td><td><span class="p p-r">없음</span></td></tr>
-      <tr><td>카카오 선물하기</td><td>브랜드관 보유</td><td>상품 단위 입점 <span class="p p-n">확인 필요</span></td></tr>
-      <tr><td>IP 콜라보</td><td>카카오프렌즈 춘식이 · 브레드이발소(26.8 신규) · CJ 햇반</td><td><span class="p p-r">없음</span></td></tr>
-      <tr><td>B2B 레퍼런스 노출</td><td>삼성 · SK하이닉스 · CJ제일제당 · 아모레퍼시픽 · 카카오 · 야놀자 · EY한영</td><td>롯데 외 1곳, 외부 미노출</td></tr>
-      <tr><td>진입 SKU</td><td>인절미컵 6,800원</td><td><span class="p p-r">없음</span> 최저 17,500원(택배 기준)</td></tr>
-      <tr><td>미디어 자산</td><td>"서민갑부" 브랜드명 상시 삽입</td><td>대한명인(2010) · 방송 7건, <b>2020년이 마지막</b></td></tr>
+      <tr><td>롯데</td><td>인기 상품 물량 최대 2배 확대</td><td>사전예약 매출 25년 추석 <b>+95%</b>, 26년 설 <b>+120%</b> 연속 역대 최대</td></tr>
+      <tr><td>신세계</td><td>370여 종 (전년 추석 대비 +25%)</td><td>최대 65% 할인</td></tr>
+      <tr><td>현대</td><td>300여 종</td><td>최대 25% 할인</td></tr>
     </tbody>
   </table>
   </div>
   <div class="co co-r">
     <b>시사점</b>
-    설봄이 대기업 임직원 선물 시장을 이미 점유했다. 마스터 문서의 "HACCP 완료 후 대기업 구매포털 벤더 등록"은, 그 시점에 설봄이 자리 잡은 곳으로 들어가는 일이 된다.
+    백화점·마트가 전부 8월 초중순에 예약을 열었다. 소비자는 이미 <strong>"명절 선물은 8월에 정하는 것"</strong>으로 학습 완료 상태다. 백년화편이 9월에 움직이면 이미 지갑이 닫혀 있다.
   </div>
-</div>
 
-<div class="card">
-  <h3>창억떡 — 물건은 갖췄으나 시즌 운영이 없다</h3>
-  <p>6월 12~24일에 선물세트 3개 라인(프리미엄 1~7호, 설렘 1~5호, 다온빛 1~6호)을 통째로 교체했다. 그런데 8월 21일 현재:</p>
+  <h4>트렌드 축 3개</h4>
   <div class="tw">
   <table>
-    <thead><tr><th>위치</th><th>현재 노출</th></tr></thead>
+    <thead><tr><th>축</th><th>내용</th><th>백년화편 대응</th></tr></thead>
     <tbody>
-      <tr><td>메인 첫 번째 메뉴</td><td><span class="p p-r">정월대보름맞이 파우치 특가</span> (2월 행사)</td></tr>
-      <tr><td>MD 추천 탭</td><td><span class="p p-r">설선물</span> 탭 잔존</td></tr>
-      <tr><td>선물세트 전 상품</td><td>"추석" 문구 <b>0건</b></td></tr>
+      <tr><td><b>실속형</b></td><td>2026년 설 사전예약 기준 대형마트 5만원 미만 세트 매출이 전년 대비 크게 증가. "예산 안에서 알찬 구성" 선호</td><td><span class="p p-g">◎</span> 42,000원이 정확히 이 구간</td></tr>
+      <tr><td><b>건강</b></td><td>2026년 설 주요 유통업체 건강 관련 선물 매출 <b>전년 대비 +65%</b></td><td><span class="p p-g">◎</span> 백세시대(상황찰현미·병아리콩) 라인</td></tr>
+      <tr><td><b>데이터 검증형</b></td><td>사전에 판매 반응을 확인한 실용성 높은 상품 중심으로 재편</td><td><span class="p p-a">△</span> 자사 리뷰 데이터 활용 필요</td></tr>
     </tbody>
   </table>
   </div>
-  <p style="margin-top:14px">물량 능력은 있다 — 찰떡 100개 세트 83,300원, 광주·대전 2개 거점. <strong>가격 정면 충돌은 피하되, 검색 선점은 지금 가능하다.</strong></p>
 </div>
 
+<!-- 6 -->
+<h2>6 · 안 쓰고 있는 무기</h2>
 <div class="card">
-  <h3>명가삼대떡집 — 경쟁 카테고리가 다르다</h3>
-  <p>전 상품 상시 30~45% 할인 구조(모시송편 18,900→12,900, 초당옥수수설기 28,000→18,500). <strong>선물세트 SKU 0개</strong>, 카테고리도 없음. 최고가 18,500원.</p>
-  <p>명가는 명절 선물 경쟁자가 아니라 <strong>일상 간식·식사대용 떡 경쟁자</strong>다. 소셜 자산은 백년화편의 8배지만 저가 반복구매에 쓰고 있다.</p>
-  <div class="co co-a"><b>조치</b>명절 경쟁사 리스트에서 제외.</div>
-</div>
-
-<div class="card">
-  <h3>압구정공주떡 — 프리미엄 가격, 마케팅 부재</h3>
-  <p>영양떡+흑임자떡 84,000원 · 압구정두텁세트 148,000원 · 흑임자케익 90,000원. 백년화편보다 단가가 높다. 그런데 메타 키워드에 "명절·추석·선물세트"가 <strong>단 하나도 없고</strong>, SNS 링크는 인스타·유튜브 도메인 루트로 연결(계정 미연결). 온라인 마케팅을 사실상 포기한 상태.</p>
-  <div class="co co-a">
-    <b>주목할 지점</b>
-    답례떡이 8,500~12,500원. 백년화편(2,200~10,900원)보다 훨씬 높다. 백년화편이 답례떡 검색 1위임에도 단가는 낮은 구조라는 뜻이다.
-  </div>
-</div>
-
-<!-- 3 -->
-<h2>3 · 자사 진단</h2>
-
-<div class="card">
-  <h3>작동하고 있는 것</h3>
-  <p><span class="p p-b">사실</span> <code>구정, 추석 떡 선물세트</code> 카테고리 상시 존재 · 자사몰 메인 카운트다운 프로모션 가동 중 · 추석 기획전 운영 이력(적립금 뽑기, 6만원 쿠폰팩) · 대량구매전 100만원 이상 할인 + 인사장 · 가격 폭 6사 중 최대</p>
-</div>
-
-<div class="card">
-  <h3>문제 4가지</h3>
-
-  <h4>1. 카탈로그와 자사몰 가격이 다르다</h4>
+  <h3>김영란법 한도가 백년화편 편이다</h3>
+  <p><span class="p p-b">사실</span> 청탁금지법상 직무 관련 공직자에게 사교·의례 목적으로 제공 가능한 <strong>일반 선물은 5만원 이하</strong>, <strong>농축수산물 및 요건을 충족하는 농축수산가공품은 15만원 이하</strong>이며, 설·추석 명절 기간에는 해당 한도가 상향된다.</p>
+  <p>떡은 농축수산가공품이다.</p>
   <div class="tw">
   <table>
-    <thead><tr><th>상품</th><th>카탈로그 (2024.1 인쇄)</th><th>자사몰 현재</th></tr></thead>
+    <thead><tr><th>상품</th><th>가격</th><th>일반 5만원 한도</th><th>농축수산가공품 한도</th></tr></thead>
     <tbody>
-      <tr><td>백년의정 1호</td><td class="num">18,000원</td><td class="num">20,540 → <b>16,000원</b></td></tr>
-      <tr><td>백년의정 2호</td><td class="num">34,500원</td><td class="num">41,040 → <b>30,000원</b></td></tr>
+      <tr class="hl"><td>밥알찹쌀떡</td><td class="num">42,000원</td><td><span class="p p-g">통과</span></td><td><span class="p p-g">여유</span></td></tr>
+      <tr><td>백년화편 7호</td><td class="num">111,000원</td><td><span class="p p-r">초과</span></td><td><span class="p p-g">명절 기간 가능</span></td></tr>
+      <tr><td>백년명품 5호</td><td class="num">241,000원</td><td><span class="p p-r">초과</span></td><td><span class="p p-r">초과</span></td></tr>
     </tbody>
   </table>
   </div>
-  <p style="margin-top:12px">정가를 올리고 할인율을 키운 구조. 문제는 <strong>전화 주문 고객</strong>(건당 단가 26% 높은 핵심 채널)이 카탈로그를 보고 전화하면 가격이 다르다는 점이다.</p>
-
-  <h4>2. 미디어 자산이 6년 전에 멈춰 있다</h4>
-  <p>방송 이력 마지막이 2020년 SBS. 설봄은 "서민갑부"를 브랜드명에 붙여 상시 운영 중이다. 대한명인 인증은 강력하지만 2010년 것이고, 검색·소셜에서 작동하지 않는다.</p>
-
-  <h4>3. 진입 SKU 부재가 명절에 특히 치명적이다</h4>
-  <p>설봄 6,800원 인절미컵, 창억 16,500원 인절미세트가 있는데 백년화편 최저 선물세트 소담(21,000원)은 <strong>퀵·매장 방문수령만 가능</strong>. 온라인 구매 가능한 최저 선물세트는 백년건강 1호 17,500원 하나다. 임직원 선물 최대 볼륨 구간(1~2만원대)에 택배 상품이 1개뿐.</p>
-
-  <h4>4. 선물세트 대부분이 택배 불가</h4>
-  <p>카탈로그 확인 결과 <strong>1호~18호 전 라인 · 소담 전 라인 · 답례떡 전 라인 · 떡케이크 · 맞춤떡 · 이바지떡</strong>이 퀵·매장 수령 전용. 택배 가능은 밥알시리즈(42,000원)와 백세시대, 쑥떡, 일부 조합세트뿐.</p>
-  <div class="co co-r">
-    <b>성장 정체의 구조적 원인 가설 <span class="p p-n" style="margin-left:4px">추정</span></b>
-    상품 수는 100개가 넘는데 전국에 팔 수 있는 건 10여 개다. 나머지는 강동구 반경 상품이다.
+  <div class="co co-b">
+    <b>왜 중요한가</b>
+    마스터 문서의 공개입찰 채널(나라장터·SMPP·학교장터 S2B·aT)은 전부 공공 영역이다. 구매 담당자가 가장 먼저 확인하는 게 청탁금지법 한도다. 홍삼·한우·과일 경쟁사는 이 한도를 쉽게 넘긴다. <strong>백년화편 42,000원은 한도 걱정 없이 살 수 있는 가격</strong>이고, 국산 원재료 100%라 요건도 명확하다. 지금 상품 페이지 어디에도 이 언급이 없다.
   </div>
+  <p class="note">정확한 요건과 명절 기간 상향 한도는 국민권익위원회 고시 확인 필요. 마케팅 문구로 쓰기 전 법무 검토 권장.</p>
 </div>
 
-<!-- 4 -->
-<h2>4 · 액션</h2>
-
+<!-- 7 -->
+<h2>7 · 액션</h2>
 <div class="card">
-  <h3>이번 주 · D-34~28 <span class="p p-g" style="margin-left:6px">비용 0</span></h3>
+  <h3>즉시 · 이번 주</h3>
   <ul class="act">
-    <li><div class="k">A1</div><div>
-      <div class="t">추석 키워드 선점</div>
-      <div class="d">창억·명가·압구정공주 3사가 비어 있고 설봄만 잡고 있다. 자사몰 카테고리명·스마트스토어 상품명·블로그 제목에 "2026 추석" 삽입. 특히 <b>추석 임직원 선물</b>, <b>거래처 추석선물 떡</b>은 설봄도 상품명 레벨에서는 안 잡고 있다.</div>
+    <li><div class="k">1</div><div>
+      <div class="t">설맞이 명절선물전 참가 준비 — 최우선</div>
+      <div class="d"><code>fgfair.com</code> · 11월 중순 모집 마감, 12월 코엑스. 마스터 문서 B2B 조건 6개를 전부 충족하는데 리스트에 없던 항목이다. 비용·부스 규모 문의부터 시작.</div>
     </div></li>
-    <li><div class="k">A2</div><div>
-      <div class="t">사전예약 프레이밍 전환 — 가장 중요</div>
-      <div class="d">대형마트가 시장을 사전예약으로 재편했고 소비자는 이미 학습됐다. 백년화편 예약제를 계단식 혜택으로 재설계한다. 증정 대신 <b>수량 확보 보장</b>을 팔면 된다.</div>
-      <div class="sched">
-        <em>~ 9/4</em> &nbsp;&nbsp;&nbsp;예약 확정 — 최대 혜택<br>
-        <em>9/5~9/11</em> &nbsp;예약 확정 — 중간<br>
-        <em>9/12~9/18</em> 예약 확정 — 축소<br>
-        <em>9/19 ~</em> &nbsp;&nbsp;마감
-      </div>
-      <div class="d">"당일생산이라 임박 주문은 물량 보장이 어렵습니다"는 사실이고, 사전예약 유도 근거로 그대로 쓸 수 있다.</div>
+    <li><div class="k">2</div><div>
+      <div class="t">김영란법 한도 문구를 상품 페이지에 추가</div>
+      <div class="d">"청탁금지법 농축수산가공품 기준 충족 / 국내산 원재료 100%". 공공기관·기업 구매 담당자에게는 이 한 줄이 스펙 열 줄보다 강하다.</div>
     </div></li>
-    <li><div class="k">A3</div><div>
-      <div class="t">카탈로그–자사몰 가격 정합성 확인</div>
-      <div class="d">전화 주문 고객이 보는 가격과 온라인 가격이 다르면 그 채널이 깨진다. 오늘 확인할 것.</div>
+    <li><div class="k">3</div><div>
+      <div class="t">3만원대 세트를 임직원 선물 전용으로 명명</div>
+      <div class="d">백년의정 2호가 30,000원. 단체선물 표준인 1인당 3만원과 정확히 일치한다. 상품명·페이지에 "임직원 선물" 명시. 지금은 이 용도로 검색되지 않는다.</div>
     </div></li>
   </ul>
 </div>
 
 <div class="card">
-  <h3>2주 내 · D-27~20 <span class="p p-a" style="margin-left:6px">소규모 투자</span></h3>
+  <h3>2주 내</h3>
   <ul class="act">
-    <li><div class="k">B1</div><div>
-      <div class="t">1만원대 택배 가능 추석 선물세트 1종 출시</div>
-      <div class="d">소담세트를 종이박스 → 택배 가능 포장으로 바꾸면 된다. 신규 생산 라인 불필요. 임직원 대량 선물의 최대 볼륨 구간이고, 현재 여기에 택배 상품이 사실상 없다.</div>
+    <li><div class="k">4</div><div>
+      <div class="t">카카오 선물하기 "감사" 테마 대응</div>
+      <div class="d">답례떡 검색 1위 자산을 카카오 선물테마 랭킹으로 옮기는 작업. 브랜드관 보유 여부부터 확인.</div>
     </div></li>
-    <li><div class="k">B2</div><div>
-      <div class="t">대량구매 기준을 100만원에서 낮춰 테스트</div>
-      <div class="d">20~50인 중소기업이 1만원대 세트로 100만원을 채우려면 100개다. 현실적이지 않다. <b>30만원 / 100만원 2단계</b>로 나눌 것. 생산 여력이 10% 미만 가동이라 물량 리스크는 없다.</div>
-    </div></li>
-    <li><div class="k">B3</div><div>
-      <div class="t">생산 여력을 명절 세일즈 언어로 전환</div>
-      <div class="d">"생산 여력이 무기"를 B2B 제안서에만 쓰고 있다. 명절 페이지에 그대로 쓸 것 — <b>"추석 대량 주문, 납기 보장합니다. 당일 생산 라인 여력 확보."</b> 창억·명가는 냉동 재고 소진 구조라 이 약속을 못 한다.</div>
+    <li><div class="k">5</div><div>
+      <div class="t">"실물 선물 vs 기프티콘" 대응 논리 확보</div>
+      <div class="d">백년화편이 가진 것 — 개별 포장(나눠 먹을 수 있음), 명인 인증서 동봉, 당일생산 날짜 스탬프, 원재료 산지 설명서. <b>기프티콘은 "센스 있다"는 반응은 만들어도 "회사가 신경 썼다"는 인상은 못 만든다.</b> 이 프레임을 명시적으로 쓸 것.</div>
     </div></li>
   </ul>
 </div>
 
 <div class="card">
-  <h3>하지 말 것</h3>
+  <h3>재검토 / 하지 말 것</h3>
   <ul class="act">
+    <li><div class="k">↺</div><div>
+      <div class="t">"숏폼 소재 없음" 판정 재검토</div>
+      <div class="d">명절선물전 참가는 그 자체로 소재다. 부스, 시식 반응, 명인 현장 시연. 콘텐츠를 만들려고 만드는 게 아니라 사업 활동의 부산물로 나온다.</div>
+    </div></li>
     <li class="no"><div class="k">✕</div><div>
       <div class="t">할인율 경쟁</div>
-      <div class="d">명가 상시 45%, 창억 최저 8,500원. 이 싸움은 진다.</div>
+      <div class="d">명가 상시 45%, 창억 최저 8,500원, 신세계백화점 최대 65%. 이 싸움은 진다.</div>
     </div></li>
     <li class="no"><div class="k">✕</div><div>
-      <div class="t">숏폼 강화</div>
-      <div class="d">명가가 팔로워 8배로 이미 하고 있고, 마스터 문서에서 이미 제외 판정된 항목이다.</div>
-    </div></li>
-    <li class="no"><div class="k">✕</div><div>
-      <div class="t">명가삼대떡집 벤치마킹</div>
-      <div class="d">카테고리가 다르다. 참고할 것이 없다.</div>
+      <div class="t">9월에 명절 마케팅 시작</div>
+      <div class="d">백화점·마트가 8월 초중순에 열었다. 지갑은 그때 닫힌다.</div>
     </div></li>
     <li class="no"><div class="k">✕</div><div>
       <div class="t">HACCP 완료를 기다리는 것</div>
-      <div class="d">이번 추석에는 HACCP이 안 나온다. 지금 열려 있는 채널(자사몰·스마트스토어·전화·대량주문)만으로 설계할 것.</div>
+      <div class="d">이번 추석에는 안 나온다. 명절선물전·자사몰·전화·대량주문은 HACCP 없이 지금 가능하다.</div>
     </div></li>
   </ul>
 </div>
 
-<!-- 5 -->
-<h2>5 · 감시 및 미확인</h2>
-
+<!-- 8 -->
+<h2>8 · 동종 경쟁 요약</h2>
 <div class="card">
-  <h3>다음 주 확인 항목</h3>
+  <h3>떡 브랜드 5사 <span class="p p-n" style="margin-left:6px">초판 조사 유지</span></h3>
   <div class="tw">
   <table>
-    <thead><tr><th>항목</th><th>근거</th></tr></thead>
+    <thead><tr><th>브랜드</th><th>추석 대응</th><th>가격대</th><th>비고</th></tr></thead>
     <tbody>
-      <tr><td>창억떡 추석 배너 전환</td><td>2월 배너 방치 중, 전환 시점 임박</td></tr>
-      <tr><td>설봄 현대백화점 팝업 일정</td><td>작년 8/22~28 압구정본점, 올해는 킨텍스점 공지</td></tr>
-      <tr><td>명가삼대 선물세트 카테고리 신설</td><td>현재 0개, 신설 시 판도 변화</td></tr>
-      <tr><td>카카오 선물하기 추석 기획전 입점 조건</td><td>설봄 브랜드관 보유, 자사 상태 확인 필요</td></tr>
-      <tr><td>압구정공주떡 추석 대응</td><td>8/21 현재 무대응</td></tr>
+      <tr><td><b>설봄</b></td><td><span class="p p-g">완료</span></td><td class="num">6,800~90,000</td><td>title 태그가 "추석 떡선물세트 추천 BEST" · 백화점 팝업 · 카카오 브랜드관 · IP 콜라보 3건 · 대기업 레퍼런스 노출</td></tr>
+      <tr><td><b>압구정공주떡</b></td><td><span class="p p-n">없음</span></td><td class="num">20,000~148,000</td><td>단가 최고. 메타 키워드에 명절 관련 0건, SNS 미연결</td></tr>
+      <tr><td><b>창억떡</b></td><td><span class="p p-n">없음</span></td><td class="num">8,500~105,000</td><td>6월 선물세트 3개 라인 교체했으나 메인은 2월 배너 방치, "설선물" 탭 잔존</td></tr>
+      <tr><td><b>명가삼대떡집</b></td><td><span class="p p-n">없음</span></td><td class="num">11,900~18,500</td><td>선물세트 SKU 0개. 명절 경쟁자 아님 — 리스트에서 제외</td></tr>
+      <tr class="hl"><td><b>백년화편</b></td><td><span class="p p-a">부분</span></td><td class="num">2,200~350,000</td><td>카테고리는 있으나 추석 프레이밍 없음. 선물세트 대부분 퀵·매장 수령 전용</td></tr>
     </tbody>
   </table>
   </div>
+  <div class="co co-a">
+    <b>자사 구조 문제 <span class="p p-n">추정</span></b>
+    상품 수는 100개가 넘는데 택배 가능한 건 10여 개다(1~18호 · 소담 · 답례떡 · 떡케이크 · 맞춤떡 · 이바지떡 전부 퀵·매장 전용). 나머지는 강동구 반경 상품이다. 성장 정체의 구조적 원인일 가능성이 높다.
+  </div>
+</div>
 
-  <h4>확인 불가</h4>
+<!-- 9 -->
+<h2>9 · 확인 불가</h2>
+<div class="card">
   <div class="tw">
   <table>
     <tbody>
-      <tr><td>각 사 실제 판매량·전환율</td><td>외부 확인 불가</td></tr>
-      <tr><td>네이버 쇼핑·쿠팡 추석 기획전 입점 마감일</td><td>도메인 차단, 수동 확인 필요</td></tr>
-      <tr><td>설봄 매출 규모</td><td>비공개</td></tr>
+      <tr><td>백년화편 명절선물전 참가 이력</td><td>검색 결과 없음 — 미참가인지 노출 부족인지 미확정</td></tr>
+      <tr><td>설맞이 명절선물전 참가비·부스 조건</td><td>fgfair.com 직접 문의 필요</td></tr>
+      <tr><td>청탁금지법 명절 기간 상향 한도 정확한 금액</td><td>권익위 고시 확인 필요</td></tr>
+      <tr><td>카카오 선물하기 백년화편 브랜드관 보유 여부</td><td>미확인</td></tr>
       <tr><td>aT 2026 추석 조사 원자료</td><td>설 조사만 확인됨</td></tr>
-      <tr><td>백년화편 카카오 선물하기 브랜드관 보유 여부</td><td>미확인</td></tr>
+      <tr><td>명절선물전 300개 부스 중 떡 브랜드 구성</td><td>참가업체 리스트 미확보</td></tr>
+      <tr><td>각 사 실제 판매량·전환율</td><td>외부 확인 불가</td></tr>
     </tbody>
   </table>
   </div>
 </div>
 
 <footer>
-  백년화편 정기 리서치 · 2026-W34 · 작성 2026.08.21<br>
-  경쟁사 자사몰 직접 확인 시점은 모두 2026-08-21이며, 이후 변경 가능성 있음.
+  백년화편 정기 리서치 · 2026-W34 개정판 · 작성 2026.08.21<br>
+  경쟁사 자사몰 직접 확인 시점은 모두 2026-08-21이며 이후 변경 가능성 있음. 사실·분석·추정 배지로 구분 표기.
 </footer>
 
 </div>
