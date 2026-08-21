@@ -1,374 +1,532 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>백년화편 명절 선물 시장 리서치 | 2026-W34</title>
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<title>백년화편 2026-W34 | 추석 콘텐츠 기획서 (B2B·B2C 통합)</title>
 <style>
-:root{
-  --ink:#111418; --sub:#5B6470; --line:#EAECF0; --bg:#F5F6F8; --card:#FFF;
-  --blue:#2C6BED; --red:#E5484D; --green:#12A150; --amber:#F5A524;
-  --blue-bg:#EDF3FF; --red-bg:#FDEDEE; --green-bg:#E9F8F0; --amber-bg:#FFF6E5;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
-  background:var(--bg);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased;word-break:keep-all}
-.wrap{max-width:900px;margin:0 auto;padding:40px 20px 100px}
-
-.tag{display:inline-block;background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px}
-h1{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.25;margin:16px 0 10px}
-.meta{font-size:14px;color:var(--sub)}
-.meta b{color:var(--ink);font-weight:600}
-.kpi{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 32px}
-.kpi div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;flex:1;min-width:150px}
-.kpi span{display:block;font-size:12px;color:var(--sub);font-weight:600;margin-bottom:4px}
-.kpi strong{font-size:21px;font-weight:800;letter-spacing:-.02em}
-
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;margin-bottom:16px}
-h2{font-size:13px;font-weight:800;color:var(--blue);letter-spacing:.06em;margin:44px 0 14px}
-h2:first-of-type{margin-top:32px}
-h3{font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 12px}
-h4{font-size:15px;font-weight:700;margin:24px 0 8px}
-p{font-size:15px;color:#2C333D;margin-bottom:12px}
-p:last-child{margin-bottom:0}
-code{background:#F2F4F7;padding:2px 6px;border-radius:5px;font-size:13px}
-
-.concl{counter-reset:c;list-style:none}
-.concl li{position:relative;padding-left:40px;margin-bottom:18px;font-size:16px}
-.concl li:last-child{margin-bottom:0}
-.concl li::before{counter-increment:c;content:counter(c);position:absolute;left:0;top:1px;width:26px;height:26px;
-  border-radius:8px;background:var(--blue);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
-
-.tw{overflow-x:auto;margin:16px 0 0;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
-th{background:#F7F8FA;text-align:left;padding:11px 12px;font-weight:700;font-size:13px;color:var(--sub);
-  border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top}
-tr:last-child td{border-bottom:none}
-td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.hl{background:#FAFBFC}
-
-.p{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
-.p-r{background:var(--red-bg);color:var(--red)}
-.p-g{background:var(--green-bg);color:var(--green)}
-.p-a{background:var(--amber-bg);color:#B8730C}
-.p-b{background:var(--blue-bg);color:var(--blue)}
-.p-n{background:#F0F1F3;color:var(--sub)}
-
-.co{border-radius:14px;padding:18px 20px;margin:18px 0;font-size:15px}
-.co b{display:block;font-size:13px;font-weight:800;margin-bottom:6px}
-.co-r{background:var(--red-bg)} .co-r b{color:var(--red)}
-.co-g{background:var(--green-bg)} .co-g b{color:var(--green)}
-.co-b{background:var(--blue-bg)} .co-b b{color:var(--blue)}
-.co-a{background:var(--amber-bg)} .co-a b{color:#B8730C}
-
-.act{list-style:none}
-.act li{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
-.act li:first-child{padding-top:0}
-.act li:last-child{border-bottom:none;padding-bottom:0}
-.act .k{flex:0 0 34px;height:34px;border-radius:10px;background:var(--blue-bg);color:var(--blue);
-  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.act .no .k{background:var(--red-bg);color:var(--red)}
-.act .t{font-size:15px;font-weight:700;margin-bottom:3px}
-.act .d{font-size:14px;color:var(--sub)}
-.note{font-size:13px;color:var(--sub);margin-top:12px;padding-left:14px;border-left:2px solid var(--line)}
-hr{border:none;border-top:1px solid var(--line);margin:24px 0}
-footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);font-size:13px;color:var(--sub)}
-@media(max-width:640px){.wrap{padding:28px 14px 70px}h1{font-size:25px}.card{padding:20px;border-radius:14px}}
+  :root{
+    --bg:#f2f4f6; --card:#ffffff; --line:#e5e8eb;
+    --t1:#191f28; --t2:#4e5968; --t3:#8b95a1;
+    --blue:#3182f6; --blue-bg:#e8f3ff;
+    --red:#f04452; --red-bg:#fdeced;
+    --green:#00c471; --green-bg:#e5f9f0;
+    --amber:#f59f00; --amber-bg:#fff4e0;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:40px 20px;background:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif;
+    color:var(--t1);line-height:1.65;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  .card{background:var(--card);border-radius:20px;padding:32px;margin-bottom:20px;}
+  h1{font-size:31px;font-weight:800;letter-spacing:-0.5px;margin:0 0 12px;}
+  h2{font-size:23px;font-weight:800;letter-spacing:-0.4px;margin:0 0 20px;padding-bottom:14px;border-bottom:2px solid var(--t1);}
+  h3{font-size:18px;font-weight:700;margin:34px 0 12px;color:var(--t1);}
+  h3:first-of-type{margin-top:0;}
+  h4{font-size:15px;font-weight:700;margin:22px 0 8px;color:var(--t1);}
+  p{margin:0 0 12px;color:var(--t2);font-size:15px;}
+  .meta{color:var(--t3);font-size:14px;margin:0;}
+  .hero{background:linear-gradient(135deg,#191f28,#2b3542);color:#fff;}
+  .hero h1{color:#fff;}
+  .hero p{color:#c7cdd4;}
+  .badge{display:inline-block;padding:5px 11px;border-radius:8px;font-size:12px;font-weight:700;margin-right:6px;}
+  .b-blue{background:var(--blue-bg);color:var(--blue);}
+  .b-red{background:var(--red-bg);color:var(--red);}
+  .b-green{background:var(--green-bg);color:var(--green);}
+  .b-amber{background:var(--amber-bg);color:var(--amber);}
+  .b-gray{background:#f2f4f6;color:var(--t2);}
+  table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:14px;}
+  th{background:#f9fafb;text-align:left;padding:12px 14px;font-weight:700;color:var(--t2);
+     border-bottom:1px solid var(--line);font-size:13px;}
+  td{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--t2);vertical-align:top;}
+  td strong{color:var(--t1);}
+  tr:last-child td{border-bottom:none;}
+  .box{border-radius:14px;padding:18px 20px;margin:16px 0;font-size:14.5px;color:var(--t2);}
+  .box-red{background:var(--red-bg);border-left:4px solid var(--red);}
+  .box-blue{background:var(--blue-bg);border-left:4px solid var(--blue);}
+  .box-green{background:var(--green-bg);border-left:4px solid var(--green);}
+  .box-amber{background:var(--amber-bg);border-left:4px solid var(--amber);}
+  .box b{color:var(--t1);}
+  ul{margin:8px 0 14px;padding-left:20px;color:var(--t2);font-size:14.5px;}
+  ol{margin:8px 0 14px;padding-left:22px;color:var(--t2);font-size:14.5px;}
+  li{margin-bottom:6px;}
+  .toc a{display:block;padding:10px 0;color:var(--t2);text-decoration:none;font-size:15px;border-bottom:1px solid var(--line);}
+  .toc a:last-child{border-bottom:none;}
+  code{background:#f2f4f6;padding:2px 6px;border-radius:6px;font-size:13px;color:var(--t1);}
+  .foot{text-align:center;color:var(--t3);font-size:13px;padding:20px 0 40px;}
+  .src{font-size:12.5px;color:var(--t3);margin-top:10px;}
+  .rule{height:1px;background:var(--line);margin:30px 0;}
+  .brief{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:18px 0;background:#fbfcfd;}
+  .brief .no{display:inline-block;background:var(--t1);color:#fff;border-radius:8px;
+             padding:3px 10px;font-size:12px;font-weight:700;margin-bottom:10px;}
+  .brief h4{margin:0 0 10px;font-size:16.5px;}
+  .brief table{margin:10px 0 0;font-size:13.5px;}
+  .brief th{width:16%;background:#fff;}
+  .hook{background:#fff;border-left:3px solid var(--blue);border-radius:8px;
+        padding:12px 16px;margin:10px 0;font-size:13.8px;color:var(--t1);white-space:pre-line;line-height:1.8;}
+  .hook .lbl{display:block;font-size:11px;font-weight:700;color:var(--t3);margin-bottom:8px;}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<span class="tag">주간 리서치 · 2026-W34 · 개정판</span>
-<h1>떡집이 아니라 명절 선물 시장<br>백년화편의 실제 경쟁 지형</h1>
-<p class="meta">조사 시점 <b>2026년 8월 21일</b> · 범위 <b>명절 선물세트 시장 전체</b> · 초판(떡 브랜드 한정)에서 경쟁 정의 확장</p>
-
-<div class="kpi">
-  <div><span>2026 추석</span><strong>9월 24~26일</strong></div>
-  <div><span>남은 기간</span><strong>D-34</strong></div>
-  <div><span>온라인 선물하기 시장</span><strong>5조 → 10조</strong></div>
-  <div><span>단체선물 표준 예산</span><strong>1인 3만원</strong></div>
+<div class="card hero">
+  <p class="meta" style="color:#8b95a1;margin-bottom:10px;">백년화편 · 2026-W34 · 콘텐츠 기획서</p>
+  <h1>2026 추석 콘텐츠 기획<br>— 기업 담당자 &amp; 일반 소비자 통합</h1>
+  <p>작성 2026년 8월 21일 (금) · 추석(9/25) D-35</p>
+  <p style="margin-top:14px;">
+    <span class="badge b-blue">범위: 텍스트 + 상세페이지 + 카드뉴스 + 이미지</span>
+    <span class="badge b-gray">숏폼 제외</span>
+  </p>
 </div>
 
 <div class="card">
-  <h3>결론</h3>
-  <ol class="concl">
-    <li>백년화편의 진짜 경쟁자는 떡집이 아니라 <strong>기프티콘</strong>이다. 1인당 3만원 예산에서 실제로 가장 많이 선택되는 건 커피 쿠폰과 편의점 금액권이다.</li>
-    <li>지난주 국내 최대 명절선물 B2B 박람회가 열렸고 <strong>백년화편은 없었다</strong>. 영업 인력 없이 "찾아오는 구조"를 만들겠다는 전략과 정확히 맞는 자리다.</li>
-    <li><strong>김영란법 한도 구조가 백년화편에 유리한데 안 쓰고 있다.</strong> 떡은 농축수산가공품이고 명절 기간 한도가 별도로 적용된다. 공공 입찰에서 결정적이다.</li>
-  </ol>
+  <h3 style="margin-top:0;">이 문서의 범위</h3>
+  <table>
+    <tr><th style="width:20%">항목</th><th>설정</th></tr>
+    <tr><td>대상</td><td><b>B2B(기업 담당자) + B2C(일반 소비자) 양쪽</b></td></tr>
+    <tr><td>포맷</td><td>블로그·검색 글 / 상세페이지 / 카드뉴스 / 이미지 콘텐츠 / 상품 카피. <b>숏폼·영상은 제외</b> — 마스터 문서상 "소재 없음"으로 제외 결정된 항목이라 이번 기획에서 다시 열지 않음</td></tr>
+    <tr><td>제외</td><td>랜딩 구조·전화 스크립트·견적서 등 <b>세일즈 도구는 이 문서에 넣지 않음</b>(별도 문서로 분리)</td></tr>
+    <tr><td>기간</td><td>D-35(8/21) ~ 추석(9/25), 이후 설 이월분 표시</td></tr>
+  </table>
+  <p class="src">숏폼을 다시 열어야 한다는 판단이 있으면 별도 논의 필요. 다만 소재 재고(2장)를 보면 <b>영상보다 정지 이미지·텍스트에서 뽑아낼 게 훨씬 많다</b>. 이번 시즌은 텍스트·이미지에 집중하는 것이 맞다.</p>
+</div>
+
+<div class="card toc">
+  <h2>목차</h2>
+  <a href="#s1">1. 소재 자산 재고 조사</a>
+  <a href="#s2">2. 소재 → 주제 파생 원리</a>
+  <a href="#s3">3. 주제 30개 (B2B 12 / B2C 18)</a>
+  <a href="#s4">4. 포맷별 기획</a>
+  <a href="#s5">5. 편별 상세 기획서 12편</a>
+  <a href="#s6">6. 촬영·이미지 컷 리스트</a>
+  <a href="#s7">7. 발행 캘린더</a>
+  <a href="#s8">8. 콘텐츠 재사용 구조</a>
 </div>
 
 <!-- 1 -->
-<h2>1 · 경쟁 지형 재정의</h2>
-<div class="card">
-  <h3>떡집 5사만 보면 상위권, 시장 전체로 보면 다르다</h3>
-  <div class="tw">
+<div class="card" id="s1">
+  <h2>1. 소재 자산 재고 조사</h2>
+  <p>콘텐츠가 안 나오는 이유는 아이디어가 없어서가 아니라 <b>가진 소재를 목록화해본 적이 없어서</b>다. 카탈로그와 마스터 문서에서 확인되는 소재를 전부 꺼내 등급을 매겼다.</p>
+
+  <h3>1-1. A급 — 경쟁사가 못 쓰는 독점 소재</h3>
   <table>
-    <thead><tr><th>층위</th><th>누구인가</th><th>겹치는 지점</th><th>위협도</th></tr></thead>
-    <tbody>
-      <tr class="hl"><td><b>1층</b><br>형태 대체재</td><td>기프티콘 · 모바일 상품권 · 카카오 선물하기</td><td>임직원·거래처 선물 예산 전체</td><td><span class="p p-r">최상</span></td></tr>
-      <tr><td><b>2층</b><br>카테고리 대체재</td><td>한과·약과 · 참기름 · 견과 · 홍삼 · 통조림 · 프리미엄 디저트</td><td>"전통·건강·정성" 포지션, 3~5만원대</td><td><span class="p p-r">높음</span></td></tr>
-      <tr><td><b>3층</b><br>채널 지배자</td><td>대형마트·백화점 사전예약</td><td>소비자의 명절 구매 타이밍 자체</td><td><span class="p p-a">중</span> 규칙 설정자</td></tr>
-      <tr><td><b>4층</b><br>동종</td><td>설봄 · 창억 · 압구정공주 · 명가삼대</td><td>떡 카테고리 내부</td><td><span class="p p-a">중</span></td></tr>
-    </tbody>
+    <tr><th style="width:22%">소재</th><th style="width:34%">확인된 사실</th><th>왜 A급인가</th></tr>
+    <tr><td><b>한국·일본 특허</b></td><td>특허번호 제10-1771023호. 절구 치는 옛 방식으로 밥알이 살아있는 제법</td><td>번호로 검증되는 유일성. <b>"세계 유일"을 근거 있게 말할 수 있는 단 하나의 자산</b></td></tr>
+    <tr><td><b>대한명인 제10-311호</b></td><td>김명희 대표, 식품분과 이바지떡 부문. 각 분야 1인에게만 부여</td><td>인물 스토리 + 권위. 경쟁사 "40년 전통"과 격이 다름</td></tr>
+    <tr><td><b>4無 원칙</b></td><td>잔탄검·산도조절제·구연산·유화제 무첨가 (카탈로그 명시)</td><td><b>거의 안 쓰이고 있는 최고의 소재.</b> 건강 축 콘텐츠의 핵심이자 경쟁사가 따라 말하기 어려운 구체성</td></tr>
+    <tr><td><b>당일 생산·당일 출고</b></td><td>전날 17시 마감 예약제. 1996년부터</td><td>제약을 강점으로 뒤집는 소재. "왜 미리 못 만드는가"가 곧 콘텐츠</td></tr>
+    <tr><td><b>1996년 레시피 무변경</b></td><td>창업 이후 단 한 번도 변경 없음</td><td>30년이라는 숫자 자체가 콘텐츠</td></tr>
   </table>
+
+  <h3>1-2. B급 — 구체적이라 강한 소재</h3>
+  <table>
+    <tr><th style="width:22%">소재</th><th style="width:34%">확인된 사실</th><th>활용 각도</th></tr>
+    <tr><td><b>원료 산지 지도</b></td><td>충청 노은 찹쌀 · 국내산 팥 · 국내산 쑥 · 제주 한라산 모시 · 경산 대추 · 영주 서리태 · 공주 정안 밤 · 신안 천일염 · 가평 잣 · 캘리포니아 호두</td><td>지도 1장으로 이미지 콘텐츠 완성. <b>산지명이 구체적일수록 신뢰가 올라간다</b></td></tr>
+    <tr><td><b>제주 어린 참쑥</b></td><td>100% 제주산. 평균 15cm 내외 새로 난 어린 쑥만 선별. 가열 시간을 기존 제품의 절반으로 축소. HACCP 인증 공장에서 관리</td><td><b>"15cm"라는 숫자가 콘텐츠를 만든다.</b> 왜 어린 쑥인지, 왜 가열을 줄였는지</td></tr>
+    <tr><td><b>상황찰현미</b></td><td>특허 받은 상황찰현미 사용 (백세시대)</td><td>건강 축. 고령층·부모님 선물 소구</td></tr>
+    <tr><td><b>한정 생산</b></td><td>백세시대 1일 100박스, 오복찰떡 1일 50박스</td><td>희소성. 단 <b>명절 대량주문 콘텐츠와 충돌</b>하므로 채널 분리 필요</td></tr>
+    <tr><td><b>답례 스티커 6종</b></td><td>돌/백일 · 결혼 · 감사/조문 · 이사/개업 · 교회. 20개 이상 주문 시 무료 제작</td><td>B2C 답례 수요의 진입점. 시안 이미지가 이미 있음</td></tr>
+    <tr><td><b>봉치떡 유래</b></td><td>카탈로그에 원문 존재: 붉은 팥고물은 액막이, 대추는 아들·밤은 딸, 두 켜는 부부 한 쌍</td><td><b>이미 쓰여 있는 완성된 콘텐츠.</b> 그대로 콘텐츠화 가능</td></tr>
+    <tr><td><b>방송 이력 7건</b></td><td>SBS 생생경제·YTN·MBC 생방송 오늘아침·MBN·SBS 생방송투데이·MBC 경제매거진M (2017~2020)</td><td>신뢰 배지. 단 최신이 2020년이라 <b>전면에 두기보다 하단 배치</b></td></tr>
+    <tr><td><b>수상 이력</b></td><td>국무총리상·농림부장관상·식약청장상·서울시장상·문화체육관광부장관상 (2009~2010)</td><td>B2B 제안·공공 대상에서 유효. B2C에서는 약함</td></tr>
+  </table>
+
+  <h3>1-3. C급 — 보조 소재</h3>
+  <table>
+    <tr><th style="width:22%">소재</th><th>내용</th></tr>
+    <tr><td>제품 구성 다양성</td><td>밥알 4종 · 백세시대 · 쑥떡 3종 · 선물세트 1~18호 · 소담 6종 · 답례떡 15종 · 떡케이크 · 이바지떡</td></tr>
+    <tr><td>보온박스·포장 옵션</td><td>기본포장 / 부직포 2,500원 / 쇼핑백 1,500원 / 보자기 9,000원 / 황금보자기</td></tr>
+    <tr><td>고객 행동 데이터</td><td>"먹어보고 산다" 구매 트리거 · 전화 주문 단가 26% 우위 · 60대 이상 비중 높음</td></tr>
+    <tr><td>자체 앱</td><td>백년페이 · 픽업 · 모바일 선물하기</td></tr>
+  </table>
+
+  <div class="box box-red">
+    <b>재고 조사에서 나온 가장 큰 문제 — A급 소재 5개 중 3개가 콘텐츠로 한 번도 안 쓰였다.</b><br>
+    특허번호, 4無 원칙, 당일 생산의 이유. 이 셋은 카탈로그 구석에 작게 인쇄돼 있을 뿐이다. <b>새 소재를 찾을 필요가 없다.</b> 이미 있는 것을 꺼내 쓰지 않았을 뿐이다.
   </div>
-  <p class="note">초판에서는 4층만 조사했다. 마스터 문서의 경쟁사 지정(창억·명가삼대·압구정공주)도 4층에 머물러 있다.</p>
 </div>
 
 <!-- 2 -->
-<h2>2 · 1층 — 기프티콘</h2>
-<div class="card">
-  <h3>임직원 선물 시장의 실제 기준선</h3>
-  <p><span class="p p-b">사실</span> 기업 단체선물 실무 기준 예산은 1~3만원대가 가장 일반적이고, 예산별 추천 베스트는 3~5만원이며 <strong>커피 쿠폰과 편의점 금액권이 사용률 TOP 2</strong>다. 대규모 발송이나 원격 근무자가 있으면 모바일 기프티콘이 가장 효율적이다.</p>
-  <div class="tw">
+<div class="card" id="s2">
+  <h2>2. 소재 → 주제 파생 원리</h2>
+  <p>소재 하나에서 주제 하나를 뽑으면 소재가 금방 마른다. <b>한 소재를 5개 각도로 자른다.</b></p>
+
   <table>
-    <thead><tr><th>시나리오 (직원 200명)</th><th>단가</th><th>총액</th><th>차이</th></tr></thead>
-    <tbody>
-      <tr><td>표준 기준</td><td class="num">30,000원</td><td class="num">600만원</td><td>—</td></tr>
-      <tr><td>단가 소폭 상향</td><td class="num">33,000원</td><td class="num">660만원</td><td class="num">+60만원</td></tr>
-      <tr class="hl"><td><b>백년화편 밥알찹쌀떡</b></td><td class="num">42,000원</td><td class="num">840만원</td><td class="num"><b style="color:var(--red)">+240만원</b></td></tr>
-    </tbody>
+    <tr><th style="width:14%">각도</th><th style="width:26%">질문</th><th>예시 — 소재 "제주 어린 참쑥 15cm"</th></tr>
+    <tr><td><b>① 왜</b></td><td>왜 그렇게 하는가</td><td>왜 15cm 어린 쑥만 쓰는가 — 다 자란 쑥과 어린 쑥의 차이</td></tr>
+    <tr><td><b>② 어떻게</b></td><td>어떤 공정을 거치는가</td><td>가열 시간을 절반으로 줄이면 쑥에 무슨 일이 일어나는가</td></tr>
+    <tr><td><b>③ 비교</b></td><td>안 그런 것과 뭐가 다른가</td><td>쑥떡이 쓴 이유 — 쑥의 잎 나이와 맛의 관계</td></tr>
+    <tr><td><b>④ 상황</b></td><td>고객의 어떤 순간에 쓰이나</td><td>부모님이 쑥떡을 좋아하시는 이유</td></tr>
+    <tr><td><b>⑤ 사람</b></td><td>누가 어떤 마음으로 하는가</td><td>명인이 쑥 선별에 사람 손을 고집하는 이유</td></tr>
   </table>
-  </div>
-  <div class="co co-r">
-    <b>문제</b>
-    HR 담당자 입장에서 품의를 올리기 어려운 숫자다. 42,000원 실물 박스는 이 시장에서 "굳이 왜"를 설명해야 하는 상품이다.
+
+  <div class="box box-blue">
+    <b>A급 소재 5개 × 5각도 = 25개 주제.</b> B급 8개까지 넣으면 산술적으로 60개가 넘는다. 이번 시즌에 필요한 건 30개다. <b>소재가 부족한 게 아니라 정리가 없었을 뿐이라는 게 여기서 증명된다.</b>
   </div>
 
-  <hr>
-
-  <h4>온라인 선물하기가 커지는 속도</h4>
-  <p><span class="p p-b">사실</span> 국내 온라인 선물하기 시장은 2016년 8,000억원대 → 2022년 5조원 → <strong>2027년 10조원 전망</strong>이다.</p>
-  <p><span class="p p-b">사실</span> 카카오 기준 선물하기 경험이 없던 고객도 약 4번 선물을 받으면 <strong>30% 이상이 구매 고객으로 전환</strong>된다. 29CM는 선물하기 유입 고객 재구매율이 21.18%라고 밝혔다.</p>
-  <div class="co co-g">
-    <b>이건 백년화편의 구매 트리거와 같은 구조다</b>
-    마스터 문서 인사이트 3번 — "먹어보고 산다". 선물로 받아본 사람이 구매자가 되는 메커니즘을 카카오가 데이터로 증명하고 있다. 백년화편은 이 구조를 오프라인 지인 나눔에만 의존하고, 온라인 선물하기 채널에서는 증폭시키지 않고 있다.
-  </div>
-
-  <h4>카카오 선물하기 구조 변화</h4>
-  <p><span class="p p-b">사실</span> 카카오는 2026년 1월 랭킹탭을 '급상승'·'카테고리'·'선물테마' 3개로 확대했고, 선물테마 탭은 생일·집들이·응원·<strong>감사</strong> 등 14개 테마별 랭킹을 제공한다. 사업자 전용 '선물하기 for Biz'로 기업 대상 명절 기획전도 운영한다.</p>
-  <div class="co co-b">
-    <b>"감사" 테마 랭킹이 생겼다</b>
-    답례떡 1위 브랜드가 들어갈 자리다. 설봄은 이미 브랜드관을 갖고 있고, 백년화편은 상품 단위 입점에 그친다. <span class="p p-n">확인 필요</span>
-  </div>
+  <h3>2-1. B2B와 B2C의 소재 배분</h3>
+  <table>
+    <tr><th style="width:16%">소재</th><th style="width:42%">B2B 각도 (기업 담당자)</th><th>B2C 각도 (일반 소비자)</th></tr>
+    <tr><td>특허</td><td>"겹치지 않는 선물"의 근거 — 차별성 증명</td><td>"이건 처음 본다" — 신기함·화제성</td></tr>
+    <tr><td>대한명인</td><td>결재 근거·입찰 심사 차별점</td><td>인물 스토리·30년 고집</td></tr>
+    <tr><td>4無</td><td>임직원 건강 배려 명분</td><td><b>부모님·아이에게 줄 수 있는가</b> — 가장 강한 B2C 축</td></tr>
+    <tr><td>당일 생산</td><td>발송일 지정·신선도 보증</td><td>"오늘 아침에 만든 떡" — 감각적 소구</td></tr>
+    <tr><td>산지</td><td>국산 원료 증빙</td><td>산지 지도·재료 이야기</td></tr>
+    <tr><td>가액 기준</td><td><b>핵심 축</b> — 5만 원 이하 구간</td><td>해당 없음</td></tr>
+    <tr><td>답례 스티커</td><td>행사 답례 대량</td><td><b>핵심 축</b> — 돌·결혼·이사 답례</td></tr>
+    <tr><td>봉치떡 유래</td><td>약함</td><td>전통·예단 수요. 이바지떡 유입</td></tr>
+  </table>
 </div>
 
 <!-- 3 -->
-<h2>3 · 2층 — 카테고리 대체재</h2>
-<div class="card">
-  <h3>같은 "전통 선물" 슬롯을 놓고 겨루는 상대</h3>
-  <div class="tw">
+<div class="card" id="s3">
+  <h2>3. 주제 30개</h2>
+
+  <h3>3-1. B2B — 기업 담당자용 12개</h3>
   <table>
-    <thead><tr><th>카테고리</th><th>대표 사업자</th><th>백년화편 대비 우위</th><th>열위</th></tr></thead>
-    <tbody>
-      <tr><td>한과·약과</td><td>윤의궁, 강릉부일한과</td><td>상온 보관, 긴 유통기한, 전국 택배 자유</td><td>명인 인증 없음, 차별화 약함</td></tr>
-      <tr><td>참기름·들기름</td><td>고소연 (1982, 성남 방앗간)</td><td>실용성, 보관 부담 없음, 저가 세트</td><td>선물 격 낮음</td></tr>
-      <tr><td>홍삼·건기식</td><td>정관장</td><td>브랜드 인지도, 어른 선물 정석</td><td>취향 리스크, 복용 중복</td></tr>
-      <tr><td>프리미엄 K-디저트</td><td>CJ 르 구떼, 신세계푸드 협업</td><td>유통망, 패키지 완성도</td><td>장인 서사 없음</td></tr>
-      <tr><td>통조림·생활용품</td><td>CJ 스팸, LG생활건강</td><td>압도적 저가, 대량 발송 표준</td><td>정성 표현 불가</td></tr>
-    </tbody>
+    <tr><th style="width:5%">#</th><th style="width:30%">주제</th><th style="width:14%">소재</th><th style="width:12%">각도</th><th style="width:12%">포맷</th><th>목적</th></tr>
+    <tr><td>B1</td><td>2026 추석 선물 가액 기준 정리 — 5만 / 15만 / 30만</td><td>가액</td><td>①왜</td><td>블로그</td><td>검색 유입 최대</td></tr>
+    <tr><td>B2</td><td>2026 추석 선물, 언제까지 주문해야 도착하나</td><td>당일생산</td><td>④상황</td><td>블로그</td><td>D-10 검색 대응</td></tr>
+    <tr><td>B3</td><td>인원 300명 예산 1,200만 원 — 명절 선물 정하는 순서</td><td>가격구간</td><td>④상황</td><td>블로그</td><td>총무 유입</td></tr>
+    <tr><td>B4</td><td>거래처 등급별 명절 선물, 금액을 어떻게 나눌 것인가</td><td>가격구간</td><td>③비교</td><td>블로그</td><td>영업 담당 유입</td></tr>
+    <tr><td>B5</td><td>명절에 왜 떡을 보내는가 — 겹치지 않는 선물의 조건</td><td>특허</td><td>③비교</td><td>블로그</td><td>카테고리 설득</td></tr>
+    <tr><td>B6</td><td>공공기관·학교 담당자를 위한 명절 선물 체크리스트</td><td>가액·서류</td><td>④상황</td><td>블로그</td><td>공공 세그먼트</td></tr>
+    <tr><td>B7</td><td>답례떡 대량주문 전 확인할 6가지</td><td>스티커·리드타임</td><td>②어떻게</td><td>블로그</td><td>소규모 대량</td></tr>
+    <tr><td>B8</td><td>임직원 명절 선물, 복리후생비 처리 기준</td><td>외부</td><td>①왜</td><td>블로그</td><td>총무 유입 <span class="badge b-red">세무 검수</span></td></tr>
+    <tr><td>B9</td><td>기업 선물 상세페이지 — 예산별 구성</td><td>전 소재</td><td>—</td><td>상세페이지</td><td>전환</td></tr>
+    <tr><td>B10</td><td>한 장으로 보는 백년화편 — 명인·특허·산지</td><td>A급 전체</td><td>⑤사람</td><td>카드뉴스 8컷</td><td>제안서 첨부 겸용</td></tr>
+    <tr><td>B11</td><td>왜 미리 만들어두지 않는가 — 당일 생산의 대가</td><td>당일생산</td><td>①왜</td><td>블로그</td><td>제약을 강점으로</td></tr>
+    <tr><td>B12</td><td>300박스를 하루에 만든다는 것</td><td>생산여력</td><td>②어떻게</td><td>블로그+사진</td><td>대량 대응 신뢰 <span class="badge b-red">캐파 확정 후</span></td></tr>
   </table>
-  </div>
 
-  <hr>
+  <h3>3-2. B2C — 일반 소비자용 18개</h3>
+  <table>
+    <tr><th style="width:5%">#</th><th style="width:30%">주제</th><th style="width:14%">소재</th><th style="width:12%">각도</th><th style="width:12%">포맷</th><th>목적</th></tr>
+    <tr><td>C1</td><td>떡에 들어가는 첨가물 4가지, 왜 안 넣는가</td><td><b>4無</b></td><td>①왜</td><td>블로그</td><td><b>최우선.</b> 건강 축 대표</td></tr>
+    <tr><td>C2</td><td>왜 15cm 어린 쑥만 쓰는가</td><td>제주 참쑥</td><td>①왜</td><td>블로그+사진</td><td>쑥떡 라인 소구</td></tr>
+    <tr><td>C3</td><td>쑥떡이 쓴 이유 — 쑥의 나이와 맛</td><td>제주 참쑥</td><td>③비교</td><td>블로그</td><td>차별화 설명</td></tr>
+    <tr><td>C4</td><td>밥알이 살아있다는 게 무슨 뜻인가</td><td>특허</td><td>②어떻게</td><td>블로그+단면사진</td><td>제품 이해</td></tr>
+    <tr><td>C5</td><td>절구로 치면 뭐가 달라지나 — 기계 반죽과의 차이</td><td>특허</td><td>③비교</td><td>블로그</td><td>제법 설득</td></tr>
+    <tr><td>C6</td><td>재료가 어디서 오는가 — 산지 지도</td><td>산지</td><td>②어떻게</td><td>인포그래픽</td><td>이미지 자산</td></tr>
+    <tr><td>C7</td><td>부모님이 떡을 좋아하시는 이유</td><td>고객데이터</td><td>④상황</td><td>블로그</td><td>추석 선물 검색</td></tr>
+    <tr><td>C8</td><td>추석에 부모님 선물, 뭘 드려야 안 남을까</td><td>—</td><td>④상황</td><td>블로그</td><td>시즌 검색 대응</td></tr>
+    <tr><td>C9</td><td>떡 맛있게 먹는 법 — 해동 30분의 이유</td><td>당일생산</td><td>②어떻게</td><td>카드뉴스 5컷</td><td>수령자 만족·재구매</td></tr>
+    <tr><td>C10</td><td>떡 보관법 — 냉장·냉동·상온</td><td>당일생산</td><td>②어떻게</td><td>블로그</td><td>불만 예방</td></tr>
+    <tr><td>C11</td><td>1996년부터 레시피를 바꾸지 않은 이유</td><td>명인</td><td>⑤사람</td><td>블로그</td><td>브랜드 스토리</td></tr>
+    <tr><td>C12</td><td>대한명인은 어떻게 정해지는가</td><td>명인</td><td>①왜</td><td>블로그</td><td>권위 설명</td></tr>
+    <tr><td>C13</td><td>봉치떡 이야기 — 대추는 아들, 밤은 딸</td><td>봉치떡</td><td>①왜</td><td>카드뉴스 6컷</td><td>이바지·예단 유입</td></tr>
+    <tr><td>C14</td><td>돌·결혼·이사 답례떡, 뭘 고르고 몇 개 준비하나</td><td>스티커·답례떡</td><td>④상황</td><td>블로그</td><td><b>답례 수요 상시</b></td></tr>
+    <tr><td>C15</td><td>답례 스티커 6종 시안 모음</td><td>스티커</td><td>—</td><td>이미지</td><td>답례 전환</td></tr>
+    <tr><td>C16</td><td>흑임자와 팥, 뭘 고를까 — 취향 가이드</td><td>제품</td><td>③비교</td><td>카드뉴스</td><td>구매 결정 지원</td></tr>
+    <tr><td>C17</td><td>추석 선물세트 상세페이지 개편</td><td>전 소재</td><td>—</td><td>상세페이지</td><td>전환</td></tr>
+    <tr><td>C18</td><td>선물 받은 분들이 다시 전화 주는 이유</td><td>고객데이터</td><td>⑤사람</td><td>블로그</td><td>후기 기반 신뢰</td></tr>
+  </table>
 
-  <h4>한과 브랜드들이 지금 하고 있는 것</h4>
-  <p><span class="p p-b">사실</span> 2009년 설립 한과 브랜드 <b>윤의궁</b>은 8/14~16 코엑스 명절선물전에 참가해 경복궁·신세계·십장생·춘하추동 선물세트와 전통 강정을 변형한 '오곡&amp;넛츠 버무리'를 선보였다. 이를 기점으로 <strong>기업·공공기관 명절 선물·답례품 공급 확대와 백화점 입점 강화</strong>를 계획하고 있다.</p>
-  <p><span class="p p-b">사실</span> 1982년 성남 방앗간 브랜드 <b>고소연</b>도 창립 이후 처음 이 박람회에 참가해 기업·단체 고객 대상 1:1 맞춤 주문 상담을 진행했다. 원산지·구성, 수량별 견적, 맞춤 포장, 납기 일정, 개별 배송 가능 여부 문의가 이뤄졌다.</p>
-  <div class="co co-r">
-    <b>주목할 것</b>
-    두 브랜드 모두 백년화편과 같은 포지션(전통·장인·가족기업)이고, 같은 목표(기업·공공기관 납품, 백화점 입점)를 갖고 있으며, <strong>박람회를 그 수단으로 쓰고 있다.</strong>
+  <div class="box box-amber">
+    <b>이번 시즌에 실제로 발행할 것은 30개 중 12개다.</b> 나머지 18개는 <b>설·상시 콘텐츠로 이월</b>한다. D-35에 30개를 쓰겠다는 계획은 지켜지지 않는다. 5장에 12편의 상세 기획서를 넣었다.
   </div>
 </div>
 
 <!-- 4 -->
-<h2>4 · 놓친 채널</h2>
-<div class="card">
-  <h3>명절선물전 — 6개 조건을 전부 충족한다</h3>
-  <p><span class="p p-b">사실</span> '2026 한가위 명절선물전&amp;소금박람회'는 8/14~16 코엑스 Hall D에서 열렸다. 기업·협단체 대량 구매 담당자부터 일반 소비자까지 참여하는 명절선물 전문 전시회로, 대형 유통매장이나 백화점에서 접하기 어려운 상품을 포함해 1,000여 종을 소개한다. <strong>약 300개 부스, 관람객 4만여 명 예상.</strong></p>
+<div class="card" id="s4">
+  <h2>4. 포맷별 기획</h2>
 
-  <h4>마스터 문서 B2B 채널 조건과 대조</h4>
-  <div class="tw">
   <table>
-    <thead><tr><th>조건</th><th>충족</th><th>근거</th></tr></thead>
-    <tbody>
-      <tr><td>① 택배 발송 + 납품 당일 소진</td><td><span class="p p-g">충족</span></td><td>전시 후 개별 발주 구조</td></tr>
-      <tr><td>② HACCP 불필요</td><td><span class="p p-g">충족</span></td><td>전시 참가에 인증 요건 없음</td></tr>
-      <tr><td>③ 사전 주문 확정</td><td><span class="p p-g">충족</span></td><td>현장 상담 → 이후 발주</td></tr>
-      <tr><td>④ 대량 구매</td><td><span class="p p-g">충족</span></td><td>기업·협단체 구매 담당자 참관</td></tr>
-      <tr><td>⑤ 반복 구매</td><td><span class="p p-g">충족</span></td><td>연 2회(설·추석) 개최</td></tr>
-      <tr><td>⑥ 인바운드 구조</td><td><span class="p p-g">충족</span></td><td><b>부스에 사람이 찾아온다</b></td></tr>
-    </tbody>
+    <tr><th style="width:16%">포맷</th><th style="width:14%">편수</th><th style="width:20%">분량·규격</th><th>원칙</th></tr>
+    <tr><td><b>블로그·검색 글</b></td><td>8편</td><td>1,200~2,000자<br>이미지 3~5컷</td><td>정보 90% / 상품 10%. 하단에 상품 링크 1회 + 전화번호 1회. <b>제목에 키워드를 앞쪽에 배치</b></td></tr>
+    <tr><td><b>상세페이지</b></td><td>2건</td><td>모바일 세로 스크롤</td><td>상단 6초 안에 <b>특허·명인·4無</b> 3개 배지. 성분표·산지는 하단</td></tr>
+    <tr><td><b>카드뉴스</b></td><td>3세트</td><td>1080×1080 / 5~8컷</td><td>1컷당 문장 1개. <b>글자 크기 60pt 이상</b> — 60대 이상 고객 비중이 높다</td></tr>
+    <tr><td><b>인포그래픽</b></td><td>1건</td><td>세로 1080×2400</td><td>산지 지도 1장. 블로그·상세페이지·제안서에 <b>전부 재사용</b></td></tr>
+    <tr><td>제외</td><td>—</td><td>—</td><td>숏폼·영상</td></tr>
   </table>
+
+  <div class="box box-blue">
+    <b>고령층 가독성 규칙 3개.</b> 주요 고객이 60대 이상이다. ① 카드뉴스 본문 60pt 이상 ② 배경 대비 4.5:1 이상, 흐린 회색 텍스트 금지 ③ 블로그 문단은 3줄 이내로 끊기. 이 3개를 안 지키면 만든 콘텐츠를 <b>주 고객층이 못 읽는다.</b>
   </div>
-  <div class="co co-g">
-    <b>백년화편이 특히 유리한 자리인 이유</b>
-    대한명인 제10-311호, 한국·일본 특허, 세계 유일 밥알 공법은 300개 부스 중 <strong>시각적으로 설명 가능한 몇 안 되는 차별점</strong>이다. 그리고 시식이 가능한 환경이다 — "먹어보고 산다"는 구매 트리거가 그대로 작동한다.
-  </div>
-  <h4>다음 기회</h4>
-  <p><span class="p p-b">사실</span> 설맞이 명절선물전 참가업체 모집은 <strong>11월 중순 마감</strong>, 전시는 12월 코엑스. 주최 메쎄이엔디 / 대한급식신문사, <code>fgfair.com</code></p>
 </div>
 
 <!-- 5 -->
-<h2>5 · 3층 — 채널 지배자가 만든 규칙</h2>
-<div class="card">
-  <h3>백화점까지 사전예약 전쟁에 들어왔다</h3>
-  <p><span class="p p-b">사실</span> 롯데·신세계·현대백화점은 <strong>8월 14일부터</strong> 2026 추석 사전예약 판매를 진행 중이다.</p>
-  <div class="tw">
-  <table>
-    <thead><tr><th>백화점</th><th>규모</th><th>혜택</th></tr></thead>
-    <tbody>
-      <tr><td>롯데</td><td>인기 상품 물량 최대 2배 확대</td><td>사전예약 매출 25년 추석 <b>+95%</b>, 26년 설 <b>+120%</b> 연속 역대 최대</td></tr>
-      <tr><td>신세계</td><td>370여 종 (전년 추석 대비 +25%)</td><td>최대 65% 할인</td></tr>
-      <tr><td>현대</td><td>300여 종</td><td>최대 25% 할인</td></tr>
-    </tbody>
-  </table>
-  </div>
-  <div class="co co-r">
-    <b>시사점</b>
-    백화점·마트가 전부 8월 초중순에 예약을 열었다. 소비자는 이미 <strong>"명절 선물은 8월에 정하는 것"</strong>으로 학습 완료 상태다. 백년화편이 9월에 움직이면 이미 지갑이 닫혀 있다.
+<div class="card" id="s5">
+  <h2>5. 편별 상세 기획서 12편</h2>
+  <p>발행 순서대로 배열. 각 편에 제목·후킹 문장·목차·필요 이미지·분량·발행일을 명시했다.</p>
+
+  <!-- 1 -->
+  <div class="brief">
+    <span class="no">01 · B2B · 블로그</span>
+    <h4>2026 추석 선물 가액 기준 정리 — 5만 / 15만 / 30만</h4>
+    <div class="hook"><span class="lbl">후킹 문장</span>추석 선물을 준비하면서 가장 먼저 확인해야 하는 건 브랜드가 아니라 금액입니다.
+같은 10만 원짜리라도 품목에 따라 보내도 되는 것과 안 되는 것이 갈립니다.</div>
+    <table>
+      <tr><th>목차</th><td>① 세 가지 기준선 5만·15만·30만 ② 30만 원이 적용되는 30일은 언제부터인가(추석 24일 전~5일 후) ③ 택배로 보낼 때는 발송일이 기준 ④ 금액과 무관하게 금지되는 경우 ⑤ 실무 체크리스트 5줄</td></tr>
+      <tr><th>이미지</th><td>가액 구간표 1컷(제작) · 캘린더 이미지 1컷(제작)</td></tr>
+      <tr><th>분량·발행</th><td>2,000자 · D-28 (8/28)</td></tr>
+      <tr><th>주의</th><td>"안전"·"걱정 없는" 표현 금지. 사실 진술만. <b>법률 검수 후 발행</b></td></tr>
+    </table>
   </div>
 
-  <h4>트렌드 축 3개</h4>
-  <div class="tw">
-  <table>
-    <thead><tr><th>축</th><th>내용</th><th>백년화편 대응</th></tr></thead>
-    <tbody>
-      <tr><td><b>실속형</b></td><td>2026년 설 사전예약 기준 대형마트 5만원 미만 세트 매출이 전년 대비 크게 증가. "예산 안에서 알찬 구성" 선호</td><td><span class="p p-g">◎</span> 42,000원이 정확히 이 구간</td></tr>
-      <tr><td><b>건강</b></td><td>2026년 설 주요 유통업체 건강 관련 선물 매출 <b>전년 대비 +65%</b></td><td><span class="p p-g">◎</span> 백세시대(상황찰현미·병아리콩) 라인</td></tr>
-      <tr><td><b>데이터 검증형</b></td><td>사전에 판매 반응을 확인한 실용성 높은 상품 중심으로 재편</td><td><span class="p p-a">△</span> 자사 리뷰 데이터 활용 필요</td></tr>
-    </tbody>
-  </table>
+  <!-- 2 -->
+  <div class="brief">
+    <span class="no">02 · B2C · 블로그</span>
+    <h4>떡에 들어가는 첨가물 4가지, 왜 안 넣는가</h4>
+    <div class="hook"><span class="lbl">후킹 문장</span>시중 떡 뒷면을 보면 잔탄검, 산도조절제, 구연산, 유화제가 적혀 있습니다.
+넣으면 더 쫀득해지고, 더 오래 갑니다.
+백년화편은 이 넷을 넣지 않습니다. 대신 오늘 만든 것만 오늘 내보냅니다.</div>
+    <table>
+      <tr><th>목차</th><td>① 네 가지가 하는 일 ② 왜 넣게 되는가 — 유통기한의 문제 ③ 안 넣으면 생기는 제약(당일 생산·전날 17시 마감) ④ 제약을 감수하는 이유 ⑤ 30년간 바뀌지 않은 기준</td></tr>
+      <tr><th>이미지</th><td>원재료 클로즈업(카탈로그 보유) · 성분표 비교 이미지(제작) · 새벽 작업 사진 <span class="badge b-red">촬영 필요</span></td></tr>
+      <tr><th>분량·발행</th><td>1,800자 · D-27 (8/29)</td></tr>
+      <tr><th>메모</th><td><b>이번 기획 전체에서 가장 강한 소재.</b> 경쟁사가 따라 쓰기 어렵고, 4無는 카탈로그에만 있고 온라인에 없다. 상시 콘텐츠로도 계속 재사용</td></tr>
+    </table>
+  </div>
+
+  <!-- 3 -->
+  <div class="brief">
+    <span class="no">03 · B2B · 블로그</span>
+    <h4>2026 추석 선물, 언제까지 주문해야 도착하나</h4>
+    <div class="hook"><span class="lbl">후킹 문장</span>추석 전 일주일은 택배가 가장 밀리는 구간입니다.
+당일 만들어 보내는 떡은 특히 그렇습니다. 날짜를 먼저 정하고 수량을 정하는 게 안전합니다.</div>
+    <table>
+      <tr><th>목차</th><td>① 추석 전 택배 피크 구간 ② 수량별 주문 마감일(20 / 100 / 300박스) ③ 당일 생산 상품이 다른 이유 ④ 발송일 지정 방법 ⑤ 마감 캘린더</td></tr>
+      <tr><th>이미지</th><td>9월 캘린더에 마감일 표시(제작) 1컷</td></tr>
+      <tr><th>분량·발행</th><td>1,200자 · D-24 (9/1)</td></tr>
+      <tr><th>선행</th><td><b>출고 캐파 확정 필요</b> — 숫자 없이 쓸 수 없는 글</td></tr>
+    </table>
+  </div>
+
+  <!-- 4 -->
+  <div class="brief">
+    <span class="no">04 · B2C · 블로그+사진</span>
+    <h4>밥알이 살아있다는 게 무슨 뜻인가</h4>
+    <div class="hook"><span class="lbl">후킹 문장</span>찹쌀떡을 반으로 자르면 대부분 매끈합니다.
+백년화편 떡을 자르면 밥알이 보입니다. 이 차이 하나로 특허를 받았습니다.</div>
+    <table>
+      <tr><th>목차</th><td>① 단면 사진부터 ② 밥알이 남으려면 무엇이 필요한가 — 절구 ③ 기계 반죽과의 차이 ④ 식감이 어떻게 달라지는가 ⑤ 특허번호 제10-1771023호</td></tr>
+      <tr><th>이미지</th><td><b>단면 클로즈업 3컷</b>(카탈로그 보유분 + 신규) · 절구 공정 <span class="badge b-red">촬영 필요</span> · 특허증 사본 1컷</td></tr>
+      <tr><th>분량·발행</th><td>1,500자 · D-22 (9/3)</td></tr>
+      <tr><th>재사용</th><td>단면 사진은 상세페이지·제안서·카드뉴스에 전부 재사용</td></tr>
+    </table>
+  </div>
+
+  <!-- 5 -->
+  <div class="brief">
+    <span class="no">05 · B2B · 블로그</span>
+    <h4>인원 300명, 예산 1,200만 원 — 명절 선물 정하는 순서</h4>
+    <div class="hook"><span class="lbl">후킹 문장</span>예산이 총액으로만 정해져 있으면 품목부터 고르면 안 됩니다.
+인원을 먼저 확정하고, 총액을 인원으로 나누고, 그 단가에서 후보를 좁히는 순서입니다.</div>
+    <table>
+      <tr><th>목차</th><td>① 대상 확정(임직원·거래처 분리) ② 총액 ÷ 인원 = 목표 단가 ③ 단가별 품목 후보 ④ 불호 리스크가 낮은 조건 ⑤ 결재 올릴 때 쓰는 한 줄 문장</td></tr>
+      <tr><th>이미지</th><td>예산 계산 표 1컷(제작)</td></tr>
+      <tr><th>분량·발행</th><td>1,800자 · D-20 (9/5)</td></tr>
+    </table>
+  </div>
+
+  <!-- 6 -->
+  <div class="brief">
+    <span class="no">06 · B2C · 인포그래픽</span>
+    <h4>재료가 어디서 오는가 — 백년화편 산지 지도</h4>
+    <div class="hook"><span class="lbl">후킹 문장</span>충청 노은 찹쌀, 제주 한라산 모시, 경산 대추, 영주 서리태, 공주 정안 밤, 신안 천일염, 가평 잣.
+떡 하나에 들어가는 재료가 오는 곳입니다.</div>
+    <table>
+      <tr><th>구성</th><td>한반도 지도 위 산지 7곳 핀 + 재료명 + 한 줄 설명. 하단에 캘리포니아 호두 별도 표기(수입 원료 정직하게 표기)</td></tr>
+      <tr><th>이미지</th><td>지도 일러스트(제작) · 재료 컷은 카탈로그 유리병 사진 재사용 가능</td></tr>
+      <tr><th>규격·발행</th><td>1080×2400 · D-18 (9/7)</td></tr>
+      <tr><th>재사용</th><td><b>가장 활용도 높은 자산.</b> 블로그·상세페이지·제안서·박스 안쪽 인쇄까지 전부 사용</td></tr>
+    </table>
+  </div>
+
+  <!-- 7 -->
+  <div class="brief">
+    <span class="no">07 · B2C · 블로그+사진</span>
+    <h4>왜 15cm 어린 쑥만 쓰는가</h4>
+    <div class="hook"><span class="lbl">후킹 문장</span>쑥은 자랄수록 향이 세지고 동시에 써집니다.
+백년화편은 평균 15cm 내외, 새로 난 어린 쑥만 골라 씁니다. 가열 시간도 절반으로 줄였습니다.</div>
+    <table>
+      <tr><th>목차</th><td>① 쑥의 나이와 맛 ② 15cm라는 기준 ③ 왜 제주산인가 ④ 가열 시간을 절반으로 줄인 이유 ⑤ HACCP 인증 공장 관리</td></tr>
+      <tr><th>이미지</th><td>어린 쑥 클로즈업(카탈로그 보유) · 선별 작업 <span class="badge b-red">촬영 필요</span> · 백세시대 단면</td></tr>
+      <tr><th>분량·발행</th><td>1,500자 · D-16 (9/9)</td></tr>
+    </table>
+  </div>
+
+  <!-- 8 -->
+  <div class="brief">
+    <span class="no">08 · B2C · 카드뉴스 5컷</span>
+    <h4>떡 맛있게 먹는 법 — 해동 30분의 이유</h4>
+    <div class="hook"><span class="lbl">컷별 문장</span>1컷 — 떡, 그냥 드시면 손해입니다
+2컷 — 냉장에서 꺼내 30분, 실온에 두세요
+3컷 — 밥알의 식감이 그때 가장 살아납니다
+4컷 — 급하시면 전자레인지 20초
+5컷 — 남으면 하나씩 냉동. 먹을 때만 꺼내세요</div>
+    <table>
+      <tr><th>이미지</th><td>제품 컷 5개(보유분 활용 가능) · 시계·전자레인지 아이콘</td></tr>
+      <tr><th>규격·발행</th><td>1080×1080 5컷 · <b>본문 60pt 이상</b> · D-14 (9/11)</td></tr>
+      <tr><th>목적</th><td>수령자 만족도 → 재구매·전화 유입. <b>박스 안쪽 인쇄물과 동일 내용을 공유</b></td></tr>
+    </table>
+  </div>
+
+  <!-- 9 -->
+  <div class="brief">
+    <span class="no">09 · B2C · 블로그</span>
+    <h4>추석에 부모님 선물, 뭘 드려야 안 남을까</h4>
+    <div class="hook"><span class="lbl">후킹 문장</span>홍삼은 이미 드시고 계시고, 과일은 상하고, 고기는 부담스럽습니다.
+부모님 세대가 실제로 반기는 선물은 조금 다릅니다.</div>
+    <table>
+      <tr><th>목차</th><td>① 안 남는 선물의 조건 ② 부모님 세대의 떡에 대한 감각 ③ 첨가물 없는 떡을 고르는 기준 ④ 나눠 드리기 좋은 구성 ⑤ 보관·해동</td></tr>
+      <tr><th>이미지</th><td>상차림 컷(카탈로그 보유) · 개별 포장 컷</td></tr>
+      <tr><th>분량·발행</th><td>1,500자 · D-12 (9/13)</td></tr>
+      <tr><th>메모</th><td>추석 시즌 B2C 검색 수요가 가장 몰리는 주제. <b>02번 글로 내부 링크 연결</b></td></tr>
+    </table>
+  </div>
+
+  <!-- 10 -->
+  <div class="brief">
+    <span class="no">10 · B2B · 카드뉴스 8컷</span>
+    <h4>한 장으로 보는 백년화편</h4>
+    <div class="hook"><span class="lbl">컷별 문장</span>1컷 — 1996년, 서울 강동
+2컷 — 대한명인 제10-311호 김명희
+3컷 — 밥알이 살아있는 떡, 한국·일본 특허
+4컷 — 특허번호 제10-1771023호
+5컷 — 잔탄검·산도조절제·구연산·유화제 무첨가
+6컷 — 충청 노은쌀, 신안 천일염, 제주 참쑥
+7컷 — 오늘 만든 떡만 오늘 내보냅니다
+8컷 — 백년화편 · 1588-5678</div>
+    <table>
+      <tr><th>이미지</th><td>인물 컷(카탈로그 보유) · 인증서 · 단면 · 원료 · 산지 지도(06번 재사용)</td></tr>
+      <tr><th>규격·발행</th><td>1080×1080 8컷 · D-10 (9/15)</td></tr>
+      <tr><th>재사용</th><td><b>제안서 3페이지에 그대로 삽입.</b> 콘텐츠와 세일즈 도구를 한 번에 해결</td></tr>
+    </table>
+  </div>
+
+  <!-- 11 -->
+  <div class="brief">
+    <span class="no">11 · B2C · 블로그</span>
+    <h4>돌·결혼·이사 답례떡, 뭘 고르고 몇 개 준비하나</h4>
+    <div class="hook"><span class="lbl">후킹 문장</span>답례떡은 수량을 정하는 게 제일 어렵습니다.
+모자라면 곤란하고 남으면 아깝습니다. 상황별 기준을 정리했습니다.</div>
+    <table>
+      <tr><th>목차</th><td>① 상황별 수량 기준(돌·결혼·이사·개업·조문) ② 구성 고르는 법 ③ <b>스티커 무료 제작(20개 이상)</b> ④ 주문 마감·수령 방법 ⑤ 포장 옵션</td></tr>
+      <tr><th>이미지</th><td>답례떡 라인업(카탈로그 보유) · <b>스티커 6종 시안</b>(보유) · 포장 컷</td></tr>
+      <tr><th>분량·발행</th><td>1,800자 · D-8 (9/17)</td></tr>
+      <tr><th>메모</th><td>추석 시즌 종료 후에도 <b>연중 유입되는 상시 콘텐츠</b>. 시즌이 지나도 살아남는 유일한 편</td></tr>
+    </table>
+  </div>
+
+  <!-- 12 -->
+  <div class="brief">
+    <span class="no">12 · 공통 · 상세페이지</span>
+    <h4>추석 선물세트 상세페이지 개편</h4>
+    <table>
+      <tr><th>상단 6초</th><td>제품 컷 → 배지 3개(<b>한·일 특허 / 대한명인 제10-311호 / 4無</b>) → 가격·구성</td></tr>
+      <tr><th>중단</th><td>단면 사진(04번) → 밥알 설명 → 산지 지도(06번) → 4無 설명(02번 요약) → 해동법(08번 요약)</td></tr>
+      <tr><th>하단</th><td>구성·중량·보관법 → 배송 가능 범위 → 수량 할인 → 전화번호</td></tr>
+      <tr><th>발행</th><td>D-26 (8/30) — <b>블로그보다 먼저.</b> 유입시킬 곳이 준비돼야 콘텐츠가 의미를 가짐</td></tr>
+      <tr><th>원칙</th><td>모든 블로그 글이 이 페이지로 모인다. <b>상세페이지가 콘텐츠의 종착지</b></td></tr>
+    </table>
+  </div>
+
+  <div class="box box-amber">
+    <b>발행 순서가 12 → 01 → 02 인 이유.</b> 상세페이지(12)를 먼저 고친 뒤 블로그를 푼다. 유입시킬 페이지가 정리 안 된 상태에서 글부터 쓰면, 들어온 사람이 갈 곳이 없다.
   </div>
 </div>
 
 <!-- 6 -->
-<h2>6 · 안 쓰고 있는 무기</h2>
-<div class="card">
-  <h3>김영란법 한도가 백년화편 편이다</h3>
-  <p><span class="p p-b">사실</span> 청탁금지법상 직무 관련 공직자에게 사교·의례 목적으로 제공 가능한 <strong>일반 선물은 5만원 이하</strong>, <strong>농축수산물 및 요건을 충족하는 농축수산가공품은 15만원 이하</strong>이며, 설·추석 명절 기간에는 해당 한도가 상향된다.</p>
-  <p>떡은 농축수산가공품이다.</p>
-  <div class="tw">
+<div class="card" id="s6">
+  <h2>6. 촬영·이미지 컷 리스트</h2>
+  <p>기존 카탈로그 사진이 상당히 좋아서 <b>신규 촬영은 5컷이면 충분하다.</b> 반나절 촬영으로 12편 전부를 커버한다.</p>
+
+  <h3>6-1. 신규 촬영 필요 <span class="badge b-red">반나절 · D-30 이전</span></h3>
   <table>
-    <thead><tr><th>상품</th><th>가격</th><th>일반 5만원 한도</th><th>농축수산가공품 한도</th></tr></thead>
-    <tbody>
-      <tr class="hl"><td>밥알찹쌀떡</td><td class="num">42,000원</td><td><span class="p p-g">통과</span></td><td><span class="p p-g">여유</span></td></tr>
-      <tr><td>백년화편 7호</td><td class="num">111,000원</td><td><span class="p p-r">초과</span></td><td><span class="p p-g">명절 기간 가능</span></td></tr>
-      <tr><td>백년명품 5호</td><td class="num">241,000원</td><td><span class="p p-r">초과</span></td><td><span class="p p-r">초과</span></td></tr>
-    </tbody>
+    <tr><th style="width:6%">#</th><th style="width:24%">컷</th><th style="width:26%">촬영 포인트</th><th>사용처</th></tr>
+    <tr><td>1</td><td><b>절구 치는 공정</b></td><td>손과 절구가 함께. 움직임이 느껴지는 각도</td><td>04, 10, 상세페이지</td></tr>
+    <tr><td>2</td><td><b>새벽 작업 장면</b></td><td>시계 또는 창밖 어둠이 함께 잡히게. "당일 생산" 증명</td><td>02, 11, 상세페이지</td></tr>
+    <tr><td>3</td><td><b>쑥 선별 작업</b></td><td>손으로 고르는 장면 + 15cm 크기 비교 가능한 스케일</td><td>07</td></tr>
+    <tr><td>4</td><td><b>단면 클로즈업</b></td><td>밥알이 선명하게. 자연광. <b>가장 중요한 컷</b></td><td>04, 10, 12, 카드뉴스 전체</td></tr>
+    <tr><td>5</td><td><b>생산일 스탬프</b></td><td>박스에 찍힌 날짜. 손과 함께</td><td>03, 상세페이지</td></tr>
   </table>
-  </div>
-  <div class="co co-b">
-    <b>왜 중요한가</b>
-    마스터 문서의 공개입찰 채널(나라장터·SMPP·학교장터 S2B·aT)은 전부 공공 영역이다. 구매 담당자가 가장 먼저 확인하는 게 청탁금지법 한도다. 홍삼·한우·과일 경쟁사는 이 한도를 쉽게 넘긴다. <strong>백년화편 42,000원은 한도 걱정 없이 살 수 있는 가격</strong>이고, 국산 원재료 100%라 요건도 명확하다. 지금 상품 페이지 어디에도 이 언급이 없다.
-  </div>
-  <p class="note">정확한 요건과 명절 기간 상향 한도는 국민권익위원회 고시 확인 필요. 마케팅 문구로 쓰기 전 법무 검토 권장.</p>
+
+  <h3>6-2. 기존 자산 활용 (촬영 불필요)</h3>
+  <table>
+    <tr><th style="width:30%">보유 이미지</th><th>사용처</th></tr>
+    <tr><td>원재료 유리병 컷 (대추·마·쑥·소금·서리태·기장·팥·찹쌀)</td><td>02, 06, 상세페이지</td></tr>
+    <tr><td>제품 단독·상차림 컷 전 라인</td><td>08, 09, 12</td></tr>
+    <tr><td>명인 인물 컷</td><td>10, 11</td></tr>
+    <tr><td>답례 스티커 6종 시안</td><td>11, 답례 상세페이지</td></tr>
+    <tr><td>포장 옵션 컷(부직포·쇼핑백·보자기)</td><td>11, 12</td></tr>
+    <tr><td>백세시대 단면·재료 배치 컷</td><td>07</td></tr>
+  </table>
+
+  <h3>6-3. 제작 필요 그래픽</h3>
+  <ul>
+    <li>산지 지도 인포그래픽 1건 (06) — <b>재사용 최다</b></li>
+    <li>가액 구간표 1건 (01)</li>
+    <li>9월 마감 캘린더 1건 (03)</li>
+    <li>예산 계산 표 1건 (05)</li>
+    <li>성분표 비교 이미지 1건 (02) — <span class="badge b-red">타사 제품 직접 비교는 표시광고법 리스크. 일반화된 형태로 제작</span></li>
+  </ul>
 </div>
 
 <!-- 7 -->
-<h2>7 · 액션</h2>
-<div class="card">
-  <h3>즉시 · 이번 주</h3>
-  <ul class="act">
-    <li><div class="k">1</div><div>
-      <div class="t">설맞이 명절선물전 참가 준비 — 최우선</div>
-      <div class="d"><code>fgfair.com</code> · 11월 중순 모집 마감, 12월 코엑스. 마스터 문서 B2B 조건 6개를 전부 충족하는데 리스트에 없던 항목이다. 비용·부스 규모 문의부터 시작.</div>
-    </div></li>
-    <li><div class="k">2</div><div>
-      <div class="t">김영란법 한도 문구를 상품 페이지에 추가</div>
-      <div class="d">"청탁금지법 농축수산가공품 기준 충족 / 국내산 원재료 100%". 공공기관·기업 구매 담당자에게는 이 한 줄이 스펙 열 줄보다 강하다.</div>
-    </div></li>
-    <li><div class="k">3</div><div>
-      <div class="t">3만원대 세트를 임직원 선물 전용으로 명명</div>
-      <div class="d">백년의정 2호가 30,000원. 단체선물 표준인 1인당 3만원과 정확히 일치한다. 상품명·페이지에 "임직원 선물" 명시. 지금은 이 용도로 검색되지 않는다.</div>
-    </div></li>
-  </ul>
-</div>
+<div class="card" id="s7">
+  <h2>7. 발행 캘린더</h2>
 
-<div class="card">
-  <h3>2주 내</h3>
-  <ul class="act">
-    <li><div class="k">4</div><div>
-      <div class="t">카카오 선물하기 "감사" 테마 대응</div>
-      <div class="d">답례떡 검색 1위 자산을 카카오 선물테마 랭킹으로 옮기는 작업. 브랜드관 보유 여부부터 확인.</div>
-    </div></li>
-    <li><div class="k">5</div><div>
-      <div class="t">"실물 선물 vs 기프티콘" 대응 논리 확보</div>
-      <div class="d">백년화편이 가진 것 — 개별 포장(나눠 먹을 수 있음), 명인 인증서 동봉, 당일생산 날짜 스탬프, 원재료 산지 설명서. <b>기프티콘은 "센스 있다"는 반응은 만들어도 "회사가 신경 썼다"는 인상은 못 만든다.</b> 이 프레임을 명시적으로 쓸 것.</div>
-    </div></li>
-  </ul>
-</div>
+  <table>
+    <tr><th style="width:14%">날짜</th><th style="width:8%">D-</th><th style="width:34%">발행</th><th style="width:12%">대상</th><th>비고</th></tr>
+    <tr><td>~8/25</td><td>D-31</td><td><b>신규 촬영 5컷</b> · 산지 지도 제작 착수</td><td>—</td><td>모든 콘텐츠의 선행</td></tr>
+    <tr><td>8/30</td><td>D-26</td><td>12. 상세페이지 개편</td><td>공통</td><td>종착지 먼저</td></tr>
+    <tr><td>8/28</td><td>D-28</td><td>01. 가액 기준 정리</td><td>B2B</td><td>법률 검수 후</td></tr>
+    <tr><td>8/29</td><td>D-27</td><td>02. 첨가물 4가지</td><td>B2C</td><td><b>최강 소재</b></td></tr>
+    <tr><td>9/1</td><td>D-24</td><td>03. 주문 마감일</td><td>B2B</td><td>캐파 확정 필요</td></tr>
+    <tr><td>9/3</td><td>D-22</td><td>04. 밥알이 살아있다는 뜻</td><td>B2C</td><td>단면 컷 필수</td></tr>
+    <tr><td>9/5</td><td>D-20</td><td>05. 예산 정하는 순서</td><td>B2B</td><td>—</td></tr>
+    <tr><td>9/7</td><td>D-18</td><td>06. 산지 지도</td><td>B2C</td><td>재사용 자산</td></tr>
+    <tr><td>9/9</td><td>D-16</td><td>07. 15cm 어린 쑥</td><td>B2C</td><td>—</td></tr>
+    <tr><td>9/11</td><td>D-14</td><td>08. 해동 30분 카드뉴스</td><td>B2C</td><td>—</td></tr>
+    <tr><td>9/13</td><td>D-12</td><td>09. 부모님 선물</td><td>B2C</td><td>검색 피크 대응</td></tr>
+    <tr><td>9/15</td><td>D-10</td><td>10. 한 장으로 보는 백년화편</td><td>B2B</td><td>제안서 겸용</td></tr>
+    <tr><td>9/17</td><td>D-8</td><td>11. 답례떡 고르는 법</td><td>B2C</td><td>시즌 후 상시</td></tr>
+    <tr><td>9/18~</td><td>D-7</td><td>03·09번 재노출 · 마감 안내</td><td>공통</td><td>신규 발행 중단</td></tr>
+    <tr><td>10월~</td><td>—</td><td>미발행 18개 주제 → 설·상시로 이월</td><td>—</td><td>12월 설 캠페인 착수</td></tr>
+  </table>
 
-<div class="card">
-  <h3>재검토 / 하지 말 것</h3>
-  <ul class="act">
-    <li><div class="k">↺</div><div>
-      <div class="t">"숏폼 소재 없음" 판정 재검토</div>
-      <div class="d">명절선물전 참가는 그 자체로 소재다. 부스, 시식 반응, 명인 현장 시연. 콘텐츠를 만들려고 만드는 게 아니라 사업 활동의 부산물로 나온다.</div>
-    </div></li>
-    <li class="no"><div class="k">✕</div><div>
-      <div class="t">할인율 경쟁</div>
-      <div class="d">명가 상시 45%, 창억 최저 8,500원, 신세계백화점 최대 65%. 이 싸움은 진다.</div>
-    </div></li>
-    <li class="no"><div class="k">✕</div><div>
-      <div class="t">9월에 명절 마케팅 시작</div>
-      <div class="d">백화점·마트가 8월 초중순에 열었다. 지갑은 그때 닫힌다.</div>
-    </div></li>
-    <li class="no"><div class="k">✕</div><div>
-      <div class="t">HACCP 완료를 기다리는 것</div>
-      <div class="d">이번 추석에는 안 나온다. 명절선물전·자사몰·전화·대량주문은 HACCP 없이 지금 가능하다.</div>
-    </div></li>
-  </ul>
+  <div class="box box-blue">
+    <b>주 2편, 총 12편.</b> 8월 말 3편 + 9월 9편. 이 이상은 리소스상 안 지켜진다. <b>12편을 제대로 쓰는 게 30편을 대충 쓰는 것보다 낫다.</b>
+  </div>
 </div>
 
 <!-- 8 -->
-<h2>8 · 동종 경쟁 요약</h2>
-<div class="card">
-  <h3>떡 브랜드 5사 <span class="p p-n" style="margin-left:6px">초판 조사 유지</span></h3>
-  <div class="tw">
+<div class="card" id="s8">
+  <h2>8. 콘텐츠 재사용 구조</h2>
+  <p>12편을 12번 만드는 게 아니라, <b>한 번 만든 것을 여러 곳에 붙인다.</b> 아래가 재사용 경로다.</p>
+
   <table>
-    <thead><tr><th>브랜드</th><th>추석 대응</th><th>가격대</th><th>비고</th></tr></thead>
-    <tbody>
-      <tr><td><b>설봄</b></td><td><span class="p p-g">완료</span></td><td class="num">6,800~90,000</td><td>title 태그가 "추석 떡선물세트 추천 BEST" · 백화점 팝업 · 카카오 브랜드관 · IP 콜라보 3건 · 대기업 레퍼런스 노출</td></tr>
-      <tr><td><b>압구정공주떡</b></td><td><span class="p p-n">없음</span></td><td class="num">20,000~148,000</td><td>단가 최고. 메타 키워드에 명절 관련 0건, SNS 미연결</td></tr>
-      <tr><td><b>창억떡</b></td><td><span class="p p-n">없음</span></td><td class="num">8,500~105,000</td><td>6월 선물세트 3개 라인 교체했으나 메인은 2월 배너 방치, "설선물" 탭 잔존</td></tr>
-      <tr><td><b>명가삼대떡집</b></td><td><span class="p p-n">없음</span></td><td class="num">11,900~18,500</td><td>선물세트 SKU 0개. 명절 경쟁자 아님 — 리스트에서 제외</td></tr>
-      <tr class="hl"><td><b>백년화편</b></td><td><span class="p p-a">부분</span></td><td class="num">2,200~350,000</td><td>카테고리는 있으나 추석 프레이밍 없음. 선물세트 대부분 퀵·매장 수령 전용</td></tr>
-    </tbody>
+    <tr><th style="width:24%">원본</th><th>재사용처</th><th style="width:12%">재사용 횟수</th></tr>
+    <tr><td><b>단면 클로즈업 사진</b></td><td>04 블로그 / 10 카드뉴스 / 12 상세페이지 / 제안서 p2 / 상품 썸네일</td><td>5회</td></tr>
+    <tr><td><b>산지 지도 (06)</b></td><td>06 단독 / 02 블로그 / 12 상세페이지 / 제안서 p3 / <b>박스 안쪽 인쇄</b></td><td>5회</td></tr>
+    <tr><td><b>02 첨가물 본문</b></td><td>02 블로그 / 12 상세페이지 요약 / 제안서 p3 / 상품 문의 답변 템플릿</td><td>4회</td></tr>
+    <tr><td><b>08 해동법</b></td><td>08 카드뉴스 / 12 상세페이지 / <b>박스 안쪽 인쇄</b> / 배송 완료 알림톡</td><td>4회</td></tr>
+    <tr><td><b>10 카드뉴스 8컷</b></td><td>10 단독 / 제안서 p3 / 상세페이지 상단 / 매장 게시물</td><td>4회</td></tr>
+    <tr><td><b>01 가액 정리</b></td><td>01 블로그 / 제안서 p7 / 전화 응대 안내 / 설 시즌 날짜만 바꿔 재발행</td><td>4회</td></tr>
   </table>
+
+  <div class="box box-green">
+    <b>설 시즌 재사용률은 70% 이상이다.</b> 01(날짜만 교체) · 02 · 04 · 05 · 06 · 07 · 08 · 10 · 11은 시즌과 무관하게 그대로 쓴다. <b>이번 추석에 12편을 만들어두면 2027년 설에는 3~4편만 새로 쓰면 된다.</b> 지금 투입하는 공수는 이번 시즌만의 비용이 아니다.
   </div>
-  <div class="co co-a">
-    <b>자사 구조 문제 <span class="p p-n">추정</span></b>
-    상품 수는 100개가 넘는데 택배 가능한 건 10여 개다(1~18호 · 소담 · 답례떡 · 떡케이크 · 맞춤떡 · 이바지떡 전부 퀵·매장 전용). 나머지는 강동구 반경 상품이다. 성장 정체의 구조적 원인일 가능성이 높다.
-  </div>
+
+  <h3>선행 확인 사항</h3>
+  <table>
+    <tr><th style="width:40%">항목</th><th>영향</th></tr>
+    <tr><td>명절 피크 일 최대 출고 캐파</td><td>03번 글 작성 불가</td></tr>
+    <tr><td>가액 관련 문구 법률 검수</td><td>01번 발행 불가</td></tr>
+    <tr><td>복리후생비 세무 검수</td><td>B8 주제(이월분) 발행 불가</td></tr>
+    <tr><td>촬영 일정 확보 (반나절)</td><td>02·04·07번 이미지 미비</td></tr>
+    <tr><td>C4 키워드 실측 (네이버 검색광고 키워드툴)</td><td>발행 순서 재배치 가능</td></tr>
+  </table>
 </div>
 
-<!-- 9 -->
-<h2>9 · 확인 불가</h2>
-<div class="card">
-  <div class="tw">
-  <table>
-    <tbody>
-      <tr><td>백년화편 명절선물전 참가 이력</td><td>검색 결과 없음 — 미참가인지 노출 부족인지 미확정</td></tr>
-      <tr><td>설맞이 명절선물전 참가비·부스 조건</td><td>fgfair.com 직접 문의 필요</td></tr>
-      <tr><td>청탁금지법 명절 기간 상향 한도 정확한 금액</td><td>권익위 고시 확인 필요</td></tr>
-      <tr><td>카카오 선물하기 백년화편 브랜드관 보유 여부</td><td>미확인</td></tr>
-      <tr><td>aT 2026 추석 조사 원자료</td><td>설 조사만 확인됨</td></tr>
-      <tr><td>명절선물전 300개 부스 중 떡 브랜드 구성</td><td>참가업체 리스트 미확보</td></tr>
-      <tr><td>각 사 실제 판매량·전환율</td><td>외부 확인 불가</td></tr>
-    </tbody>
-  </table>
-  </div>
+<div class="foot">
+  백년화편 · 2026 추석 콘텐츠 기획서 · 2026-W34 · 작성 2026-08-21<br>
+  소재 근거: 2024년 1월 카탈로그, 마스터 현황 정리 문서
 </div>
-
-<footer>
-  백년화편 정기 리서치 · 2026-W34 개정판 · 작성 2026.08.21<br>
-  경쟁사 자사몰 직접 확인 시점은 모두 2026-08-21이며 이후 변경 가능성 있음. 사실·분석·추정 배지로 구분 표기.
-</footer>
 
 </div>
 </body>
