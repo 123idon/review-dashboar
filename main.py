@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from scraper import collect_all, DATA_PATH
 from analyzer import compute_stats, get_reviews_page
 import survey_module
+from smartstore_import import merge_reviews, validate_reviews
 
 # ── 리뷰 데이터 메모리 캐시 ──
 _reviews_cache = None   # {'jasaol': [...], 'myeongga': [...], ...}
@@ -415,6 +416,8 @@ async def smartstore_status():
     """쿠키 만료 여부 + 수집 중단 감지(마지막 후기가 N일 이상 오래됐으면 경고)"""
     from scraper import load_json
     result = dict(SMARTSTORE_STATUS)
+    result["import_mode"] = "merge"
+    result["last_import"] = load_json(DATA_PATH.parent / "smartstore_import_status.json", None)
     try:
         SMARTSTORE_PATH = DATA_PATH.parent / "smartstore.json"
         reviews = load_json(SMARTSTORE_PATH, [])
@@ -443,13 +446,22 @@ async def smartstore_cookie_ok():
     SMARTSTORE_STATUS["expired_at"] = None
     return {"ok": True}
 
+def smartstore_chunk_path(import_id: str = ""):
+    import re
+    if not isinstance(import_id, str) or (import_id and not re.fullmatch(r"[a-f0-9]{32}", import_id)):
+        raise HTTPException(status_code=400, detail="잘못된 업로드 ID")
+    suffix = "_" + import_id if import_id else ""
+    return DATA_PATH.parent / f"smartstore_chunk{suffix}.json"
+
+
 @app.post("/api/import-smartstore-chunk")
 async def import_smartstore_chunk(request: Request):
     try:
         body = await request.json()
         reviews = body.get("reviews", [])
+        validate_reviews(reviews)
         replace = body.get("replace", False)
-        CHUNK_PATH = DATA_PATH.parent / "smartstore_chunk.json"
+        CHUNK_PATH = smartstore_chunk_path(body.get("import_id", ""))
         if replace:
             chunk_data = reviews
         else:
@@ -458,31 +470,50 @@ async def import_smartstore_chunk(request: Request):
                 try:
                     existing = json.loads(CHUNK_PATH.read_text(encoding="utf-8"))
                 except Exception:
-                    existing = []
+                    raise HTTPException(status_code=409, detail="업로드 파일 손상. 처음부터 다시 업로드해주세요.")
             chunk_data = existing + reviews
-        CHUNK_PATH.write_text(json.dumps(chunk_data, ensure_ascii=False), encoding="utf-8")
+        from scraper import safe_save
+        safe_save(CHUNK_PATH, chunk_data)
         return {"ok": True, "total": len(chunk_data)}
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/import-smartstore-done")
-async def import_smartstore_done():
+async def import_smartstore_done(import_id: str = "", expected_count: int = 0):
     try:
-        CHUNK_PATH = DATA_PATH.parent / "smartstore_chunk.json"
+        CHUNK_PATH = smartstore_chunk_path(import_id)
         if not CHUNK_PATH.exists():
             raise HTTPException(status_code=400, detail="청크 없음")
         from scraper import safe_save, load_json
         SMARTSTORE_PATH = DATA_PATH.parent / "smartstore.json"
         reviews = json.loads(CHUNK_PATH.read_text(encoding="utf-8"))
-        safe_save(SMARTSTORE_PATH, reviews)
+        if expected_count and len(reviews) != expected_count:
+            raise HTTPException(status_code=409, detail="전송 건수 불일치. 기존 후기는 변경하지 않았습니다.")
+        # Read strictly: a corrupt source must never be mistaken for an empty store.
+        existing = json.loads(SMARTSTORE_PATH.read_text(encoding="utf-8")) if SMARTSTORE_PATH.exists() else []
+        merged, summary = merge_reviews(existing, reviews)
+        if SMARTSTORE_PATH.exists() and (summary["added"] or summary["updated"]):
+            backup = DATA_PATH.parent / "smartstore_backups"
+            backup.mkdir(exist_ok=True)
+            safe_save(backup / f"before_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.json", existing)
+        safe_save(SMARTSTORE_PATH, merged)
+        summary["completed_at"] = datetime.now().astimezone().isoformat()
+        summary["latest_review_date"] = max(r["date"] for r in merged if r.get("date"))
+        safe_save(DATA_PATH.parent / "smartstore_import_status.json", summary)
         CHUNK_PATH.unlink(missing_ok=True)
         data = load_json(DATA_PATH, {})
         data["last_updated"] = datetime.now().isoformat()
         safe_save(DATA_PATH, data)
         invalidate_cache()  # 임포트 완료 → 캐시 무효화
-        return {"ok": True, "imported": len(reviews)}
+        return {"ok": True, **summary}
     except HTTPException:
         raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

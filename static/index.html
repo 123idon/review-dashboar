@@ -671,7 +671,7 @@ body {
   <div class="progress-bar" id="progressBar"></div>
 </div>
 <div id="cookieExpiredBanner" style="display:none;position:sticky;top:56px;left:0;width:100%;z-index:90;background:var(--red-bg);border-bottom:1px solid rgba(240,68,82,.2);padding:9px 20px;align-items:center;gap:10px;font-size:12px;font-weight:600;color:var(--red);">
-  <span>⚠️ 네이버 쿠키가 만료됐어요. 집 PC에서 쿠키를 갱신해주세요.</span>
+  <span>⚠️ 네이버 인증이 필요합니다. 수집용 브라우저에서 다시 로그인해주세요.</span>
   <span id="cookieExpiredAgo" style="color:var(--text3);font-weight:400;"></span>
   <button onclick="fetch('/api/smartstore-cookie-ok',{method:'POST'});this.parentElement.style.display='none';" style="margin-left:auto;height:24px;padding:0 12px;border-radius:50px;border:1.5px solid rgba(240,68,82,.3);background:transparent;font-size:11px;font-weight:700;color:var(--red);cursor:pointer;">확인</button>
 </div>
@@ -790,11 +790,11 @@ async function loadData(){
             banner.style.display = showWarn ? 'flex' : 'none';
             if(msgEl){
               if(s.cookie_expired){
-                msgEl.textContent = '⚠️ 네이버 로그인이 만료됐어요. 회사 PC에서 1_처음설정 파일을 실행해 다시 로그인해주세요.';
+                msgEl.textContent = '⚠️ 네이버 로그인이 만료됐어요. 수집용 브라우저에서 다시 로그인하거나 판매자센터 엑셀을 가져와주세요.';
               } else if(s.stalled){
                 const d = s.days_since;
                 const last = s.last_review_date || '?';
-                msgEl.textContent = `⚠️ 네이버 후기 수집이 ${d}일째 멈춰 있어요 (마지막 ${last}). 회사 PC의 자동수집 프로그램을 확인해주세요.`;
+                msgEl.textContent = `⚠️ 네이버 후기 수집이 ${d}일째 멈춰 있어요 (마지막 ${last}). 판매자센터 후기를 가져와 갱신해주세요.`;
               }
             }
           }
@@ -1806,69 +1806,64 @@ async function deleteMemo(id){
 async function importSmartstore(input){
   const file = input.files[0];
   if(!file) return;
-  if(!confirm(`"${file.name}" 네이버 리뷰 파일을 임포트할까요?\n기존 네이버 데이터는 교체됩니다.`)) return;
-
+  if(!confirm(`"${file.name}" 네이버 후기를 병합할까요?\n기존 후기는 보존하고 중복 후기는 갱신합니다.`)){ input.value=''; return; }
   const termBox = document.getElementById('terminalBox');
   const addLog = (msg, color='#d4d4d4') => {
-    if(termBox){ termBox.innerHTML += `<div style="color:${color}">${msg}</div>`; termBox.scrollTop = termBox.scrollHeight; }
+    if(termBox){ const line=document.createElement('div'); line.style.color=color; line.textContent=msg; termBox.appendChild(line); termBox.scrollTop=termBox.scrollHeight; }
   };
-  addLog(`[네이버 임포트] ${file.name} (${Math.round(file.size/1024)}KB) 읽는 중...`, '#dcdcaa');
-
+  input.disabled=true;
   try{
-    // SheetJS로 엑셀 파싱
-    const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs');
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, {type:'array', cellDates:true});
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
-    addLog(`[네이버 임포트] ${rows.length.toLocaleString()}건 파싱 완료`, '#4ec9b0');
-
-    const reviews = [];
-    let errors = 0;
-    for(const row of rows){
-      const dateRaw = String(row['리뷰등록일'] || '');
-      const m = dateRaw.match(/(\d{4})[.\-](\d{2})[.\-](\d{2})/);
-      if(!m){ errors++; continue; }
-      const content = String(row['리뷰상세내용'] || '').trim().slice(0,500);
-      if(!content || content.length < 2){ errors++; continue; }
-      reviews.push({
-        date: `${m[1]}-${m[2]}-${m[3]}`,
-        score: parseFloat(row['구매자평점'] || 0),
-        product: String(row['상품명'] || '').slice(0,80),
-        title: '',
-        content: content,
-        platform: 'naver',
-        author: String(row['등록자'] || '').slice(0,20),
+    let reviews;
+    if(file.name.toLowerCase().endsWith('.json')){
+      reviews=JSON.parse(await file.text());
+      if(!Array.isArray(reviews)) throw new Error('후기 배열 형식의 JSON이 필요합니다.');
+    }else{
+      const XLSX=await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
+      const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:false,nodim:true});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      reviews=rows.map((row,i)=>{
+        const raw=row['리뷰등록일'];
+        let parts;
+        if(typeof raw==='number'){
+          const d=XLSX.SSF.parse_date_code(raw); if(d) parts=[d.y,d.m,d.d];
+        }else{
+          const m=String(raw||'').match(/(\d{4})[.\-/]\s*(\d{1,2})[.\-/]\s*(\d{1,2})/);
+          if(m) parts=m.slice(1).map(Number);
+        }
+        if(!parts) throw new Error(`${i+2}행: 리뷰등록일을 확인해주세요.`);
+        return {date:parts.map((v,j)=>String(v).padStart(j===0?4:2,'0')).join('-'),
+          score:Number(row['구매자평점']),product:String(row['상품명']||''),
+          review_no:String(row['리뷰글번호']||''),title:'',content:String(row['리뷰상세내용']||'').trim(),
+          platform:'naver',author:String(row['등록자']||''),review_type:String(row['리뷰구분']||'')};
       });
     }
-    addLog(`[네이버 임포트] 변환: ${reviews.length.toLocaleString()}건 (오류 ${errors}건)`, '#4ec9b0');
-
-    // 청크 전송
-    const CHUNK = 500;
-    for(let i = 0; i < reviews.length; i += CHUNK){
-      const chunk = reviews.slice(i, i+CHUNK);
-      const res = await fetch('/api/import-smartstore-chunk', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({reviews: chunk, replace: i===0})
+    if(!reviews.length) throw new Error('후기가 0건입니다. 기존 데이터는 변경하지 않았습니다.');
+    if(reviews.some(r=>!r || !r.content || !String(r.content).trim() || !Number.isFinite(r.score) || r.score<1 || r.score>5 || !/^\d{4}-\d{2}-\d{2}$/.test(r.date) || !['naver','smartstore'].includes(r.platform))){
+      throw new Error('날짜·평점·본문·플랫폼을 확인해주세요. 업로드를 중단했습니다.');
+    }
+    const importId=crypto.randomUUID().replaceAll('-','');
+    addLog(`[네이버] ${reviews.length.toLocaleString()}건 검증 완료`, '#4ec9b0');
+    const CHUNK=500;
+    for(let i=0;i<reviews.length;i+=CHUNK){
+      const chunk=reviews.slice(i,i+CHUNK);
+      const res=await fetch('/api/import-smartstore-chunk',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({reviews:chunk,replace:i===0,import_id:importId})
       });
-      if(!res.ok) throw new Error('청크 전송 실패');
-      const pct = Math.round((i+chunk.length)/reviews.length*100);
-      addLog(`[네이버 임포트] 전송 중... ${(i+chunk.length).toLocaleString()}/${reviews.length.toLocaleString()}건 (${pct}%)`, '#9cdcfe');
+      if(!res.ok) throw new Error('전송 실패: '+await res.text());
+      addLog(`[네이버] ${Math.min(i+CHUNK,reviews.length).toLocaleString()}/${reviews.length.toLocaleString()}건 전송`);
     }
-
-    const doneRes = await fetch('/api/import-smartstore-done', {method:'POST'});
-    const done = await doneRes.json();
-    if(done.ok){
-      addLog(`[완료] 네이버 ${done.imported.toLocaleString()}건 임포트 완료!`, '#4ec9b0');
-      showToast('✅ 네이버 임포트 완료! ' + done.imported.toLocaleString() + '건');
-      const dataRes = await fetch('/api/data');
-      if(dataRes.ok){ allData = await dataRes.json(); updateLastUpdated(allData.last_updated); }
-    }
-  }catch(e){
-    addLog(`[실패] ${e.message}`, '#f48771');
-    showToast('❌ 임포트 실패: ' + e.message);
-  }
-  input.value = '';
+    const res=await fetch(`/api/import-smartstore-done?import_id=${importId}&expected_count=${reviews.length}`,{method:'POST'});
+    const done=await res.json();
+    if(!res.ok || !done.ok) throw new Error(done.detail||'병합 실패');
+    addLog(`[완료] 신규 ${done.added.toLocaleString()}건 · 갱신 ${done.updated.toLocaleString()}건 · 총 ${done.imported.toLocaleString()}건`, '#4ec9b0');
+    showToast(`✅ 네이버 신규 ${done.added.toLocaleString()}건 반영`);
+    const dataRes=await fetch('/api/data');
+    if(dataRes.ok){allData=await dataRes.json();updateLastUpdated(allData.last_updated);}
+    const statusRes=await fetch('/api/smartstore-status');
+    if(statusRes.ok){const st=await statusRes.json();if(!st.cookie_expired&&!st.stalled) document.getElementById('cookieExpiredBanner').style.display='none';}
+  }catch(e){addLog(`[실패] ${e.message}`,'#f48771');showToast('❌ '+e.message);}
+  finally{input.value='';input.disabled=false;}
 }
 
 async function importJasaol(input){
@@ -1983,8 +1978,8 @@ async function renderLog(){
           <input type="file" accept=".xls,.xlsx,.html,.htm" style="display:none" onchange="importJasaol(this)">
         </label>
         <label style="cursor:pointer;padding:6px 12px;background:#03C75A;color:#fff;border-radius:6px;font-size:12px;font-weight:600" title="네이버 스마트스토어 리뷰 엑셀 업로드">
-          🟢 네이버 임포트
-          <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importSmartstore(this)">
+          🟢 네이버 후기 병합
+          <input type="file" accept=".xlsx,.xls,.json" style="display:none" onchange="importSmartstore(this)">
         </label>
         <button class="refresh-btn" onclick="_refreshLog()">새로고침</button>
       </div>
