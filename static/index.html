@@ -663,6 +663,8 @@ body {
   document.documentElement.setAttribute('data-theme','day');
 })();
 </script>
+<link rel="stylesheet" href="/static/daily-report.css?v=1">
+<script src="/static/daily-report.js?v=1"></script>
 </head>
 <body>
 
@@ -692,6 +694,7 @@ body {
   <div class="header-left">
     <span class="logo">후기 대시보드</span>
     <div class="shop-tabs">
+      <button class="shop-tab" id="dailyReportTab" onclick="switchShop('daily', this)">전일 종합</button>
       <button class="shop-tab active-d" onclick="switchShop('jasaol', this)" style="font-weight:700;">백년화편</button>
       <button class="shop-tab" onclick="switchShop('changeok', this)">창억떡</button>
       <button class="shop-tab" onclick="switchShop('myeongga', this)">명가삼대떡집</button>
@@ -996,6 +999,8 @@ function switchShop(shop, el){
   // 로그 탭 나가면 폴링 정리
   if(shop !== 'log' && logPollTimer){ clearInterval(logPollTimer); logPollTimer=null; }
   document.querySelectorAll('.shop-tab').forEach(t=>t.classList.remove('active-a','active-b','active-c','active-d'));
+  if(shop==='daily'){ el.classList.add('active-a'); location.hash='daily'; renderDailyReport(); return; }
+  if(location.hash==='#daily') history.replaceState(null,'',location.pathname+location.search);
   if(shop==='memo'){ el.classList.add('active-a'); renderMemo(); return; }
   if(shop==='log'){  el.classList.add('active-a'); renderLog();  return; }
   const activeClass = shop==='changeok' ? 'active-a' : shop==='myeongga' ? 'active-b' : shop==='papa' ? 'active-c' : 'active-d';
@@ -1260,6 +1265,7 @@ function computeFilteredStats(d){
 // 전체 렌더
 // ════════════════════════════════════════
 function render(){
+  if(currentShop==='daily'){ renderDailyReport(); return; }
   if(!allData) return;
   if(currentShop==='memo'){ renderMemo(); return; }
   if(currentShop==='log'){  renderLog();  return; }

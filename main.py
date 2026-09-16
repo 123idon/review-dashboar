@@ -12,6 +12,8 @@ from scraper import collect_all, DATA_PATH
 from analyzer import compute_stats, get_reviews_page
 import survey_module
 import naver_automation as naver_auto
+import daily_report
+import asyncio
 from smartstore_import import merge_reviews, validate_reviews
 
 # ── 리뷰 데이터 메모리 캐시 ──
@@ -82,6 +84,8 @@ Path("static").mkdir(exist_ok=True)
 Path("data").mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
+DAILY_REPORT_LOCK = asyncio.Lock()
+DAILY_REPORT_DIR = DATA_PATH.parent / "daily_reports"
 
 MEMO_PATH = Path("data/memo.json")
 LOG_PATH = Path("data/collect_log.json")
@@ -181,6 +185,8 @@ async def startup():
     scheduler.add_job(run_survey_collect, "cron", hour=0, minute=20, id="survey_daily")
     scheduler.add_job(run_naver_collect, "cron", hour=0, minute=0, id="naver_daily",
                       coalesce=True, max_instances=1, misfire_grace_time=3600)
+    scheduler.add_job(run_daily_report, "cron", hour=9, minute=0, id="daily_report",
+                      coalesce=True, max_instances=1, misfire_grace_time=3600)
     scheduler.start()
     need_collect = False
     if not DATA_PATH.exists():
@@ -209,6 +215,7 @@ async def startup():
     state = naver_auto.status()
     if state.get("last_success", "")[:10] != naver_auto.now()[:10]:
         asyncio.create_task(run_naver_collect())
+    asyncio.create_task(ensure_daily_report())
     print("✅ 서버 시작 완료")
 
 @app.on_event("shutdown")
@@ -256,6 +263,48 @@ async def memo_page():
 @app.get("/changelog")
 async def changelog_page():
     return FileResponse("static/changelog.html", headers={"Cache-Control":"no-store, no-cache, must-revalidate"})
+
+async def run_daily_report():
+    from scraper import safe_save
+    async with DAILY_REPORT_LOCK:
+        def generate():
+            target = daily_report.yesterday()
+            cache = _load_reviews_cached()
+            if not cache:
+                raise RuntimeError("후기 자료를 읽지 못했습니다.")
+            report = daily_report.build_report(cache, target, naver_auto.status())
+            DAILY_REPORT_DIR.mkdir(parents=True, exist_ok=True)
+            safe_save(DAILY_REPORT_DIR / f"{target}.json", report)
+            return report
+        return await asyncio.to_thread(generate)
+
+
+async def ensure_daily_report():
+    path = DAILY_REPORT_DIR / f"{daily_report.yesterday()}.json"
+    try:
+        if path.exists():
+            report = json.loads(path.read_text(encoding="utf-8"))
+            generated = datetime.fromisoformat(report["generated_at"])
+            clock = datetime.now(daily_report.KST)
+            morning = clock.replace(hour=9, minute=0, second=0, microsecond=0)
+            if clock < morning or generated >= morning:
+                return report
+        return await run_daily_report()
+    except Exception as exc:
+        print(f"전일 종합 생성 실패: {type(exc).__name__}")
+        return None
+
+
+@app.get("/api/daily-report")
+async def get_daily_report():
+    report = await ensure_daily_report()
+    if report is None:
+        raise HTTPException(503, "전일 종합 보고서를 생성하지 못했습니다.")
+    job = scheduler.get_job("daily_report")
+    result = dict(report)
+    result["next_run"] = job.next_run_time.isoformat() if job and scheduler.running else None
+    return JSONResponse(result, headers={"Cache-Control": "no-store"})
+
 
 @app.get("/api/reports")
 async def list_reports():
