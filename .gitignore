@@ -1,3 +1,6 @@
 data/
 __pycache__/
 scraper_orig.py
+connection.json
+.naver-setup/
+playwright/.auth/

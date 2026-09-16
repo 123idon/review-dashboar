@@ -80,6 +80,8 @@ class ImportEndpointTests(unittest.TestCase):
         self.env = dict(json=json, Path=Path, datetime=datetime, Request=Request,
                         HTTPException=HTTPException, DATA_PATH=self.root / "reviews.json",
                         SMARTSTORE_STATUS={}, merge_reviews=merge_reviews,
+                        naver_auto=types.SimpleNamespace(status=lambda: {"state": "needs_login"}),
+                        scheduler=types.SimpleNamespace(get_job=lambda name: None),
                         validate_reviews=validate_reviews, invalidate_cache=lambda: None)
         tree = ast.parse((src / "main.py").read_text())
         tree.body = [n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name in

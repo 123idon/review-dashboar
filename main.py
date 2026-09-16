@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from scraper import collect_all, DATA_PATH
 from analyzer import compute_stats, get_reviews_page
 import survey_module
+import naver_automation as naver_auto
 from smartstore_import import merge_reviews, validate_reviews
 
 # ── 리뷰 데이터 메모리 캐시 ──
@@ -178,6 +179,8 @@ async def startup():
     import asyncio
     scheduler.add_job(run_collect, "cron", hour=0, minute=6, id="daily")
     scheduler.add_job(run_survey_collect, "cron", hour=0, minute=20, id="survey_daily")
+    scheduler.add_job(run_naver_collect, "cron", hour=0, minute=0, id="naver_daily",
+                      coalesce=True, max_instances=1, misfire_grace_time=3600)
     scheduler.start()
     need_collect = False
     if not DATA_PATH.exists():
@@ -199,6 +202,11 @@ async def startup():
     if os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON") and not survey_module.SURVEY_PATH.exists():
         print("📋 설문 데이터 없음 → 자동 수집 시도")
         asyncio.create_task(run_survey_collect())
+    # Catch up once after a restart if today's midnight run was missed.
+    if naver_auto.AUTH.exists():
+        last = naver_auto.status().get("last_success", "")
+        if last[:10] != naver_auto.now()[:10]:
+            asyncio.create_task(run_naver_collect())
     print("✅ 서버 시작 완료")
 
 @app.on_event("shutdown")
@@ -416,6 +424,9 @@ async def smartstore_status():
     """쿠키 만료 여부 + 수집 중단 감지(마지막 후기가 N일 이상 오래됐으면 경고)"""
     from scraper import load_json
     result = dict(SMARTSTORE_STATUS)
+    result["automation"] = naver_auto.status()
+    job = scheduler.get_job("naver_daily")
+    result["automation"]["next_run"] = job.next_run_time.isoformat() if job and scheduler.running else None
     result["import_mode"] = "merge"
     result["last_import"] = load_json(DATA_PATH.parent / "smartstore_import_status.json", None)
     try:
@@ -516,6 +527,59 @@ async def import_smartstore_done(import_id: str = "", expected_count: int = 0):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+async def run_naver_collect(candidate=None):
+    import asyncio
+    from uuid import uuid4
+    from scraper import safe_save
+    if naver_auto.LOCK.locked():
+        raise HTTPException(409, "네이버 수집이 이미 실행 중입니다.")
+    async with naver_auto.LOCK:
+        if candidate is None and not naver_auto.AUTH.exists():
+            naver_auto.record("needs_login", "최초 네이버 로그인 연결이 필요합니다.")
+            return {"ok": False, "state": "needs_login"}
+        naver_auto.record("running", "네이버 후기를 확인하고 있습니다.", started_at=naver_auto.now())
+        try:
+            state = candidate or json.loads(naver_auto.AUTH.read_text(encoding="utf-8"))
+            rows, refreshed = await asyncio.wait_for(naver_auto.export_reviews(state), timeout=600)
+            sid = uuid4().hex
+            safe_save(smartstore_chunk_path(sid), rows)
+            result = await import_smartstore_done(sid, len(rows))
+            naver_auto.private_save(naver_auto.AUTH, refreshed)
+            naver_auto.record("ready", "자동 수집 정상 · 매일 한국시간 00:00 실행",
+                              last_success=naver_auto.now(), received=len(rows), added=result["added"])
+            SMARTSTORE_STATUS.update(cookie_expired=False, expired_at=None)
+            write_log(True, f"네이버 자동 수집: {len(rows)}건 확인, {result['added']}건 추가")
+            return {"ok": True, "added": result["added"], "received": len(rows)}
+        except Exception as exc:
+            # Never log browser state, URLs containing auth data, or downloaded customer rows.
+            message = "네이버 자동 수집 실패: 로그인 인증 또는 판매자센터 화면을 확인해 주세요."
+            naver_auto.record("error", message, error_type=type(exc).__name__)
+            write_log(False, message)
+            return {"ok": False, "state": "error", "message": message}
+
+
+@app.post("/api/naver-automation/connect")
+async def connect_naver_automation(request: Request):
+    token = request.headers.get("Authorization", "").removeprefix("Bearer ")
+    if not naver_auto.pairing_allowed(token):
+        raise HTTPException(401, "연결 코드가 만료되었거나 이미 사용되었습니다.")
+    # Limit body before JSON parsing; authorization is not enough to accept arbitrary payloads.
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > 1_000_000:
+            raise HTTPException(413, "로그인 자료가 너무 큽니다.")
+    try:
+        candidate = naver_auto.filter_state(json.loads(body))
+    except (ValueError, TypeError, KeyError):
+        raise HTTPException(400, "올바른 네이버 로그인 자료가 필요합니다.")
+    result = await run_naver_collect(candidate)
+    if result.get("ok"):
+        naver_auto.private_save(naver_auto.DATA / "naver_private" / "paired.json",
+                                {"hash": os.environ["NAVER_PAIRING_SHA256"], "paired_at": naver_auto.now()})
+    return result
+
 
 # ← 여기가 핵심 수정: 데코레이터 누락 버그 수정
 @app.post("/api/import-jasaol-chunk")
