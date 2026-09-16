@@ -295,14 +295,51 @@ async def ensure_daily_report():
         return None
 
 
+@app.get("/api/daily-report/dates")
+async def get_daily_report_dates():
+    return JSONResponse({"dates": daily_report.report_dates(DAILY_REPORT_DIR),
+                         "latest_target": daily_report.yesterday()}, headers={"Cache-Control": "no-store"})
+
+
+@app.post("/api/daily-report/refresh")
+async def refresh_daily_report():
+    # Explicit refresh is restricted to the current previous-day report.
+    # Historical date snapshots are never regenerated through this endpoint.
+    invalidate_cache()
+    try:
+        report = await run_daily_report()
+        return JSONResponse({"ok": True, "date": report["date"],
+                             "generated_at": report["generated_at"], "total": report["total"]})
+    except Exception:
+        raise HTTPException(503, "보고서 갱신에 실패했습니다. 기존 보고서는 보존됩니다.")
+
+
 @app.get("/api/daily-report")
-async def get_daily_report():
-    report = await ensure_daily_report()
-    if report is None:
-        raise HTTPException(503, "전일 종합 보고서를 생성하지 못했습니다.")
+async def get_daily_report(date: str = None):
+    if date is not None:
+        try:
+            daily_report.valid_report_date(date)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc))
+        if date > daily_report.yesterday():
+            raise HTTPException(400, "전일 이전의 보고서 날짜를 선택해 주세요.")
+    target = date or daily_report.yesterday()
+    if target == daily_report.yesterday():
+        report = await ensure_daily_report()
+        if report is None:
+            raise HTTPException(503, "전일 종합 보고서를 생성하지 못했습니다.")
+    else:
+        try:
+            report = daily_report.read_report(DAILY_REPORT_DIR, target)
+        except FileNotFoundError:
+            raise HTTPException(404, "선택한 날짜에 저장된 보고서가 없습니다.")
+        except (ValueError, OSError):
+            raise HTTPException(503, "저장된 보고서를 읽지 못했습니다.")
     job = scheduler.get_job("daily_report")
     result = dict(report)
     result["next_run"] = job.next_run_time.isoformat() if job and scheduler.running else None
+    result["available_dates"] = daily_report.report_dates(DAILY_REPORT_DIR)
+    result["historical"] = target != daily_report.yesterday()
     return JSONResponse(result, headers={"Cache-Control": "no-store"})
 
 

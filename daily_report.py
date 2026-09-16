@@ -101,3 +101,32 @@ def build_report(cache, target, naver_state=None, clock=None):
             'notice':'수집된 후기만 집계합니다. 미수집·지연 채널은 전체 수치에서 누락될 수 있습니다.',
             'selection_rule':'브랜드별 최대 3건 · 저평점/불만 키워드 우선, 칭찬 후기 보완 · 원문 일부 발췌',
             'highlight_rule':'분홍: 불만 관련 단어 / 노랑: 칭찬·재구매 관련 단어. 단어 표시이며 문맥 판단은 필요합니다.'}
+
+
+def report_dates(directory):
+    """Only actual saved snapshots are listed; never fabricate past reports."""
+    dates = []
+    if directory.exists():
+        for path in directory.glob('????-??-??.json'):
+            try:
+                valid_report_date(path.stem)
+                dates.append(path.stem)
+            except ValueError:
+                continue
+    return sorted(dates, reverse=True)
+
+
+def valid_report_date(value):
+    if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+        raise ValueError('날짜 형식은 YYYY-MM-DD입니다.')
+    datetime.strptime(value, '%Y-%m-%d')
+    return value
+
+
+def read_report(directory, day):
+    import json
+    valid_report_date(day)
+    report = json.loads((directory / f'{day}.json').read_text(encoding='utf-8'))
+    if report.get('date') != day:
+        raise ValueError('저장된 보고서 날짜가 일치하지 않습니다.')
+    return report
