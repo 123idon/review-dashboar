@@ -5,11 +5,15 @@ import math
 import re
 
 KST = ZoneInfo('Asia/Seoul')
-BRANDS = [('jasaol', '백년화편', '자사'), ('myeongga', '명가삼대떡집', '경쟁사'),
-          ('papa', '파파공방', '경쟁사'), ('changeok', '창억떡', '경쟁사')]
-NEGATIVE = ('곰팡이', '이물질', '상했', '불량', '파손', '누락', '오배송', '배송 지연',
-            '딱딱', '질기', '맛없', '실망', '불친절', '환불', '아쉽', '너무 달', '녹아서')
-POSITIVE = ('재구매', '재주문', '맛있', '쫄깃', '부드럽', '만족', '추천', '친절', '빠른 배송', '선물')
+BRANDS = [('jasaol', '백년화편', '자사'), ('myeongga', '명가삼대떡집', '경쟁사')]
+# Concrete operational signals only. Generic praise and purchase intent are excluded.
+ISSUE_RULES = [
+    ('품질·위생', r'곰팡이|이물질|머리카락|벌레|상한\s*냄새|쉰\s*냄새|상했|변질'),
+    ('배송·포장', r'오배송|누락|파손|터져|터졌|찢어|찢어졌|새서|샜|녹아서|녹아\s*왔|배송.{0,12}(?:늦|지연)|(?:다른|잘못된)\s*상품'),
+    ('식감·맛', r'너무\s*(?:달|짜|딱딱|질겨)|딱딱해서|딱딱해져|질겨서|퍽퍽해서|냄새가\s*(?:심|나)|(?:예전|지난번|전보다).{0,18}(?:달라|줄었|작아|딱딱|덜|떨어)'),
+    ('개선 요청', r'(?:포장|배송|크기|양|당도|식감|가격|보관|해동).{0,35}(?:개선|바꿔|줄여|늘려|해\s*주|했으면|하면\s*좋|아쉽)'),
+]
+NEGATION = re.compile(r'(?:곰팡이|이물질|머리카락|벌레|파손|누락|오배송).{0,10}(?:없|아니)|(?:딱딱|질기|질겨|달지|짜지).{0,8}(?:않|안)|배송.{0,10}늦지\s*않')
 
 
 def yesterday(clock=None):
@@ -27,19 +31,27 @@ def score(row):
         return None
 
 
-def excerpt(text, limit=180):
-    text = re.sub(r'\s+', ' ', str(text or '')).strip()
-    if len(text) <= limit:
-        return text
-    positions = [text.find(k) for k in NEGATIVE if k in text]
-    start = max(0, min(positions)-30) if positions else 0
-    return ('…' if start else '') + text[start:start+limit] + ('…' if start+limit < len(text) else '')
-
-
 def highlights(text):
-    pattern = '|'.join(re.escape(k) for k in sorted(NEGATIVE + POSITIVE, key=len, reverse=True))
-    return [{'start': m.start(), 'end': m.end(), 'kind': 'negative' if m.group() in NEGATIVE else 'positive'}
-            for m in re.finditer(pattern, text)]
+    """Highlight at most two actionable clauses, with reasons; no sentiment claims."""
+    result = []
+    for match in re.finditer(r'[^.!?。\n,;]+', text):
+        raw = match.group()
+        phrase = raw.strip()
+        if not phrase or NEGATION.search(phrase):
+            continue
+        for reason, pattern in ISSUE_RULES:
+            hit = re.search(pattern, phrase)
+            if not hit:
+                continue
+            # Cap a very long run-on clause around its concrete issue.
+            left = max(0, hit.start()-35)
+            right = min(len(phrase), max(hit.end()+55, left+75))
+            offset = match.start()+len(raw)-len(raw.lstrip())
+            result.append({'start':offset+left,'end':offset+right,'kind':'negative','reason':reason})
+            break
+        if len(result) == 2:
+            break
+    return result
 
 
 def build_report(cache, target, naver_state=None, clock=None):
@@ -60,30 +72,19 @@ def build_report(cache, target, naver_state=None, clock=None):
             seen.add(ident)
             rows.append(row)
         latest = max((str(r.get('date', '')) for r in source), default='')
-        unavailable = key == 'changeok' and not source
+        unavailable = not source
         values = [score(r) for r in rows if score(r) is not None]
         low = [r for r in rows if score(r) is not None and score(r) <= 3]
-        def rank(r):
-            text = str(r.get('content', ''))
-            return (0 if score(r) is not None and score(r) <= 3 else 1,
-                    -sum(k in text for k in NEGATIVE), score(r) or 6,
-                    -sum(k in text for k in POSITIVE), -len(text))
-        useful = [r for r in rows if str(r.get('content', '')).strip()]
-        picked = sorted(useful, key=rank)[:2]
-        positive = sorted([r for r in useful if score(r) is not None and score(r) >= 4 and r not in picked],
-                          key=lambda r: (-sum(k in str(r.get('content', '')) for k in POSITIVE), -len(str(r.get('content', '')))))
-        if positive:
-            picked.append(positive[0])
-        else:
-            picked += [r for r in sorted(useful, key=rank) if r not in picked][:3-len(picked)]
         selected = []
-        for row in picked:
-            text = excerpt(row.get('content'))
-            selected.append({'score': score(row), 'product': str(row.get('product') or '상품명 미제공')[:65],
+        for row in rows:
+            text = str(row.get('content') or '')
+            selected.append({'score': score(row), 'product': str(row.get('product') or '상품명 미제공'),
                              'platform': str(row.get('platform') or '미분류'), 'excerpt': text,
-                             'highlights': highlights(text)})
+                             'highlights': highlights(text), 'date':target})
+        # All rows are retained; actionable issues and low ratings appear first.
+        selected.sort(key=lambda r: (not bool(r['highlights']), r['score'] if r['score'] is not None else 6))
         if unavailable:
-            coverage = '수집 미구현 · 비교 집계 제외'
+            coverage = '저장된 자료 없음 · 수집 상태 확인 필요'
         elif not latest or latest < target:
             coverage = '전일 자료 확인 필요 · 후기 없음으로 단정할 수 없음'
         else:
@@ -96,11 +97,11 @@ def build_report(cache, target, naver_state=None, clock=None):
                       'rated_count':len(values), 'low_count':len(low) if not unavailable else None,
                       'latest_review_date':latest or None, 'coverage':coverage, 'reviews':selected})
     total = sum(c['count'] or 0 for c in cards)
-    return {'date': target, 'generated_at': clock.astimezone(KST).isoformat(), 'timezone':'Asia/Seoul',
+    return {'schema_version':2, 'date': target, 'generated_at': clock.astimezone(KST).isoformat(), 'timezone':'Asia/Seoul',
             'total':total, 'low_count':sum(c['low_count'] or 0 for c in cards), 'brands':cards,
             'notice':'수집된 후기만 집계합니다. 미수집·지연 채널은 전체 수치에서 누락될 수 있습니다.',
-            'selection_rule':'브랜드별 최대 3건 · 저평점/불만 키워드 우선, 칭찬 후기 보완 · 원문 일부 발췌',
-            'highlight_rule':'분홍: 불만 관련 단어 / 노랑: 칭찬·재구매 관련 단어. 단어 표시이며 문맥 판단은 필요합니다.'}
+            'selection_rule':'백년화편·명가삼대떡집의 저장된 전일 후기 전체 · 본문 생략 없음 · 확인할 내용 우선',
+            'highlight_rule':'형광펜: 품질·위생, 배송·포장 사고, 구체적인 불만·개선 요청 문장만 표시. 일반 칭찬은 제외하며 규칙 기반이므로 문맥 확인이 필요합니다.'}
 
 
 def report_dates(directory):

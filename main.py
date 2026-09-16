@@ -287,7 +287,7 @@ async def ensure_daily_report():
             generated = datetime.fromisoformat(report["generated_at"])
             clock = datetime.now(daily_report.KST)
             morning = clock.replace(hour=9, minute=0, second=0, microsecond=0)
-            if clock < morning or generated >= morning:
+            if report.get("schema_version", 1) >= 2 and (clock < morning or generated >= morning):
                 return report
         return await run_daily_report()
     except Exception as exc:
@@ -335,6 +335,16 @@ async def get_daily_report(date: str = None):
             raise HTTPException(404, "선택한 날짜에 저장된 보고서가 없습니다.")
         except (ValueError, OSError):
             raise HTTPException(503, "저장된 보고서를 읽지 못했습니다.")
+    if report.get("schema_version", 1) < 2:
+        # Legacy snapshots contain only excerpts. Preserve the stored original and
+        # explicitly label the full-date view reconstructed from current stored rows.
+        original_generated = report.get("generated_at")
+        cache = await asyncio.to_thread(_load_reviews_cached)
+        if not cache:
+            raise HTTPException(503, "전체 후기 자료를 읽지 못했습니다.")
+        report = daily_report.build_report(cache, target, naver_auto.status())
+        report["reconstructed"] = True
+        report["original_generated_at"] = original_generated
     job = scheduler.get_job("daily_report")
     result = dict(report)
     result["next_run"] = job.next_run_time.isoformat() if job and scheduler.running else None
