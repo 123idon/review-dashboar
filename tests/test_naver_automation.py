@@ -13,35 +13,16 @@ import naver_automation as worker
 
 
 class AutomationTests(unittest.TestCase):
-    def test_pairing_rejects_expired_wrong_and_consumed_codes(self):
-        with tempfile.TemporaryDirectory() as d, patch.object(worker, 'DATA', Path(d)):
-            digest = hashlib.sha256(b'correct').hexdigest()
-            with patch.dict(os.environ, NAVER_PAIRING_SHA256=digest, NAVER_PAIRING_EXPIRES=str(time.time()+60)):
-                self.assertTrue(worker.pairing_allowed('correct'))
-                self.assertFalse(worker.pairing_allowed('wrong'))
-                worker.private_save(Path(d)/'naver_private'/'paired.json', {'hash': digest})
-                self.assertFalse(worker.pairing_allowed('correct'))
-            with patch.dict(os.environ, NAVER_PAIRING_SHA256=digest, NAVER_PAIRING_EXPIRES='1'):
-                self.assertFalse(worker.pairing_allowed('correct'))
-
-    def test_auth_excludes_unrelated_sites(self):
-        state = worker.filter_state({'cookies': [{'domain': '.naver.com', 'name': 'ok'},
-                                                 {'domain': 'naver.com.evil.example', 'name': 'bad'}],
-                                     'origins': [{'origin': 'https://sell.smartstore.naver.com'},
-                                                 {'origin': 'https://example.com'}]})
-        self.assertEqual(len(state['cookies']), 1)
-        self.assertEqual(len(state['origins']), 1)
-        with self.assertRaises(ValueError):
-            worker.filter_state({'cookies': []})
-
-    def test_session_is_private_and_status_does_not_imply_ready(self):
-        with tempfile.TemporaryDirectory() as d, patch.object(worker, 'AUTH', Path(d)/'private'/'state.json'), patch.object(worker, 'STATUS', Path(d)/'status.json'):
-            self.assertEqual(worker.status()['state'], 'needs_login')
-            worker.private_save(worker.AUTH, {'cookies': [{'value': 'secret'}]})
-            self.assertEqual(worker.AUTH.stat().st_mode & 0o777, 0o600)
-            worker.record('running', 'test')
-            self.assertEqual(worker.status()['state'], 'interrupted')
-            self.assertNotIn('secret', json.dumps(worker.status()))
+    def test_status_never_requests_an_account_and_keeps_cooldown(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(worker, 'STATUS', Path(d)/'status.json'), patch.dict(os.environ, NAVER_PUBLIC_NOT_BEFORE='0'):
+            self.assertEqual(worker.status()['state'], 'pending')
+            self.assertFalse(worker.status()['account_required'])
+            worker.record('blocked', 'limited', retry_at=time.time()+3600)
+            self.assertEqual(worker.status()['state'], 'cooldown')
+            self.assertFalse(worker.status()['session_configured'])
+            worker.private_save(worker.STATUS, {'mode':'seller', 'state':'ready', 'last_success':'2026-09-16'})
+            self.assertEqual(worker.status()['state'], 'pending')
+            self.assertNotIn('last_success', worker.status())
 
     def test_real_export_parser_handles_lying_dimensions(self):
         from openpyxl import Workbook

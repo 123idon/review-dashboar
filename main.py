@@ -202,11 +202,13 @@ async def startup():
     if os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON") and not survey_module.SURVEY_PATH.exists():
         print("📋 설문 데이터 없음 → 자동 수집 시도")
         asyncio.create_task(run_survey_collect())
-    # Catch up once after a restart if today's midnight run was missed.
-    if naver_auto.AUTH.exists():
-        last = naver_auto.status().get("last_success", "")
-        if last[:10] != naver_auto.now()[:10]:
-            asyncio.create_task(run_naver_collect())
+    # Account sessions are no longer used. Remove any retired session material.
+    naver_auto.AUTH.unlink(missing_ok=True)
+    (naver_auto.DATA / "naver_private" / "paired.json").unlink(missing_ok=True)
+    # A cooldown persists across deployments; only one catch-up per eligible day.
+    state = naver_auto.status()
+    if state.get("last_success", "")[:10] != naver_auto.now()[:10]:
+        asyncio.create_task(run_naver_collect())
     print("✅ 서버 시작 완료")
 
 @app.on_event("shutdown")
@@ -528,57 +530,54 @@ async def import_smartstore_done(import_id: str = "", expected_count: int = 0):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-async def run_naver_collect(candidate=None):
+async def run_naver_collect():
     import asyncio
+    import time
+    from datetime import timedelta
     from uuid import uuid4
-    from scraper import safe_save
+    from scraper import safe_save, load_json
+    from naver_public import collect, CollectionStopped
     if naver_auto.LOCK.locked():
-        raise HTTPException(409, "네이버 수집이 이미 실행 중입니다.")
+        return {"ok": False, "state": "running"}
+    state = naver_auto.status()
+    if float(state.get("retry_at") or 0) > time.time():
+        return {"ok": False, "state": "cooldown"}
+    if state.get("state") in ("not_allowed", "layout_changed", "unverified", "partial"):
+        # These require adapter review; do not make blind daily retries.
+        return {"ok": False, "state": state["state"]}
     async with naver_auto.LOCK:
-        if candidate is None and not naver_auto.AUTH.exists():
-            naver_auto.record("needs_login", "최초 네이버 로그인 연결이 필요합니다.")
-            return {"ok": False, "state": "needs_login"}
-        naver_auto.record("running", "네이버 후기를 확인하고 있습니다.", started_at=naver_auto.now())
+        naver_auto.record("running", "로그인 없이 공개 상품 후기를 확인하고 있습니다.", started_at=naver_auto.now())
         try:
-            state = candidate or json.loads(naver_auto.AUTH.read_text(encoding="utf-8"))
-            rows, refreshed = await asyncio.wait_for(naver_auto.export_reviews(state), timeout=600)
-            sid = uuid4().hex
-            safe_save(smartstore_chunk_path(sid), rows)
-            result = await import_smartstore_done(sid, len(rows))
-            naver_auto.private_save(naver_auto.AUTH, refreshed)
-            naver_auto.record("ready", "자동 수집 정상 · 매일 한국시간 00:00 실행",
-                              last_success=naver_auto.now(), received=len(rows), added=result["added"])
-            SMARTSTORE_STATUS.update(cookie_expired=False, expired_at=None)
-            write_log(True, f"네이버 자동 수집: {len(rows)}건 확인, {result['added']}건 추가")
+            existing = load_json(DATA_PATH.parent / "smartstore.json", [])
+            latest = max((r.get("date", "") for r in existing), default="")
+            since = (datetime.fromisoformat(latest) - timedelta(days=7)).date().isoformat() if latest else "2000-01-01"
+            rows, details = await asyncio.wait_for(collect(since), timeout=1800)
+            if rows:
+                sid = uuid4().hex
+                safe_save(smartstore_chunk_path(sid), rows)
+                result = await import_smartstore_done(sid, len(rows))
+            else:
+                result = {"added": 0}
+            naver_auto.record("ready", "공개 후기 자동 수집 정상 · 매일 한국시간 00:00",
+                              last_success=naver_auto.now(), received=len(rows), added=result["added"],
+                              retry_at=0, **details)
+            write_log(True, f"네이버 공개 후기: {len(rows)}건 확인, {result['added']}건 추가")
             return {"ok": True, "added": result["added"], "received": len(rows)}
+        except CollectionStopped as exc:
+            naver_auto.record(exc.state, str(exc), retry_at=exc.retry_at or 0)
+            write_log(False, str(exc))
+            return {"ok": False, "state": exc.state}
         except Exception as exc:
-            # Never log browser state, URLs containing auth data, or downloaded customer rows.
-            message = "네이버 자동 수집 실패: 로그인 인증 또는 판매자센터 화면을 확인해 주세요."
-            naver_auto.record("error", message, error_type=type(exc).__name__)
+            message = "공개 후기 수집 실패. 기존 후기를 유지하며 계정 로그인은 시도하지 않습니다."
+            naver_auto.record("error", message, error_type=type(exc).__name__, retry_at=time.time()+86400)
             write_log(False, message)
-            return {"ok": False, "state": "error", "message": message}
+            return {"ok": False, "state": "error"}
 
 
 @app.post("/api/naver-automation/connect")
 async def connect_naver_automation(request: Request):
-    token = request.headers.get("Authorization", "").removeprefix("Bearer ")
-    if not naver_auto.pairing_allowed(token):
-        raise HTTPException(401, "연결 코드가 만료되었거나 이미 사용되었습니다.")
-    # Limit body before JSON parsing; authorization is not enough to accept arbitrary payloads.
-    body = bytearray()
-    async for chunk in request.stream():
-        body.extend(chunk)
-        if len(body) > 1_000_000:
-            raise HTTPException(413, "로그인 자료가 너무 큽니다.")
-    try:
-        candidate = naver_auto.filter_state(json.loads(body))
-    except (ValueError, TypeError, KeyError):
-        raise HTTPException(400, "올바른 네이버 로그인 자료가 필요합니다.")
-    result = await run_naver_collect(candidate)
-    if result.get("ok"):
-        naver_auto.private_save(naver_auto.DATA / "naver_private" / "paired.json",
-                                {"hash": os.environ["NAVER_PAIRING_SHA256"], "paired_at": naver_auto.now()})
-    return result
+    # Do not even read the request body: login/session uploads have been retired.
+    raise HTTPException(410, "계정 연결 기능이 폐지되었습니다. 공개 후기 수집은 네이버 아이디를 사용하지 않습니다.")
 
 
 # ← 여기가 핵심 수정: 데코레이터 누락 버그 수정

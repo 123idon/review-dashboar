@@ -785,7 +785,7 @@ async function loadData(){
           const banner = document.getElementById('cookieExpiredBanner');
           const msgEl = banner ? banner.querySelector('span') : null;
           // 쿠키 만료 또는 수집 중단(7일 이상 신규 없음) 시 경고
-          const autoProblem = s.automation && ["needs_login","error","interrupted"].includes(s.automation.state);
+          const autoProblem = s.automation && ["pending","cooldown","blocked","not_allowed","layout_changed","partial","unverified","error","interrupted"].includes(s.automation.state);
           const showWarn = s.cookie_expired || s.stalled || autoProblem;
           if(banner){
             banner.style.display = showWarn ? 'flex' : 'none';
@@ -2000,7 +2000,7 @@ async function renderLog(){
     const data = await response.json();
     const a = data.automation;
     const node = document.getElementById('naverAutoStatus');
-    if(a && node) node.textContent = `네이버 · 매일 00:00 (한국시간) · GPT 토큰 0 · ${a.message}` + (a.last_success ? ` · 마지막 성공 ${new Date(a.last_success).toLocaleString('ko-KR', {timeZone:'Asia/Seoul'})}` : ' · 아직 자동 수집 성공 이력 없음');
+    if(a && node) node.textContent = `네이버 공개 후기 · 매일 00:00 (한국시간) · 계정 사용 안 함 · ${a.message}` + (a.last_success ? ` · 마지막 성공 ${new Date(a.last_success).toLocaleString('ko-KR', {timeZone:'Asia/Seoul'})}` : ' · 아직 자동 수집 성공 이력 없음');
   } catch(e) { const node = document.getElementById('naverAutoStatus'); if(node) node.textContent = '네이버 자동 수집 상태를 확인하지 못했습니다.'; }
   await _refreshLog();
   // 수집중이면 폴링 시작
