@@ -1806,7 +1806,6 @@ async function deleteMemo(id){
 async function importSmartstore(input){
   const file = input.files[0];
   if(!file) return;
-  if(!confirm(`"${file.name}" 네이버 후기를 병합할까요?\n기존 후기는 보존하고 중복 후기는 갱신합니다.`)){ input.value=''; return; }
   const termBox = document.getElementById('terminalBox');
   const addLog = (msg, color='#d4d4d4') => {
     if(termBox){ const line=document.createElement('div'); line.style.color=color; line.textContent=msg; termBox.appendChild(line); termBox.scrollTop=termBox.scrollHeight; }
@@ -1977,7 +1976,7 @@ async function renderLog(){
           📂 자사몰 임포트
           <input type="file" accept=".xls,.xlsx,.html,.htm" style="display:none" onchange="importJasaol(this)">
         </label>
-        <label style="cursor:pointer;padding:6px 12px;background:#03C75A;color:#fff;border-radius:6px;font-size:12px;font-weight:600" title="네이버 스마트스토어 리뷰 엑셀 업로드">
+        <label style="cursor:pointer;padding:6px 12px;background:#03C75A;color:#fff;border-radius:6px;font-size:12px;font-weight:600" title="파일을 선택하면 기존 후기를 보존하면서 병합합니다. 변경 전 데이터는 자동 백업됩니다.">
           🟢 네이버 후기 병합
           <input type="file" accept=".xlsx,.xls,.json" style="display:none" onchange="importSmartstore(this)">
         </label>
