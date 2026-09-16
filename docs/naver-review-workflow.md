@@ -66,3 +66,31 @@ python scripts/import_smartstore.py /absolute/path/reviews.json --apply
 
 공식 커머스API는 현재 리뷰 조회 기능을 제공하지 않는다:
 https://github.com/commerce-api-naver/commerce-api/discussions/3309
+
+## GPT 없이 자정 자동 실행
+
+`naver_automation.py`는 Playwright로 판매자센터의 최근 6개월 리뷰 엑셀을 내려받아
+기존 병합 함수에 전달한다. LLM이나 OpenAI API 호출은 없다.
+`naver_daily` 작업은 Asia/Seoul 00:00, 동시 실행 1개, 지연 허용 1시간으로 등록된다.
+서버 재시작 때 당일 성공 이력이 없으면 로그인 상태가 설정된 경우 1회 보충 실행한다.
+서버는 단일 replica/uvicorn worker로 운영한다. 브라우저 메모리·서버 비용은 별도다.
+
+최초 연결은 `scripts/connect_naver.py`를 사용자의 PC에서 실행하여 공식 네이버 창에
+직접 로그인한다. 전용 connection.json에는 1회용 연결 코드만 들어가며 로그인 비밀번호는
+들어가지 않는다. 연결 코드는 서버 환경의 SHA256 값과 비교하며 48시간 후 만료된다.
+실제 서버에서 엑셀 수집·병합이 성공해야 연결 코드를 소진하고 준비 완료로 표시한다.
+클라이언트 PC의 로그인 세션을 서버에서 받아주지 않는 경우 연결은 실패로 표시되며,
+클라우드 IP 차단·추가 인증을 우회하지 않는다. 이 경우 서버 직접 인증 수단 또는 PC 실행으로
+추가 구성이 필요하다. 로그인 상태를 받았다는 사실만으로 자동 갱신 성공을 주장하지 않는다.
+
+세션은 `/app/data/naver_private/state.json`에 0600으로 보관하며 공개 저장소와 정적 경로에
+포함하지 않는다. 공개 상태 API는 세션·연결 코드를 반환하지 않는다.
+비밀번호·OTP는 저장/수집하지 않는다. 엑셀 임시 파일은 처리 후 삭제한다.
+인증 만료나 화면 변경 시 기존 후기는 보존되고 대시보드에 오류가 표시된다.
+상태 확인: `/api/smartstore-status`의 `automation` (state, next_run, last_success).
+
+연결 패키지 생성 시 NAVER_PAIRING_SHA256 및 NAVER_PAIRING_EXPIRES를 서버에 설정한다.
+연결 코드 원문이나 실제 후기 데이터는 GitHub에 커밋하지 않는다.
+
+Playwright 공식 참고: https://playwright.dev/python/docs/auth 및
+https://playwright.dev/python/docs/downloads

@@ -785,11 +785,14 @@ async function loadData(){
           const banner = document.getElementById('cookieExpiredBanner');
           const msgEl = banner ? banner.querySelector('span') : null;
           // 쿠키 만료 또는 수집 중단(7일 이상 신규 없음) 시 경고
-          const showWarn = s.cookie_expired || s.stalled;
+          const autoProblem = s.automation && ["needs_login","error","interrupted"].includes(s.automation.state);
+          const showWarn = s.cookie_expired || s.stalled || autoProblem;
           if(banner){
             banner.style.display = showWarn ? 'flex' : 'none';
             if(msgEl){
-              if(s.cookie_expired){
+              if(autoProblem){
+                msgEl.textContent = "⚠️ 네이버 자정 자동 갱신 · " + s.automation.message;
+              } else if(s.cookie_expired){
                 msgEl.textContent = '⚠️ 네이버 로그인이 만료됐어요. 수집용 브라우저에서 다시 로그인하거나 판매자센터 엑셀을 가져와주세요.';
               } else if(s.stalled){
                 const d = s.days_since;
@@ -1860,7 +1863,7 @@ async function importSmartstore(input){
     const dataRes=await fetch('/api/data');
     if(dataRes.ok){allData=await dataRes.json();updateLastUpdated(allData.last_updated);}
     const statusRes=await fetch('/api/smartstore-status');
-    if(statusRes.ok){const st=await statusRes.json();if(!st.cookie_expired&&!st.stalled) document.getElementById('cookieExpiredBanner').style.display='none';}
+    if(statusRes.ok){const st=await statusRes.json();if(!st.cookie_expired&&!st.stalled&&(!st.automation||st.automation.state==='ready')) document.getElementById('cookieExpiredBanner').style.display='none';}
   }catch(e){addLog(`[실패] ${e.message}`,'#f48771');showToast('❌ '+e.message);}
   finally{input.value='';input.disabled=false;}
 }
@@ -1983,6 +1986,7 @@ async function renderLog(){
         <button class="refresh-btn" onclick="_refreshLog()">새로고침</button>
       </div>
     </div>
+    <div id="naverAutoStatus" class="card" style="margin-bottom:12px;padding:12px">네이버 자동 수집 상태 확인 중...</div>
     <div id="liveStatusWrap" style="margin-bottom:12px"></div>
     <div style="background:var(--text);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:12px;color:#D4E0EA;min-height:200px;max-height:420px;overflow-y:auto;line-height:1.7" id="terminalBox">
       <div style="color:#888">수집 로그를 불러오는 중...</div>
@@ -1991,6 +1995,13 @@ async function renderLog(){
       <div class="card"><div class="card-title">수집 이력 (최근 50건)</div><div id="logHistoryWrap"><div style="color:var(--text3);font-size:13px;text-align:center;padding:12px">불러오는 중...</div></div></div>
     </div>
   </div>`;
+  try {
+    const response = await fetch('/api/smartstore-status');
+    const data = await response.json();
+    const a = data.automation;
+    const node = document.getElementById('naverAutoStatus');
+    if(a && node) node.textContent = `네이버 · 매일 00:00 (한국시간) · GPT 토큰 0 · ${a.message}` + (a.last_success ? ` · 마지막 성공 ${new Date(a.last_success).toLocaleString('ko-KR', {timeZone:'Asia/Seoul'})}` : ' · 아직 자동 수집 성공 이력 없음');
+  } catch(e) { const node = document.getElementById('naverAutoStatus'); if(node) node.textContent = '네이버 자동 수집 상태를 확인하지 못했습니다.'; }
   await _refreshLog();
   // 수집중이면 폴링 시작
   if(logPollTimer) clearInterval(logPollTimer);
