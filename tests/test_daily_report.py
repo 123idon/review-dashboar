@@ -18,7 +18,7 @@ class DailyReportTests(unittest.TestCase):
         self.assertEqual(len(r['brands'][0]['reviews']),40)
         self.assertEqual(r['brands'][0]['reviews'][0]['excerpt'],long+'0')
     def test_generic_praise_and_negated_problems_are_not_marked(self):
-        for text in ('추천해요. 맛있어요. 만족합니다. 재구매할게요.', '곰팡이 없어요.', '파손 없이 잘 도착했어요.', '딱딱하지 않아요.', '배송이 늦지 않아서 좋아요.'):
+        for text in ('추천해요. 맛있어요. 만족합니다. 재구매할게요.', '곰팡이 없어요.', '파손 없이 잘 도착했어요.', '딱딱하지 않아요.', '배송이 늦지 않아서 좋아요.', '예상했던것보다 맛있습니다', '빠르게 배송해주셔서 감사합니다 ^^'):
             self.assertEqual(highlights(text),[],text)
     def test_actionable_clause_is_highlighted_not_just_keyword(self):
         text='😀 추천해요. 포장이 터져 떡이 밖으로 나왔어요. 배송 포장을 개선해 주세요.'
