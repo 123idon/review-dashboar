@@ -80,9 +80,9 @@ def build_report(cache, target, naver_state=None, clock=None):
             text = str(row.get('content') or '')
             selected.append({'score': score(row), 'product': str(row.get('product') or '상품명 미제공'),
                              'platform': str(row.get('platform') or '미분류'), 'excerpt': text,
-                             'highlights': highlights(text), 'date':target})
-        # All rows are retained; actionable issues and low ratings appear first.
-        selected.sort(key=lambda r: (not bool(r['highlights']), r['score'] if r['score'] is not None else 6))
+                             'highlights': [], 'date':target})
+        # All rows are retained; longest review bodies appear first.
+        selected.sort(key=lambda r: len(r['excerpt']), reverse=True)
         if unavailable:
             coverage = '저장된 자료 없음 · 수집 상태 확인 필요'
         elif not latest or latest < target:
@@ -100,8 +100,8 @@ def build_report(cache, target, naver_state=None, clock=None):
     return {'schema_version':2, 'date': target, 'generated_at': clock.astimezone(KST).isoformat(), 'timezone':'Asia/Seoul',
             'total':total, 'low_count':sum(c['low_count'] or 0 for c in cards), 'brands':cards,
             'notice':'수집된 후기만 집계합니다. 미수집·지연 채널은 전체 수치에서 누락될 수 있습니다.',
-            'selection_rule':'백년화편·명가삼대떡집의 저장된 전일 후기 전체 · 본문 생략 없음 · 확인할 내용 우선',
-            'highlight_rule':'형광펜: 품질·위생, 배송·포장 사고, 구체적인 불만·개선 요청 문장만 표시. 일반 칭찬은 제외하며 규칙 기반이므로 문맥 확인이 필요합니다.'}
+            'selection_rule':'백년화편·명가삼대떡집의 저장된 전일 후기 전체 · 본문 생략 없음 · 글자 수 많은 순',
+            'highlight_rule':''}
 
 
 def report_dates(directory):
