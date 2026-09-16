@@ -485,7 +485,753 @@ body {
 .filter-btn {
   height:28px; padding:0 12px; border-radius:50px;
   border:1.5px solid var(--border); background:transparent;
-  font-family:inherit; font-size:11px; font-weight:700; color:var(--text3); curs…10482 tokens truncated…44터용
+  font-family:inherit; font-size:11px; font-weight:700; color:var(--text3); cursor:pointer;
+  transition:all 150ms ease;
+}
+.filter-btn:hover  { border-color:var(--blue); color:var(--blue); }
+.filter-btn.active { background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:var(--sh-blue); }
+.pagesize-tabs { display:flex; gap:4px; }
+.ps-btn {
+  height:28px; padding:0 10px; border-radius:50px;
+  border:1.5px solid var(--border); background:transparent;
+  font-family:inherit; font-size:11px; font-weight:700; color:var(--text3); cursor:pointer;
+  transition:all 150ms ease;
+}
+.ps-btn.active { background:var(--surface2); border-color:var(--border2); color:var(--text2); }
+
+/* 후기 카드 */
+.review-card { padding:14px 0; border-bottom:1px solid var(--border); animation:fadeUp 220ms cubic-bezier(0.16,1,0.3,1) both; }
+.review-card:last-child { border-bottom:none; }
+.review-card.low {
+  background:linear-gradient(90deg,rgba(240,68,82,.04),transparent);
+  margin:0 -20px; padding:14px 20px;
+  border-left:3px solid var(--red);
+  border-bottom:1px solid rgba(240,68,82,.1);
+}
+.review-header  { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.stars  { display:flex; gap:1px; }
+.star   { font-size:13px; }
+.star.on  { color:var(--amber); }
+.star.off { color:var(--border2); }
+.score-num     { font-size:13px; font-weight:800; margin-left:5px; letter-spacing:-.3px; }
+.score-num.low { color:var(--red); }
+.low-tag { font-size:10px; font-weight:700; background:var(--red-bg); color:var(--red); padding:1px 7px; border-radius:50px; margin-left:6px; }
+.review-meta { display:flex; align-items:center; gap:6px; }
+.rev-badge     { font-size:10px; font-weight:700; padding:2px 7px; border-radius:50px; letter-spacing:.3px; }
+.rev-badge.jasa       { background:var(--brand-bg); color:var(--brand); }
+.rev-badge.smartstore { background:var(--green-bg); color:var(--green); }
+.rev-badge.kakao      { background:var(--amber-bg); color:var(--amber); }
+.rev-date    { font-size:11px; color:var(--text4); font-variant-numeric:tabular-nums; }
+.review-product { font-size:11px; color:var(--text3); margin-bottom:5px; font-weight:500; }
+.review-content { font-size:13px; color:var(--text2); line-height:1.65; }
+.review-imgs { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.review-thumb { width:84px; height:84px; object-fit:cover; border-radius:10px; border:1px solid var(--border); display:block; transition:transform 150ms ease; }
+.review-thumb:hover { transform:scale(1.04); }
+
+/* 페이지네이션 */
+.pagination { display:flex; justify-content:center; align-items:center; gap:4px; padding-top:16px; flex-wrap:wrap; }
+.page-btn {
+  min-width:32px; height:32px; padding:0 8px; border-radius:9px;
+  border:1.5px solid var(--border); background:var(--surface);
+  font-family:inherit; font-size:12px; font-weight:700; color:var(--text2); cursor:pointer;
+  transition:all 150ms ease;
+}
+.page-btn:hover:not(:disabled) { background:var(--brand); border-color:var(--brand); color:#fff; }
+.page-btn:disabled { opacity:.3; cursor:not-allowed; }
+.page-btn.active   { background:var(--brand); border-color:var(--brand); color:#fff; box-shadow:var(--sh-brand); }
+.page-info { font-size:11px; color:var(--text4); padding:0 8px; font-variant-numeric:tabular-nums; }
+
+/* 로딩 */
+.loading-state { display:flex; flex-direction:column; align-items:center; justify-content:center; height:240px; gap:14px; color:var(--text3); font-size:13px; }
+
+/* 메모 탭 */
+.memo-wrap { max-width:600px; margin:0 auto; }
+.memo-area {
+  width:100%; padding:13px 14px; border:1.5px solid var(--border); border-radius:12px;
+  background:var(--surface); color:var(--text); font-family:inherit; font-size:14px;
+  line-height:1.65; resize:vertical; min-height:96px; outline:none;
+  transition:border-color 150ms ease, box-shadow 150ms ease;
+}
+.memo-area:focus { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-bg); }
+.memo-footer { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+.memo-save-btn {
+  height:38px; padding:0 20px; border-radius:50px; border:none;
+  background:var(--brand); color:#fff; font-family:inherit; font-size:13px; font-weight:700;
+  cursor:pointer; box-shadow:var(--sh-brand); transition:all 150ms ease;
+}
+.memo-save-btn:hover   { background:var(--brand-dark); transform:translateY(-1px); }
+.memo-save-btn:active  { transform:scale(.97); }
+.memo-save-btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+.memo-saved { font-size:12px; }
+.memo-list  { display:flex; flex-direction:column; }
+.memo-item  { padding:14px 0; border-bottom:1px solid var(--border); animation:fadeUp 200ms ease both; }
+.memo-item:last-child { border-bottom:none; }
+.memo-item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.memo-item-time   { font-size:11px; color:var(--text4); font-variant-numeric:tabular-nums; }
+.memo-delete-btn  {
+  height:25px; padding:0 10px; border-radius:50px;
+  border:1.5px solid var(--border); background:transparent;
+  font-size:10px; font-weight:700; color:var(--text4); cursor:pointer; transition:all 150ms ease;
+}
+.memo-delete-btn:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+.memo-item-content{ font-size:13px; color:var(--text2); line-height:1.65; }
+.memo-empty { text-align:center; padding:30px 0; font-size:13px; color:var(--text4); }
+
+/* 수집 로그 */
+.terminal { background:var(--text); border-radius:14px; padding:16px; font-family:monospace; font-size:11px; line-height:1.75; color:#D4E0EA; max-height:320px; overflow-y:auto; scrollbar-width:thin; }
+.collect-btn {
+  height:42px; padding:0 22px; border-radius:50px; border:none;
+  background:var(--brand); color:#fff; font-family:inherit; font-size:13px; font-weight:700;
+  cursor:pointer; box-shadow:var(--sh-brand); transition:all 150ms ease;
+}
+.collect-btn:hover  { background:var(--brand-dark); transform:translateY(-1px); }
+.collect-btn:active { transform:scale(.97); }
+
+@media (max-width:768px) { .stat-grid{grid-template-columns:1fr 1fr;} .grid-2{grid-template-columns:1fr;} .stat-val{font-size:24px;} }
+@media (max-width:420px) { .shop-tabs{max-width:calc(100vw - 110px);} .last-updated{display:none;} }
+
+
+/* platform-meta, review-list */
+.platform-meta { font-size:12px; color:var(--text3); }
+.review-list   { display:flex; flex-direction:column; }
+
+  /* ── 키워드 검색 ── */
+  .review-search-wrap {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px; flex-wrap: wrap;
+  }
+  .review-search-box {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--bg2, var(--surface));
+    border: 1.5px solid var(--border); border-radius: 20px;
+    padding: 5px 12px; flex: 1; min-width: 180px; max-width: 340px;
+    transition: border-color .15s;
+  }
+  .review-search-box:focus-within { border-color: var(--blue); }
+  .search-icon { color: var(--text3); flex-shrink: 0; }
+  .review-search-input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-size: 13px; font-family: inherit;
+  }
+  .review-search-input::placeholder { color: var(--text3); }
+  .search-clear {
+    background: none; border: none; color: var(--text3);
+    cursor: pointer; font-size: 12px; padding: 0 2px;
+    line-height: 1; flex-shrink: 0;
+  }
+  .search-clear:hover { color: var(--red, #f87171); }
+  .search-result-badge {
+    font-size: 11px; font-weight: 700; color: var(--blue);
+    background: rgba(96,165,250,.12); border-radius: 20px;
+    padding: 3px 10px; white-space: nowrap;
+  }
+  .keyword-highlight {
+    background: rgba(250,204,21,.35); border-radius: 2px;
+    padding: 0 1px;
+  }
+
+  
+/* ── 후기 선택 내보내기 ── */
+.review-card{position:relative}
+.rev-check{position:absolute;top:14px;left:10px;width:18px;height:18px;cursor:pointer;accent-color:var(--accent);z-index:3}
+.review-card.has-check{padding-left:38px}
+.review-card.rev-checked{box-shadow:0 0 0 1.5px var(--accent) inset;border-color:var(--accent)}
+.rev-export-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card,#fff);border:1px solid var(--border,#e5e8eb);border-radius:12px;padding:9px 12px;margin-bottom:12px}
+.rev-export-label{font-size:12px;font-weight:700;color:var(--text3);display:flex;align-items:center;gap:4px}
+.rev-export-count{font-size:13px;font-weight:800;color:var(--accent)}
+.rev-x-sub{height:31px;padding:0 12px;border-radius:50px;border:1.5px solid var(--border,#e5e8eb);background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer}
+.rev-x-sub:hover{border-color:var(--accent);color:var(--accent)}
+.rev-x-btn{height:33px;padding:0 15px;border-radius:50px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:opacity 150ms}
+.rev-x-btn:hover{opacity:.88}
+.rev-x-btn:disabled{background:var(--border,#e5e8eb);color:var(--text3);cursor:not-allowed}
+.rev-capture-stage{position:fixed;left:-99999px;top:0;width:760px;background:#fff;padding:32px;font-family:inherit}
+.rcap-head{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #b5651d;padding-bottom:14px;margin-bottom:20px}
+.rcap-title{font-size:20px;font-weight:900;color:#2c2416}
+.rcap-meta{font-size:12px;color:#8a7d6a;text-align:right;line-height:1.6}
+.rcap-card{border:1px solid #e5ddd0;border-radius:12px;padding:15px 17px;margin-bottom:12px;background:#fdfbf7}
+.rcap-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.rcap-score{font-size:13px;font-weight:800;color:#fff;background:#b5651d;border-radius:50px;padding:2px 11px}
+.rcap-score.low{background:#e05a4c}
+.rcap-stars{color:#f5a623;font-size:14px}
+.rcap-plat{font-size:11px;font-weight:700;color:#5a4a32;background:#efe6d6;border-radius:6px;padding:2px 8px}
+.rcap-date{font-size:11px;color:#8a7d6a;margin-left:auto}
+.rcap-prod{font-size:12px;font-weight:600;color:#5a4a32;margin-bottom:5px}
+.rcap-content{font-size:13px;color:#2c2416;line-height:1.65;white-space:pre-wrap}
+</style>
+<script>
+(function(){
+  document.documentElement.setAttribute('data-theme','day');
+})();
+</script>
+</head>
+<body>
+
+
+<div class="progress-wrap">
+  <div class="progress-bar" id="progressBar"></div>
+</div>
+<div id="cookieExpiredBanner" style="display:none;position:sticky;top:56px;left:0;width:100%;z-index:90;background:var(--red-bg);border-bottom:1px solid rgba(240,68,82,.2);padding:9px 20px;align-items:center;gap:10px;font-size:12px;font-weight:600;color:var(--red);">
+  <span>⚠️ 네이버 인증이 필요합니다. 수집용 브라우저에서 다시 로그인해주세요.</span>
+  <span id="cookieExpiredAgo" style="color:var(--text3);font-weight:400;"></span>
+  <button onclick="fetch('/api/smartstore-cookie-ok',{method:'POST'});this.parentElement.style.display='none';" style="margin-left:auto;height:24px;padding:0 12px;border-radius:50px;border:1.5px solid rgba(240,68,82,.3);background:transparent;font-size:11px;font-weight:700;color:var(--red);cursor:pointer;">확인</button>
+</div>
+<div class="collecting-banner" id="collectingBanner">
+  <span style="font-weight:600">🔄 수집 중</span>
+  <span class="dot-anim"><span>.</span><span>.</span><span>.</span></span>
+  <span id="collectStatusMsg" style="font-size:11px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">준비 중...</span>
+  <span style="font-size:11px;color:var(--text2);flex-shrink:0">경과 <b id="collectElapsed">0초</b></span>
+  <span id="collectETA" style="font-size:11px;color:var(--text2);flex-shrink:0"></span>
+  <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+    <span id="collectPct" style="font-size:11px;font-weight:700;color:var(--text)">0%</span>
+    <div style="width:80px;height:4px;background:var(--amber-bg);border-radius:4px;overflow:hidden">
+      <div id="collectPctBar" style="height:100%;width:0%;background:var(--amber);border-radius:4px;transition:width .5s ease"></div>
+    </div>
+  </div>
+</div>
+<header class="header">
+  <div class="header-left">
+    <span class="logo">후기 대시보드</span>
+    <div class="shop-tabs">
+      <button class="shop-tab active-d" onclick="switchShop('jasaol', this)" style="font-weight:700;">백년화편</button>
+      <button class="shop-tab" onclick="switchShop('changeok', this)">창억떡</button>
+      <button class="shop-tab" onclick="switchShop('myeongga', this)">명가삼대떡집</button>
+      <button class="shop-tab" onclick="switchShop('papa', this)">파파공방</button>
+      <button class="shop-tab" onclick="switchShop('smartstore', this)">네이버</button>
+      <button class="shop-tab" onclick="switchShop('memo', this)">메모장</button>
+      <button class="shop-tab" onclick="switchShop('log', this)">수집로그</button>
+      <a href="/" class="shop-tab home-tab">← 메인</a>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated">—</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="triggerCollect()">
+      <span class="spin">↻</span> 새로고침
+    </button>
+  </div>
+</header>
+
+<div class="main" id="mainContent">
+  <div class="loading-state">
+    <div class="spinner"></div>
+    데이터 불러오는 중...
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// 상태
+// ════════════════════════════════════════
+let allData     = null;
+let filteredData = null;  // 날짜 필터 적용된 데이터
+let currentShop = 'jasaol';
+let reviewFilter  = 'all';
+let reviewKeyword = '';
+let keywordPeriod = 'all';
+let collectPollTimer = null;
+
+function p2(n){ return String(n).padStart(2,'0'); }
+function fmtSec(s){ return s>=60 ? Math.floor(s/60)+'분 '+(s%60)+'초' : s+'초'; }
+
+// ════════════════════════════════════════
+// 초기 로딩 오버레이
+// ════════════════════════════════════════
+(function(){
+  const overlay = document.createElement('div');
+  overlay.id = 'initOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:inherit;transition:opacity .5s';
+  overlay.innerHTML =
+    '<div style="font-size:22px;font-weight:700;color:var(--text)">후기 대시보드</div>'+
+    '<div style="width:240px;height:3px;background:var(--border);border-radius:4px;overflow:hidden">'+
+      '<div id="initBar" style="height:100%;width:0%;background:var(--green);border-radius:4px;transition:width .5s ease"></div>'+
+    '</div>'+
+    '<div id="initMsg" style="font-size:13px;color:var(--text3)">서버 연결 중...</div>';
+  document.body.prepend(overlay);
+  const bar = document.getElementById('initBar');
+  const msg = document.getElementById('initMsg');
+  const steps = [[20,'서버 연결 중...'],[50,'데이터 확인 중...'],[80,'준비 중...'],[100,'완료!']];
+  let i=0;
+  const t = setInterval(()=>{ if(i>=steps.length){clearInterval(t);return;} bar.style.width=steps[i][0]+'%'; msg.textContent=steps[i][1]; i++; },700);
+  window._hideOverlay = function(){
+    const el=document.getElementById('initOverlay');
+    if(!el||el.style.display==='none')return;
+    el.style.opacity='0';
+    setTimeout(()=>el.style.display='none',500);
+  };
+  setTimeout(window._hideOverlay, 10000);
+})();
+
+// ════════════════════════════════════════
+// 데이터 로드
+// ════════════════════════════════════════
+async function loadData(){
+  try {
+    const res = await fetch('/api/data');
+    if(res.ok){
+      const data = await res.json();
+      allData = data;
+      filteredData = null;  // 새 데이터 로드 시 필터 초기화
+      updateLastUpdated(data.last_updated);
+      if(currentShop !== 'memo' && currentShop !== 'log') render();
+      window._hideOverlay && window._hideOverlay();
+      if(data.collecting) startCollectPolling();
+
+      // 쿠키 만료 체크
+      try{
+        const st = await fetch('/api/smartstore-status');
+        if(st.ok){
+          const s = await st.json();
+          const banner = document.getElementById('cookieExpiredBanner');
+          const msgEl = banner ? banner.querySelector('span') : null;
+          // 쿠키 만료 또는 수집 중단(7일 이상 신규 없음) 시 경고
+          const autoProblem = s.automation && ["pending","cooldown","blocked","not_allowed","layout_changed","partial","unverified","error","interrupted"].includes(s.automation.state);
+          const showWarn = s.cookie_expired || s.stalled || autoProblem;
+          if(banner){
+            banner.style.display = showWarn ? 'flex' : 'none';
+            if(msgEl){
+              if(autoProblem){
+                msgEl.textContent = "⚠️ 네이버 자정 자동 갱신 · " + s.automation.message;
+              } else if(s.cookie_expired){
+                msgEl.textContent = '⚠️ 네이버 로그인이 만료됐어요. 수집용 브라우저에서 다시 로그인하거나 판매자센터 엑셀을 가져와주세요.';
+              } else if(s.stalled){
+                const d = s.days_since;
+                const last = s.last_review_date || '?';
+                msgEl.textContent = `⚠️ 네이버 후기 수집이 ${d}일째 멈춰 있어요 (마지막 ${last}). 판매자센터 후기를 가져와 갱신해주세요.`;
+              }
+            }
+          }
+        }
+      }catch(e){}
+    } else {
+      // 데이터 없음 → 자동 수집
+      window._hideOverlay && window._hideOverlay();
+      showCollectingScreen();
+      try{ await fetch('/api/collect',{method:'POST'}); }catch(e){}
+      startCollectPolling();
+    }
+  } catch(e){
+    window._hideOverlay && window._hideOverlay();
+    document.getElementById('mainContent').innerHTML =
+      '<div class="loading-state"><div style="font-size:13px;color:var(--text3)">서버 연결 중... 자동 재시도합니다.</div></div>';
+    setTimeout(loadData, 4000);
+  }
+}
+
+function showCollectingScreen(){
+  document.getElementById('mainContent').innerHTML =
+    '<div class="loading-state">'+
+    '<div class="spinner"></div>'+
+    '<div style="font-size:15px;font-weight:500;margin-bottom:6px">후기를 수집하고 있어요</div>'+
+    '<div id="collectDetailMsg" style="font-size:12px;color:var(--text3)">잠시만 기다려주세요...</div>'+
+    '</div>';
+}
+
+function updateLastUpdated(iso){
+  const el=document.getElementById('lastUpdated');
+  if(!el||!iso){if(el)el.textContent='—';return;}
+  const d=new Date(iso), now=new Date();
+  const diffMin=Math.floor((now-d)/60000);
+  let label;
+  if(diffMin<1)         label='방금 전';
+  else if(diffMin<60)   label=`${diffMin}분 전`;
+  else if(diffMin<1440) label=`${Math.floor(diffMin/60)}시간 전`;
+  else                  label=`${Math.floor(diffMin/1440)}일 전`;
+  el.textContent=label+' 갱신';
+  el.title=`${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+}
+
+// ════════════════════════════════════════
+// 수집 트리거
+// ════════════════════════════════════════
+async function triggerCollect(){
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading'); btn.disabled = true;
+  showToast('수집을 시작했습니다.');
+  try{ await fetch('/api/collect',{method:'POST'}); }catch(e){}
+  startCollectPolling();
+}
+
+// ════════════════════════════════════════
+// 수집 폴링
+// ════════════════════════════════════════
+let localTickTimer = null;
+let logCache = null;
+
+function startCollectPolling(){
+  if(collectPollTimer) clearInterval(collectPollTimer);
+  if(localTickTimer) clearInterval(localTickTimer);
+  const _hdr = document.querySelector('.header');
+  const _bannerEl = document.getElementById('collectingBanner');
+  _bannerEl.classList.add('show');
+  _bannerEl.style.top = (_hdr ? _hdr.offsetHeight : 56) + 'px';
+  document.getElementById('mainContent').style.marginTop = '40px';
+  const bar = document.getElementById('progressBar');
+  const accent = currentShop==='changeok'?'a':currentShop==='myeongga'?'b':currentShop==='papa'?'c':currentShop==='smartstore'?'b':'d';
+  bar.className = 'progress-bar '+accent;
+  bar.style.width = '2%';
+
+  const pollStarted = Date.now();
+  let serverPct = 0;       // 서버에서 받은 실제 %
+  let displayPct = 0;      // 화면에 표시 중인 %
+  let lastServerTime = Date.now(); // 마지막 서버응답 시간
+
+  // 1초마다: 경과시간 + % 부드럽게 보간
+  localTickTimer = setInterval(()=>{
+    const elapsed = Math.floor((Date.now()-pollStarted)/1000);
+    const elEl = document.getElementById('collectElapsed');
+    if(elEl) elEl.textContent = fmtSec(elapsed);
+
+    // % 부드러운 보간: 서버값 향해 1%씩 전진
+    if(displayPct < serverPct){
+      displayPct = Math.min(displayPct + 1, serverPct);
+      _updatePctDisplay(displayPct, bar);
+    }
+
+    // ETA: 1%당 걸린 시간 × 남은% (단순하고 정확)
+    const etaEl = document.getElementById('collectETA');
+    if(etaEl){
+      if(serverPct > 30 && elapsed > 10){
+        const secPerPct = elapsed / serverPct;
+        const remainSec = Math.round(secPerPct * (100 - serverPct));
+        etaEl.textContent = remainSec > 3 ? '| 예상 '+fmtSec(remainSec)+' 남음' : '| 거의 완료';
+      } else {
+        etaEl.textContent = '';
+      }
+    }
+
+    // 수집로그 탭 실시간 상태 업데이트
+    if(currentShop === 'log') _updateLiveLog();
+  }, 1000);
+
+  // 3초마다: 서버 상태 확인
+  collectPollTimer = setInterval(async ()=>{
+    try{
+      const stRes = await fetch('/api/status');
+      if(!stRes.ok) return;
+      const st = await stRes.json();
+
+      // 서버 % 업데이트
+      const pct = st.progress_pct || 0;
+      if(pct >= serverPct) { serverPct = pct; lastServerTime = Date.now(); }
+
+      // 메시지 업데이트
+      const msgEl = document.getElementById('collectStatusMsg');
+      if(msgEl && st.progress_msg) msgEl.textContent = st.progress_msg;
+      const detailEl = document.getElementById('collectDetailMsg');
+      if(detailEl && st.progress_msg) detailEl.textContent = st.progress_msg;
+
+      // 오류 처리
+      if(st.last_error && !st.collecting){
+        _stopPolling();
+        finishProgressBar();
+        document.getElementById('mainContent').innerHTML =
+          '<div class="loading-state">'+
+          '<div style="font-size:15px;color:var(--red);margin-bottom:10px">❌ 수집 중 오류 발생</div>'+
+          '<div style="font-size:12px;color:var(--red);background:var(--red-bg);padding:12px;border-radius:8px;max-width:480px;text-align:left;word-break:break-all;font-family:var(--mono)">'+st.last_error+'</div>'+
+          (st.error_detail?'<details style="margin-top:10px;max-width:480px;text-align:left"><summary style="font-size:11px;color:var(--text3);cursor:pointer">상세 보기</summary><pre style="font-size:11px;color:var(--text3);white-space:pre-wrap;word-break:break-all;margin-top:6px">'+st.error_detail+'</pre></details>':'')+
+          '<button class="refresh-btn" style="margin-top:16px" onclick="triggerCollect()">↻ 다시 시도</button>'+
+          '</div>';
+        return;
+      }
+
+      // 완료 감지: collecting false + last_success 갱신됨
+      if(!st.collecting && st.last_success && st.data_exists){
+        if(!allData || st.last_success !== (allData._last_success||'')){
+          const res = await fetch('/api/data');
+          if(res.ok){
+            const data = await res.json();
+            data._last_success = st.last_success;
+            allData = data;
+            logCache = null;
+            updateLastUpdated(data.last_updated);
+            serverPct = 100; displayPct = 100;
+            _updatePctDisplay(100, bar);
+            if(currentShop!=='memo' && currentShop!=='log') render();
+            _stopPolling();
+            finishProgressBar();
+            showToast('✅ 수집 완료! 데이터가 업데이트됐어요.');
+          }
+        } else {
+          // 이미 최신 데이터면 폴링 종료
+          _stopPolling();
+          finishProgressBar();
+        }
+      }
+    }catch(e){}
+  }, 1000);
+}
+
+function _updatePctDisplay(pct, bar){
+  const pctEl = document.getElementById('collectPct');
+  const pctBar = document.getElementById('collectPctBar');
+  if(pctEl) pctEl.textContent = pct+'%';
+  if(pctBar) pctBar.style.width = Math.max(pct,2)+'%';
+  if(bar) bar.style.width = Math.max(pct,2)+'%';
+}
+
+function _stopPolling(){
+  if(collectPollTimer){ clearInterval(collectPollTimer); collectPollTimer=null; }
+  if(localTickTimer){ clearInterval(localTickTimer); localTickTimer=null; }
+}
+
+function finishProgressBar(){
+  _stopPolling();
+  const bar = document.getElementById('progressBar');
+  if(bar){ bar.style.width='100%'; setTimeout(()=>bar.style.width='0%',800); }
+  const _b = document.getElementById('collectingBanner');
+  _b.classList.remove('show'); _b.style.top = '';
+  document.getElementById('mainContent').style.marginTop = '';
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.remove('loading'); btn.disabled=false;
+  const pctBar = document.getElementById('collectPctBar');
+  if(pctBar) pctBar.style.width='100%';
+}
+
+// ════════════════════════════════════════
+// 탭 전환
+// ════════════════════════════════════════
+function switchShop(shop, el){
+  currentShop = shop;
+  // 로그 탭 나가면 폴링 정리
+  if(shop !== 'log' && logPollTimer){ clearInterval(logPollTimer); logPollTimer=null; }
+  document.querySelectorAll('.shop-tab').forEach(t=>t.classList.remove('active-a','active-b','active-c','active-d'));
+  if(shop==='memo'){ el.classList.add('active-a'); renderMemo(); return; }
+  if(shop==='log'){  el.classList.add('active-a'); renderLog();  return; }
+  const activeClass = shop==='changeok' ? 'active-a' : shop==='myeongga' ? 'active-b' : shop==='papa' ? 'active-c' : 'active-d';
+  el.classList.add(activeClass);
+  reviewFilter = 'all';
+  // 페이지 타이틀 동적 업데이트
+  const titleMap = {jasaol:'백년화편 | 후기 대시보드', changeok:'창억떡 | 후기 대시보드', myeongga:'명가삼대떡집 | 후기 대시보드', papa:'파파공방 | 후기 대시보드', smartstore:'네이버 | 후기 대시보드'};
+  document.title = titleMap[shop] || '후기 대시보드';
+  if(!allData){
+    // 수집 중이면 수집 화면 유지
+    if(collectPollTimer) showCollectingScreen();
+    else document.getElementById('mainContent').innerHTML =
+      '<div class="loading-state"><div class="spinner"></div>데이터 불러오는 중...</div>';
+    return;
+  }
+  render();
+}
+
+
+// ════════════════════════════════════════
+// 기간 필터
+// ════════════════════════════════════════
+let dateFilterStart = null;  // 'YYYY-MM-DD' or null
+let dateFilterEnd   = null;
+
+function renderDateFilterBar(){
+  const today = new Date();
+  const todayStr = fmtDate(today);
+  const startVal = dateFilterStart || '';
+  const endVal   = dateFilterEnd   || todayStr;
+  const isActive = dateFilterStart !== null;
+
+  const presets = [
+    {label:'3일', days:3},
+    {label:'1주일', days:7},
+    {label:'1개월', days:30},
+    {label:'1년', days:365},
+  ];
+  const presetBtns = presets.map(p=>{
+    const _presetFrom = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()); _presetFrom.setDate(_presetFrom.getDate()-p.days);
+    const active = isActive && dateFilterStart === fmtDate(_presetFrom) && dateFilterEnd === todayStr;
+    return `<button class="date-preset-btn${active?' active':''}" onclick="applyPreset(${p.days})">${p.label}</button>`;
+  }).join('');
+
+  return `<div class="date-filter-bar" id="dateFilterBar">
+    <span class="date-filter-label">기간</span>
+    <div class="date-preset-btns-wrap">${presetBtns}</div>
+    <div class="date-filter-sep"></div>
+    <div class="date-range-inputs">
+      <input class="date-input" type="date" id="dateFrom" value="${startVal}" max="${todayStr}">
+      <span class="date-range-sep">~</span>
+      <input class="date-input" type="date" id="dateTo" value="${endVal}" max="${todayStr}">
+      <button class="date-apply-btn" onclick="applyDateRange()">적용</button>
+    </div>
+    <div class="date-filter-sep"></div>
+    <button class="date-reset-btn" onclick="resetDateFilter()">전체 초기화</button>
+    ${isActive ? `<span class="date-filter-active-tag">📅 ${dateFilterStart} ~ ${dateFilterEnd}</span>` : ''}
+  </div>`;
+}
+
+
+// ════════════════════════════════════════
+// 날짜 필터 서버 조회
+// ════════════════════════════════════════
+let _filterAbort = null;  // 이전 요청 취소용
+
+async function fetchFilteredData(){
+  if(!dateFilterStart && !dateFilterEnd){ filteredData = null; render(); return; }
+
+  // 이전 진행 중 요청 취소
+  if(_filterAbort){ _filterAbort.abort(); }
+  _filterAbort = new AbortController();
+
+  // 즉시 로딩 표시 (버튼 반응 즉각적으로)
+  _showFilterLoading(true);
+
+  const params = new URLSearchParams();
+  if(dateFilterStart) params.set('date_from', dateFilterStart);
+  if(dateFilterEnd)   params.set('date_to',   dateFilterEnd);
+
+  try{
+    const res = await fetch('/api/data?' + params.toString(), {
+      signal: _filterAbort.signal
+    });
+    if(res.ok){
+      filteredData = await res.json();
+      render();  // render()에서 로딩 표시 사라짐 (필터 바 새로 그림)
+    }
+  }catch(e){
+    if(e.name !== 'AbortError') showToast('데이터 조회 실패');
+  } finally {
+    _showFilterLoading(false);
+    _filterAbort = null;
+  }
+}
+
+function _showFilterLoading(show){
+  // 필터 바의 로딩 표시 토글
+  const bar = document.getElementById('dateFilterBar');
+  if(!bar) return;
+  let loader = bar.querySelector('.filter-loading');
+  if(show){
+    if(!loader){
+      loader = document.createElement('span');
+      loader.className = 'filter-loading';
+      loader.innerHTML = '<div class="filter-spinner"></div> 조회 중...';
+      bar.appendChild(loader);
+    }
+    // 버튼들 비활성화
+    bar.querySelectorAll('button').forEach(b=>b.disabled=true);
+  } else {
+    if(loader) loader.remove();
+    bar.querySelectorAll('button').forEach(b=>b.disabled=false);
+  }
+}
+
+function fmtDate(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+async function applyPreset(days){
+  const today = new Date();
+  const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const from = new Date(todayMid);
+  from.setDate(from.getDate() - days);
+  dateFilterStart = fmtDate(from);
+  dateFilterEnd   = fmtDate(today);
+  // 프리셋 버튼 즉각 active 표시
+  document.querySelectorAll('.date-preset-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  await fetchFilteredData();
+}
+
+async function applyDateRange(){
+  const from = document.getElementById('dateFrom')?.value;
+  const to   = document.getElementById('dateTo')?.value;
+  if(!from && !to){ resetDateFilter(); return; }
+  dateFilterStart = from || null;
+  dateFilterEnd   = to   || fmtDate(new Date());
+  await fetchFilteredData();
+}
+
+async function resetDateFilter(){
+  dateFilterStart = null;
+  dateFilterEnd   = null;
+  filteredData = null;
+  if(_filterAbort){ _filterAbort.abort(); _filterAbort = null; }
+  render();
+}
+
+// reviews 배열을 날짜 필터로 자르고 통계 재계산
+function computeFilteredStats(d){
+  if(!dateFilterStart) return d;  // 필터 없으면 원본 그대로
+
+  const from = dateFilterStart;
+  const to   = dateFilterEnd || fmtDate(new Date());
+
+  // reviews 필터링
+  const reviews = (d.reviews||[]).filter(r=> r.date >= from && r.date <= to);
+
+  // 통계 재계산
+  const total    = reviews.length;
+  const negative = reviews.filter(r=>r.score>0&&r.score<=3).length;
+  const scores   = reviews.filter(r=>r.score>0).map(r=>r.score);
+  const avg      = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length*10)/10 : 0;
+
+  // 별점 분포
+  const dist = {'1':0,'2':0,'3':0,'4':0,'5':0};
+  reviews.forEach(r=>{ const s=String(Math.round(r.score)); if(dist[s]!==undefined)dist[s]++; });
+
+  // 주간 트렌드
+  const weekMap = {};
+  reviews.forEach(r=>{
+    if(!r.date)return;
+    // YYYY-MM-DD 파싱 (로컬 시간대, UTC 오차 방지)
+    const parts=r.date.split('-');
+    const d2=new Date(+parts[0],+parts[1]-1,+parts[2]);
+    const dow=d2.getDay(); // 0=일
+    const mon=new Date(d2); mon.setDate(d2.getDate()-(dow===0?6:dow-1));
+    const key=fmtDate(mon);
+    if(!weekMap[key])weekMap[key]={week:key,count:0,neg:0,scoreSum:0,scoreCnt:0};
+    weekMap[key].count++;
+    if(r.score>0&&r.score<=3)weekMap[key].neg++;
+    if(r.score>0){weekMap[key].scoreSum+=r.score;weekMap[key].scoreCnt++;}
+  });
+  const trend = Object.values(weekMap).sort((a,b)=>a.week.localeCompare(b.week)).map(w=>({
+    week:w.week, count:w.count, negative:w.neg,
+    avg_score: w.scoreCnt?Math.round(w.scoreSum/w.scoreCnt*10)/10:0
+  }));
+
+  // 플랫폼별
+  const platMap = {};
+  reviews.forEach(r=>{
+    const p=r.platform||'direct';
+    if(!platMap[p])platMap[p]={count:0,negative:0,scoreSum:0,scoreCnt:0};
+    platMap[p].count++;
+    if(r.score>0&&r.score<=3)platMap[p].negative++;
+    if(r.score>0){platMap[p].scoreSum+=r.score;platMap[p].scoreCnt++;}
+  });
+  const platform_stats={};
+  Object.entries(platMap).forEach(([p,v])=>{
+    platform_stats[p]={count:v.count,negative:v.negative,avg_score:v.scoreCnt?Math.round(v.scoreSum/v.scoreCnt*10)/10:0};
+  });
+
+  // 상품별
+  const prodMap={};
+  reviews.forEach(r=>{
+    const name=r.product||'(상품명 없음)';
+    if(!prodMap[name])prodMap[name]={count:0,negative:0,scoreSum:0,scoreCnt:0};
+    prodMap[name].count++;
+    if(r.score>0&&r.score<=3)prodMap[name].negative++;
+    if(r.score>0){prodMap[name].scoreSum+=r.score;prodMap[name].scoreCnt++;}
+  });
+  const top_products_all=Object.entries(prodMap).map(([p,v])=>({
+    product:p,count:v.count,negative:v.negative,
+    avg_score:v.scoreCnt?Math.round(v.scoreSum/v.scoreCnt*10)/10:0
+  })).sort((a,b)=>b.count-a.count).slice(0,3);
+  const top_negative_products=Object.entries(prodMap).filter(([,v])=>v.negative>0).map(([p,v])=>({
+    product:p,count:v.count,negative:v.negative,
+    avg_score:v.scoreCnt?Math.round(v.scoreSum/v.scoreCnt*10)/10:0
+  })).sort((a,b)=>b.negative-a.negative).slice(0,3);
+
+  // 키워드 (간단 버전)
+  function extractKw(revs, positive){
+    const STOP=new Set(['이','가','은','는','을','를','의','도','로','에','와','과','한','그','좋은','좋아요','너무','정말','진짜','완전','아주','매우','좀','구매','주문','배송','상품','제품','포장','선물','가격','감사','합니다']);
+    const counter={};
+    revs.forEach(r=>{
+      const words=(r.content||'').match(/[가-힣]{2,6}/g)||[];
+      words.forEach(w=>{ if(!STOP.has(w)){counter[w]=(counter[w]||0)+1;} });
+    });
+    return Object.entries(counter).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([w,c])=>({word:w,count:c}));
+  }
+  const posRevs=reviews.filter(r=>r.score>=4);
+  const negRevs=reviews.filter(r=>r.score>0&&r.score<=3);
+
+  // 주간 필터용
   const weekAgoD=new Date(); weekAgoD.setDate(weekAgoD.getDate()-7);
   const weekFrom=fmtDate(weekAgoD);
   const weekRevs=reviews.filter(r=>r.date>=weekFrom);
