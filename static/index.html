@@ -783,7 +783,21 @@ async function loadData(){
         if(st.ok){
           const s = await st.json();
           const banner = document.getElementById('cookieExpiredBanner');
-          if(banner) banner.style.display = s.cookie_expired ? 'flex' : 'none';
+          const msgEl = banner ? banner.querySelector('span') : null;
+          // 쿠키 만료 또는 수집 중단(7일 이상 신규 없음) 시 경고
+          const showWarn = s.cookie_expired || s.stalled;
+          if(banner){
+            banner.style.display = showWarn ? 'flex' : 'none';
+            if(msgEl){
+              if(s.cookie_expired){
+                msgEl.textContent = '⚠️ 네이버 로그인이 만료됐어요. 회사 PC에서 1_처음설정 파일을 실행해 다시 로그인해주세요.';
+              } else if(s.stalled){
+                const d = s.days_since;
+                const last = s.last_review_date || '?';
+                msgEl.textContent = `⚠️ 네이버 후기 수집이 ${d}일째 멈춰 있어요 (마지막 ${last}). 회사 PC의 자동수집 프로그램을 확인해주세요.`;
+              }
+            }
+          }
         }
       }catch(e){}
     } else {
