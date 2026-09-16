@@ -412,7 +412,30 @@ async def smartstore_cookie_expired(request: Request):
 
 @app.get("/api/smartstore-status")
 async def smartstore_status():
-    return SMARTSTORE_STATUS
+    """쿠키 만료 여부 + 수집 중단 감지(마지막 후기가 N일 이상 오래됐으면 경고)"""
+    from scraper import load_json
+    result = dict(SMARTSTORE_STATUS)
+    try:
+        SMARTSTORE_PATH = DATA_PATH.parent / "smartstore.json"
+        reviews = load_json(SMARTSTORE_PATH, [])
+        dates = [r["date"] for r in reviews if r.get("date")]
+        if dates:
+            last = max(dates)
+            result["last_review_date"] = last
+            from datetime import date as _date
+            y, m, d = map(int, last.split("-"))
+            gap = (_date.today() - _date(y, m, d)).days
+            result["days_since"] = gap
+            # 7일 이상 신규 후기가 없으면 수집 중단으로 판단
+            result["stalled"] = gap >= 7
+        else:
+            result["last_review_date"] = None
+            result["days_since"] = None
+            result["stalled"] = True
+    except Exception as e:
+        result["stalled"] = False
+        result["error"] = str(e)
+    return result
 
 @app.post("/api/smartstore-cookie-ok")
 async def smartstore_cookie_ok():
