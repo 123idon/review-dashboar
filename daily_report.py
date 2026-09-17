@@ -102,3 +102,26 @@ def read_report(directory, day):
     if report.get('date') != day:
         raise ValueError('저장된 보고서 날짜가 일치하지 않습니다.')
     return report
+
+
+def statistics(report):
+    """Count full stored daily rows, never only the display selection. No API."""
+    from collections import Counter
+    def aggregate(rows, available=True):
+        values = [score(r) for r in rows if score(r) is not None]
+        low = sum(v <= 3 for v in values)
+        platforms = Counter('네이버' if r.get('platform') in ('naver', 'smartstore')
+                             else {'direct':'자사몰','kakao':'카카오'}.get(r.get('platform'), r.get('platform') or '미분류')
+                             for r in rows)
+        return {'count':len(rows) if available else None, 'rated_count':len(values),
+                'unrated_count':len(rows)-len(values),
+                'average':round(sum(values)/len(values),2) if values else None,
+                'low_count':low if available else None,
+                'low_percent':round(low/len(values)*100,1) if values else None,
+                'scores':[{'score':v,'count':n} for v,n in sorted(Counter(values).items(),reverse=True)],
+                'platforms':[{'name':name,'count':n} for name,n in sorted(platforms.items())]}
+    brands = [b for b in report['brands'] if b['key'] in ('jasaol','myeongga')]
+    return {'basis':'해당 날짜에 수집된 전체 후기 기준 · 평균과 3점 이하 비율은 유효 별점 후기 기준',
+            'total':aggregate([r for b in brands for r in b['reviews']], any(b.get('available',True) for b in brands)),
+            'brands':[dict(key=b['key'],name=b['name'],**aggregate(b['reviews'], b.get('available',True))) for b in brands]}
+

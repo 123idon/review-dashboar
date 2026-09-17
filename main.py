@@ -13,7 +13,6 @@ from analyzer import compute_stats, get_reviews_page, validate_range
 import survey_module
 import naver_automation as naver_auto
 import daily_report
-import daily_analysis
 import asyncio
 from smartstore_import import merge_reviews, validate_reviews
 
@@ -226,9 +225,7 @@ async def startup():
     state = naver_auto.status()
     if state.get("last_success", "")[:10] != naver_auto.now()[:10]:
         asyncio.create_task(run_naver_collect())
-    scheduler.add_job(run_daily_analysis, 'cron', hour=9, minute=5,
-                      id='daily_analysis', replace_existing=True, coalesce=True, misfire_grace_time=3600)
-    asyncio.create_task(initialize_daily_analysis())
+    asyncio.create_task(ensure_daily_report())
     print("✅ 서버 시작 완료")
 
 @app.on_event("shutdown")
@@ -308,19 +305,6 @@ async def ensure_daily_report():
         return None
 
 
-async def run_daily_analysis():
-    report = await ensure_daily_report()
-    if report:
-        return await daily_analysis.generate(report, DAILY_REPORT_DIR.parent / 'daily_analyses')
-
-
-async def initialize_daily_analysis():
-    await ensure_daily_report()
-    clock = datetime.now(daily_report.KST)
-    if (clock.hour, clock.minute) >= (9, 5):
-        await run_daily_analysis()
-
-
 @app.get("/api/daily-report/dates")
 async def get_daily_report_dates():
     return JSONResponse({"dates": daily_report.report_dates(DAILY_REPORT_DIR),
@@ -373,7 +357,8 @@ async def get_daily_report(date: str = None):
         report["original_generated_at"] = original_generated
     job = scheduler.get_job("daily_report")
     result = daily_report.select_report(report)
-    result['analysis'] = daily_analysis.read(DAILY_REPORT_DIR.parent / 'daily_analyses', report)
+    result.pop('analysis', None)
+    result['statistics'] = daily_report.statistics(report)
     result["next_run"] = job.next_run_time.isoformat() if job and scheduler.running else None
     result["available_dates"] = daily_report.report_dates(DAILY_REPORT_DIR)
     result["historical"] = target != daily_report.yesterday()
