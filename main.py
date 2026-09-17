@@ -351,7 +351,7 @@ async def get_daily_report(date: str = None):
         report["reconstructed"] = True
         report["original_generated_at"] = original_generated
     job = scheduler.get_job("daily_report")
-    result = dict(report)
+    result = daily_report.select_report(report)
     result["next_run"] = job.next_run_time.isoformat() if job and scheduler.running else None
     result["available_dates"] = daily_report.report_dates(DAILY_REPORT_DIR)
     result["historical"] = target != daily_report.yesterday()
