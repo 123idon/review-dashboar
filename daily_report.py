@@ -7,6 +7,7 @@ import re
 KST = ZoneInfo('Asia/Seoul')
 BRANDS = [('jasaol', '백년화편', '자사'), ('myeongga', '명가삼대떡집', '경쟁사')]
 from review_selection import highlights, select_report
+from review_identity import review_identity
 
 
 def yesterday(clock=None):
@@ -36,7 +37,7 @@ def build_report(cache, target, naver_state=None, clock=None):
         for row in source:
             if row.get('date') != target:
                 continue
-            ident = (row.get('author', ''), row.get('date', ''), str(row.get('content', ''))[:100])
+            ident = review_identity(row)
             if ident in seen:
                 continue
             seen.add(ident)
