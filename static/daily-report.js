@@ -6,7 +6,8 @@ function dailyHighlighted(v){
   const chars=Array.from(v.excerpt||'');let end=0,html='';
   for(const h of v.highlights||[]){
     if(!Number.isInteger(h.start)||!Number.isInteger(h.end)||h.start<end||h.end<=h.start||h.end>chars.length)continue;
-    html+=dailyEscape(chars.slice(end,h.start).join(''))+'<mark title="'+dailyEscape(h.reason)+'">'+dailyEscape(chars.slice(h.start,h.end).join(''))+'</mark>';end=h.end;
+    // Separate glyph boxes prevent html2canvas from stretching wrapped inline marks.
+    html+=dailyEscape(chars.slice(end,h.start).join(''))+chars.slice(h.start,h.end).map(c=>'<mark title="'+dailyEscape(h.reason)+'">'+dailyEscape(c)+'</mark>').join('');end=h.end;
   }
   return html+dailyEscape(chars.slice(end).join(''));
 }
