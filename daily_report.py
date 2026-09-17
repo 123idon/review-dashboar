@@ -6,14 +6,7 @@ import re
 
 KST = ZoneInfo('Asia/Seoul')
 BRANDS = [('jasaol', '백년화편', '자사'), ('myeongga', '명가삼대떡집', '경쟁사')]
-# Concrete operational signals only. Generic praise and purchase intent are excluded.
-ISSUE_RULES = [
-    ('품질·위생', r'곰팡이|이물질|머리카락|벌레|상한\s*냄새|쉰\s*냄새|(?:떡|제품|상품|음식)(?:이|은|가|는)?\s*상했|(?:^|\s)상했|변질'),
-    ('배송·포장', r'오배송|누락|파손|터져|터졌|찢어|찢어졌|새서|샜|녹아서|녹아\s*왔|배송.{0,12}(?:늦|지연)|(?:다른|잘못된)\s*상품'),
-    ('식감·맛', r'너무\s*(?:달|짜|딱딱|질겨)|딱딱해서|딱딱해져|질겨서|퍽퍽해서|냄새가\s*(?:심|나)|(?:예전|지난번|전보다).{0,18}(?:달라|줄었|작아|딱딱|덜|떨어)'),
-    ('개선 요청', r'(?:포장|배송|크기|양|당도|식감|가격|보관|해동).{0,35}(?:개선|바꿔|줄여|늘려|해\s*주(?:세요|셨으면|시면)|해주면|했으면|하면\s*좋|아쉽)'),
-]
-NEGATION = re.compile(r'(?:곰팡이|이물질|머리카락|벌레|파손|누락|오배송).{0,10}(?:없|아니)|(?:딱딱|질기|질겨|달지|짜지).{0,8}(?:않|안)|배송.{0,10}늦지\s*않')
+from review_selection import highlights, select_report
 
 
 def yesterday(clock=None):
@@ -29,29 +22,6 @@ def score(row):
         return value if math.isfinite(value) and 1 <= value <= 5 else None
     except (ValueError, TypeError):
         return None
-
-
-def highlights(text):
-    """Highlight at most two actionable clauses, with reasons; no sentiment claims."""
-    result = []
-    for match in re.finditer(r'[^.!?。\n,;]+', text):
-        raw = match.group()
-        phrase = raw.strip()
-        if not phrase or NEGATION.search(phrase):
-            continue
-        for reason, pattern in ISSUE_RULES:
-            hit = re.search(pattern, phrase)
-            if not hit:
-                continue
-            # Cap a very long run-on clause around its concrete issue.
-            left = max(0, hit.start()-35)
-            right = min(len(phrase), max(hit.end()+55, left+75))
-            offset = match.start()+len(raw)-len(raw.lstrip())
-            result.append({'start':offset+left,'end':offset+right,'kind':'negative','reason':reason})
-            break
-        if len(result) == 2:
-            break
-    return result
 
 
 def build_report(cache, target, naver_state=None, clock=None):

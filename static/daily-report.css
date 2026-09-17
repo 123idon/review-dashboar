@@ -3,3 +3,5 @@
 .daily-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.daily-actions label{font-size:12px;font-weight:700}.daily-actions select{min-width:145px;padding:8px 12px;border:1px solid var(--border,#d5ddd5);border-radius:8px;color:var(--text,#243a30);background:var(--surface,#fff);font:inherit;font-size:13px}.daily-archive-note{font-size:12px;color:var(--text3);line-height:1.7;margin:0 0 14px}
 
 .daily-grid{align-items:start}.daily-reason{font-size:10px;color:#926044;margin-top:8px}.daily-quote mark.negative{background:#fff0a0;box-shadow:0 2px 0 #fff0a0}
+
+.daily-stats{flex-wrap:wrap;gap:8px 14px}
