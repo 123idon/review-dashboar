@@ -117,3 +117,6 @@ https://github.com/commerce-api-naver/commerce-api/discussions/3309
 
 Playwright 공식 참고: https://playwright.dev/python/docs/auth 및
 https://playwright.dev/python/docs/downloads
+
+## 공개 상품목록 진입점
+사용자가 지정한 https://brand.naver.com/100yearshop/category/1c533c275c734fa1af5487f242591ef8?cp=1 에서 상품 링크를 수집하고 각 상품 리뷰 탭을 순회한다. 판매자센터 로그인은 사용하지 않는다. 상품/후기 페이지 순회는 실제 화면 접근 후 검증해야 하며 현재 접근 제한 보류를 해제하거나 수집 성공으로 간주하지 않는다.

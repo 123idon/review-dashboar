@@ -15,6 +15,7 @@ from zoneinfo import ZoneInfo
 from smartstore_import import validate_reviews
 
 STORE = 'https://brand.naver.com/100yearshop'
+CATALOG = STORE + '/category/1c533c275c734fa1af5487f242591ef8?cp=1'
 PRODUCT_RE = re.compile(r'^/100yearshop/products/(\d+)/?$')
 
 
@@ -117,7 +118,7 @@ async def collect(since_date):
         raise CollectionStopped('unverified', '공개 사이트의 수집 허용 범위를 확인하지 못했습니다.')
     robots = RobotFileParser()
     robots.parse(response.text.splitlines())
-    if not robots.can_fetch('ReviewDashboard', STORE):
+    if not robots.can_fetch('ReviewDashboard', CATALOG):
         raise CollectionStopped('not_allowed', '사이트 robots.txt가 이 경로의 자동 수집을 허용하지 않습니다.')
 
     from playwright.async_api import async_playwright
@@ -184,15 +185,10 @@ async def collect(since_date):
         await context.route('**/*', route_request)
         page.on('response', on_response)
         try:
-            await page.goto(STORE, wait_until='domcontentloaded', timeout=45000)
+            await page.goto(CATALOG, wait_until='domcontentloaded', timeout=45000)
             text = await settle()
             if '백년화편' not in text:
                 raise CollectionStopped('layout_changed', '백년화편 공개 스토어인지 확인하지 못했습니다.')
-            all_products = await visible_control(re.compile(r'^전체\s*상품(?:\s|\(|$)'))
-            if all_products is None:
-                raise CollectionStopped('layout_changed', '공개 화면의 전체 상품 메뉴를 찾지 못했습니다.')
-            await all_products.click()
-            text = await settle()
             count = re.search(r'전체\s*상품\s*[\(\[]?\s*([\d,]+)', text)
             if not count:
                 raise CollectionStopped('unverified', '전체 상품 건수를 확인하지 못해 완전 수집으로 처리하지 않습니다.')
