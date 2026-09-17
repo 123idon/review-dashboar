@@ -37,6 +37,13 @@ class AnalysisTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(calls[0]['model'],a.MODEL)
             self.assertEqual(calls[0]['max_completion_tokens'],2500)
             self.assertNotIn('test-secret',Path(td,'2026-09-16.json').read_text())
+            corrections=Path(td)/'analysis_reviews';corrections.mkdir()
+            corrected=dict(answer(),source_hash=result['source_hash'],reviewed_at='2026-09-17',summary='검수된 요약')
+            (corrections/'2026-09-16.json').write_text(json.dumps(corrected),encoding='utf-8')
+            with patch.object(a,'__file__',str(Path(td)/'daily_analysis.py')):
+                self.assertEqual(a.read(td,r)['summary'],'검수된 요약')
+                self.assertEqual(a.read(td,changed)['status'],'stale')
+            self.assertNotEqual(json.loads(Path(td,'2026-09-16.json').read_text())['summary'],'검수된 요약')
 
     async def test_failure_does_not_retry_or_leak_error(self):
         calls=[]
