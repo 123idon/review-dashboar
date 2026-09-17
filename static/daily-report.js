@@ -2,14 +2,8 @@ let dailyReportData = null;
 let dailySelectedDate = null;
 let dailyRequestId = 0;
 function dailyEscape(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function dailyPaper(r, summaryOnly=false){
+function dailyPaper(r){
   r={...r,brands:r.brands.map(b=>({...b,reviews:[...b.reviews].sort((a,b)=>Array.from(b.excerpt||'').length-Array.from(a.excerpt||'').length)})),selection_rule:'백년화편·명가삼대떡집의 저장된 전일 후기 전체 · 본문 생략 없음 · 글자 수 많은 순'};
-  if(summaryOnly){
-    r={...r,brands:r.brands.map(b=>({...b,reviews:b.reviews.slice(0,3).map(v=>{
-      const chars=Array.from(v.excerpt||'');
-      return {...v,excerpt:chars.slice(0,220).join('')+(chars.length>220?'…':'')};
-    })})),selection_rule:'이미지는 브랜드별 최대 3건을 발췌한 요약입니다. 전체 후기 본문은 전일 종합 화면에서 확인하세요.'};
-  }
   const gen=new Date(r.generated_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',hour12:false});
   return `<div class="daily-head"><div><div class="daily-eyebrow">DAILY REVIEW BRIEF</div><div class="daily-title">전일 종합</div><div class="daily-date">${dailyEscape(r.date)} · 자사와 경쟁사</div></div><div class="daily-gen">매일 오전 9시 갱신 · 한국시간<br>생성 ${dailyEscape(gen)}</div></div>
   <div class="daily-kpis"><div class="daily-kpi"><strong>${r.total.toLocaleString()}</strong>수집된 전일 후기</div><div class="daily-kpi"><strong>${r.low_count.toLocaleString()}</strong>3점 이하 후기</div><div class="daily-kpi"><strong>${r.brands.filter(b=>b.available).length}</strong>자료 보유 브랜드 / 2</div></div>
@@ -29,17 +23,51 @@ async function renderDailyReport(selectedDate){
     dailyReportData=r;dailySelectedDate=r.date;
     const dates=r.available_dates||[r.date];
     const options=dates.map(d=>`<option value="${dailyEscape(d)}" ${d===r.date?'selected':''}>${dailyEscape(d)}</option>`).join('');
-    mc.innerHTML='<div class="daily-tools"><div><h2>전일 종합</h2><p>백년화편·명가삼대떡집 전일 후기 전체 · 글자 수 많은 순 · 본문 생략 없이 표시</p></div><div class="daily-actions"><label for="dailyDate">후기 날짜</label><select id="dailyDate" onchange="renderDailyReport(this.value)">'+options+'</select><button class="refresh-btn" onclick="dailySelectedDate=null;renderDailyReport()">최신 보고서</button><button class="refresh-btn" id="dailyDownload" onclick="downloadDailyReport()">요약 이미지 저장</button></div></div><p class="daily-archive-note">'+(r.reconstructed?'이전 보고서는 현재 저장된 해당 날짜의 전체 후기로 재구성해 표시합니다.':r.historical?'보관된 과거 보고서입니다. 생성 당시 내용을 그대로 보여줍니다.':'현재 전일 보고서입니다. 매일 전체 후기가 날짜별로 쌓입니다.')+' 저장된 날짜 '+dates.length+'개 · 저장을 시작하기 전 날짜는 목록에 표시되지 않습니다.</p><div id="dailyPaper" class="daily-paper">'+dailyPaper(r)+'</div>';
+    mc.innerHTML='<div class="daily-tools"><div><h2>전일 종합</h2><p>백년화편·명가삼대떡집 전일 후기 전체 · 글자 수 많은 순 · 본문 생략 없이 표시</p></div><div class="daily-actions"><label for="dailyDate">후기 날짜</label><select id="dailyDate" onchange="renderDailyReport(this.value)">'+options+'</select><button class="refresh-btn" onclick="dailySelectedDate=null;renderDailyReport()">최신 보고서</button><button class="refresh-btn" id="dailyDownload" onclick="downloadDailyReport()">전체 이미지 저장</button></div></div><p class="daily-archive-note">'+(r.reconstructed?'이전 보고서는 현재 저장된 해당 날짜의 전체 후기로 재구성해 표시합니다.':r.historical?'보관된 과거 보고서입니다. 생성 당시 내용을 그대로 보여줍니다.':'현재 전일 보고서입니다. 매일 전체 후기가 날짜별로 쌓입니다.')+' 저장된 날짜 '+dates.length+'개 · 전체 이미지가 여러 장이면 ZIP 파일로 저장됩니다.</p><div id="dailyPaper" class="daily-paper">'+dailyPaper(r)+'</div>';
   }catch(e){if(currentShop==='daily'&&requestId===dailyRequestId){dailyReportData=null;mc.innerHTML='<div class="card">'+dailyEscape(e.message)+'<br><button class="refresh-btn" onclick="dailySelectedDate=null;renderDailyReport()">최신 보고서 보기</button></div>';}}
 }
+// Store PNGs in one ZIP so browsers do not block multiple automatic downloads.
+function dailyZip(files){
+  const encoder=new TextEncoder(),parts=[],directory=[];let offset=0;
+  function crc32(bytes){let crc=0xffffffff;for(const byte of bytes){crc^=byte;for(let j=0;j<8;j++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}return (crc^0xffffffff)>>>0;}
+  for(const file of files){
+    const name=encoder.encode(file.name),data=file.data,crc=crc32(data);
+    const local=new Uint8Array(30+name.length),lv=new DataView(local.buffer);
+    lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint16(6,0x800,true);
+    lv.setUint32(14,crc,true);lv.setUint32(18,data.length,true);lv.setUint32(22,data.length,true);lv.setUint16(26,name.length,true);local.set(name,30);
+    const central=new Uint8Array(46+name.length),cv=new DataView(central.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0x800,true);
+    cv.setUint32(16,crc,true);cv.setUint32(20,data.length,true);cv.setUint32(24,data.length,true);cv.setUint16(28,name.length,true);cv.setUint32(42,offset,true);central.set(name,46);
+    parts.push(local,data);directory.push(central);offset+=local.length+data.length;
+  }
+  const size=directory.reduce((n,p)=>n+p.length,0),end=new Uint8Array(22),ev=new DataView(end.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,size,true);ev.setUint32(16,offset,true);
+  return new Blob([...parts,...directory,end],{type:'application/zip'});
+}
+function dailyImageSlices(height){
+  const result=[];for(let y=0;y<height;y+=4000)result.push({y,height:Math.min(4000,height-y)});return result;
+}
 async function downloadDailyReport(){
-  if(!dailyReportData)return;const exportReport=dailyReportData;const button=document.getElementById('dailyDownload');button.disabled=true;button.textContent='이미지 만드는 중…';
-  const stage=document.createElement('div');stage.className='daily-paper daily-export';stage.style.cssText='position:absolute;left:-12000px;top:0;';stage.innerHTML=dailyPaper(exportReport,true);document.body.appendChild(stage);
-  try{await document.fonts.ready;if(typeof html2canvas!=='function')throw new Error('이미지 저장 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
-    const canvas=await html2canvas(stage,{scale:2,backgroundColor:'#f6f4ed',logging:false,windowWidth:1200});
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw new Error('이미지 생성에 실패했습니다.');
-    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='전일종합_'+exportReport.date+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
-  }catch(e){alert(e.message);}finally{stage.remove();button.disabled=false;button.textContent='요약 이미지 저장';}
+  if(!dailyReportData)return;const exportReport=dailyReportData,button=document.getElementById('dailyDownload');
+  if(button.disabled)return;button.disabled=true;button.textContent='전체 이미지 만드는 중…';
+  const stage=document.createElement('div');stage.className='daily-paper daily-export';stage.style.cssText='position:absolute;left:-12000px;top:0;';
+  let url;
+  try{
+    stage.innerHTML=dailyPaper(exportReport);document.body.appendChild(stage);await document.fonts.ready;
+    if(typeof html2canvas!=='function')throw new Error('이미지 저장 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
+    const slices=dailyImageSlices(Math.ceil(stage.getBoundingClientRect().height)),files=[];
+    for(let i=0;i<slices.length;i++){
+      button.textContent=`전체 이미지 ${i+1}/${slices.length}장 생성 중…`;
+      const canvas=await html2canvas(stage,{scale:1,backgroundColor:'#f6f4ed',logging:false,windowWidth:1200,width:1040,height:slices[i].height,y:slices[i].y});
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+      canvas.width=canvas.height=0;
+      if(!blob)throw new Error('이미지 생성에 실패했습니다. 다시 시도해 주세요.');
+      files.push({name:`daily_${exportReport.date}_${String(i+1).padStart(3,'0')}.png`,data:new Uint8Array(await blob.arrayBuffer())});
+    }
+    const multiple=files.length>1,blob=multiple?dailyZip(files):new Blob([files[0].data],{type:'image/png'});
+    url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`전일종합_${exportReport.date}_전체.${multiple?'zip':'png'}`;
+    document.body.appendChild(a);a.click();a.remove();
+  }catch(e){alert(e.message);}finally{if(url)setTimeout(()=>URL.revokeObjectURL(url),60000);stage.remove();button.disabled=false;button.textContent='전체 이미지 저장';}
 }
 
 window.addEventListener('DOMContentLoaded',()=>{if(location.hash==='#daily'){const tab=document.getElementById('dailyReportTab');if(tab)switchShop('daily',tab);}});
