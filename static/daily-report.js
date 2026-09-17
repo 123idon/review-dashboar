@@ -32,29 +32,12 @@ async function renderDailyReport(selectedDate){
     dailyReportData=r;dailySelectedDate=r.date;
     const dates=r.available_dates||[r.date];
     const options=dates.map(d=>`<option value="${dailyEscape(d)}" ${d===r.date?'selected':''}>${dailyEscape(d)}</option>`).join('');
-    mc.innerHTML='<div class="daily-tools"><div><h2>전일 종합</h2><p>백년화편·명가삼대떡집 이유 있는 후기 선정 · 글자 수 많은 순 · 본문 전체 표시</p></div><div class="daily-actions"><label for="dailyDate">후기 날짜</label><select id="dailyDate" onchange="renderDailyReport(this.value)">'+options+'</select><button class="refresh-btn" onclick="dailySelectedDate=null;renderDailyReport()">최신 보고서</button><button class="refresh-btn" id="dailyDownload" onclick="downloadDailyReport()">전체 이미지 저장</button></div></div><p class="daily-archive-note">'+(r.reconstructed?'이전 보고서는 현재 보유한 해당 날짜 원문에서 같은 선정 기준으로 표시합니다.':r.historical?'보관된 과거 원문에 현재와 같은 선정·강조 기준을 적용합니다.':'현재 전일 보고서입니다. 원본 후기는 보존하고 이유 있는 후기만 표시합니다.')+' 저장된 날짜 '+dates.length+'개 · 전체 이미지가 여러 장이면 ZIP 파일로 저장됩니다.</p><div id="dailyPaper" class="daily-paper">'+dailyPaper(r)+'</div>';
+    mc.innerHTML='<div class="daily-tools"><div><h2>전일 종합</h2><p>백년화편·명가삼대떡집 이유 있는 후기 선정 · 글자 수 많은 순 · 본문 전체 표시</p></div><div class="daily-actions"><label for="dailyDate">후기 날짜</label><select id="dailyDate" onchange="renderDailyReport(this.value)">'+options+'</select><button class="refresh-btn" onclick="dailySelectedDate=null;renderDailyReport()">최신 보고서</button><button class="refresh-btn" id="dailyDownload" onclick="downloadDailyReport()">전체 이미지 저장</button></div></div><p class="daily-archive-note">'+(r.reconstructed?'이전 보고서는 현재 보유한 해당 날짜 원문에서 같은 선정 기준으로 표시합니다.':r.historical?'보관된 과거 원문에 현재와 같은 선정·강조 기준을 적용합니다.':'현재 전일 보고서입니다. 원본 후기는 보존하고 이유 있는 후기만 표시합니다.')+' 저장된 날짜 '+dates.length+'개 · 선정 후기 전체를 긴 PNG 이미지 한 장으로 저장합니다.</p><div id="dailyPaper" class="daily-paper">'+dailyPaper(r)+'</div>';
   }catch(e){if(currentShop==='daily'&&requestId===dailyRequestId){dailyReportData=null;mc.innerHTML='<div class="card">'+dailyEscape(e.message)+'<br><button class="refresh-btn" onclick="dailySelectedDate=null;renderDailyReport()">최신 보고서 보기</button></div>';}}
 }
-// Store PNGs in one ZIP so browsers do not block multiple automatic downloads.
-function dailyZip(files){
-  const encoder=new TextEncoder(),parts=[],directory=[];let offset=0;
-  function crc32(bytes){let crc=0xffffffff;for(const byte of bytes){crc^=byte;for(let j=0;j<8;j++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}return (crc^0xffffffff)>>>0;}
-  for(const file of files){
-    const name=encoder.encode(file.name),data=file.data,crc=crc32(data);
-    const local=new Uint8Array(30+name.length),lv=new DataView(local.buffer);
-    lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint16(6,0x800,true);
-    lv.setUint32(14,crc,true);lv.setUint32(18,data.length,true);lv.setUint32(22,data.length,true);lv.setUint16(26,name.length,true);local.set(name,30);
-    const central=new Uint8Array(46+name.length),cv=new DataView(central.buffer);
-    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0x800,true);
-    cv.setUint32(16,crc,true);cv.setUint32(20,data.length,true);cv.setUint32(24,data.length,true);cv.setUint16(28,name.length,true);cv.setUint32(42,offset,true);central.set(name,46);
-    parts.push(local,data);directory.push(central);offset+=local.length+data.length;
-  }
-  const size=directory.reduce((n,p)=>n+p.length,0),end=new Uint8Array(22),ev=new DataView(end.buffer);
-  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,size,true);ev.setUint32(16,offset,true);
-  return new Blob([...parts,...directory,end],{type:'application/zip'});
-}
-function dailyImageSlices(height){
-  const result=[];for(let y=0;y<height;y+=4000)result.push({y,height:Math.min(4000,height-y)});return result;
+// Keep one full image within conservative browser canvas dimensions/area.
+function dailyImageScale(height){
+  return Math.min(1,16000/height,Math.sqrt(16000000/(1040*height)));
 }
 async function downloadDailyReport(){
   if(!dailyReportData)return;const exportReport=dailyReportData,button=document.getElementById('dailyDownload');
@@ -64,17 +47,12 @@ async function downloadDailyReport(){
   try{
     stage.innerHTML=dailyPaper(exportReport);document.body.appendChild(stage);await document.fonts.ready;
     if(typeof html2canvas!=='function')throw new Error('이미지 저장 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
-    const slices=dailyImageSlices(Math.ceil(stage.getBoundingClientRect().height)),files=[];
-    for(let i=0;i<slices.length;i++){
-      button.textContent=`전체 이미지 ${i+1}/${slices.length}장 생성 중…`;
-      const canvas=await html2canvas(stage,{scale:1,backgroundColor:'#f6f4ed',logging:false,windowWidth:1200,width:1040,height:slices[i].height,y:slices[i].y});
-      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
-      canvas.width=canvas.height=0;
-      if(!blob)throw new Error('이미지 생성에 실패했습니다. 다시 시도해 주세요.');
-      files.push({name:`daily_${exportReport.date}_${String(i+1).padStart(3,'0')}.png`,data:new Uint8Array(await blob.arrayBuffer())});
-    }
-    const multiple=files.length>1,blob=multiple?dailyZip(files):new Blob([files[0].data],{type:'image/png'});
-    url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`전일종합_${exportReport.date}_전체.${multiple?'zip':'png'}`;
+    const height=Math.ceil(stage.getBoundingClientRect().height);
+    const canvas=await html2canvas(stage,{scale:dailyImageScale(height),backgroundColor:'#f6f4ed',logging:false,windowWidth:1200,width:1040,height});
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+    canvas.width=canvas.height=0;
+    if(!blob)throw new Error('이미지 생성에 실패했습니다. 다시 시도해 주세요.');
+    url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`전일종합_${exportReport.date}_전체.png`;
     document.body.appendChild(a);a.click();a.remove();
   }catch(e){alert(e.message);}finally{if(url)setTimeout(()=>URL.revokeObjectURL(url),60000);stage.remove();button.disabled=false;button.textContent='전체 이미지 저장';}
 }
