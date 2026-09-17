@@ -1,6 +1,10 @@
 from datetime import datetime, timedelta
 from collections import Counter
 import re
+import math
+from zoneinfo import ZoneInfo
+
+KST = ZoneInfo("Asia/Seoul")
 
 STOPWORDS = {
     "이","가","은","는","을","를","의","도","로","으로","에","에서",
@@ -23,6 +27,8 @@ STOPWORDS = {
 
 
 def parse_date(s: str) -> datetime | None:
+    if not isinstance(s, str):
+        return None
     for fmt in ("%Y-%m-%d", "%Y.%m.%d", "%y.%m.%d"):
         try:
             d = datetime.strptime(s[:10], fmt)
@@ -46,35 +52,52 @@ def extract_keywords(texts: list[str], top_n: int = 5) -> list[dict]:
     return [{"word": w, "count": c} for w, c in counter.most_common(top_n)]
 
 
-def compute_stats(reviews: list[dict], date_from: str = None, date_to: str = None) -> dict:
-    now = datetime.now()
-    yesterday_end = datetime(now.year, now.month, now.day) - timedelta(seconds=1)
-    week_start = yesterday_end - timedelta(days=6)
+def validate_range(date_from=None, date_to=None):
+    for value in (date_from, date_to):
+        if value is not None and (not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value) or parse_date(value) is None):
+            raise ValueError("날짜 형식은 YYYY-MM-DD입니다.")
+    if date_from and date_to and date_from > date_to:
+        raise ValueError("시작일은 종료일보다 늦을 수 없습니다.")
+    today = datetime.now(KST).date().isoformat()
+    if (date_from and date_from > today) or (date_to and date_to > today):
+        raise ValueError("미래 날짜는 조회할 수 없습니다.")
 
-    # 날짜 필터 적용
-    if date_from or date_to:
-        df = parse_date(date_from) if date_from else None
-        dt = parse_date(date_to) if date_to else None
-        if dt:
-            dt = dt.replace(hour=23, minute=59, second=59)
-        filtered = []
-        for r in reviews:
-            d = parse_date(r.get("date", ""))
-            if not d:
-                continue
-            if df and d < df:
-                continue
-            if dt and d > dt:
-                continue
-            filtered.append(r)
-        all_reviews = filtered
-    else:
-        all_reviews = [r for r in reviews if parse_date(r.get("date", ""))]
 
-    week_reviews = [
-        r for r in all_reviews
-        if week_start <= parse_date(r["date"]) <= yesterday_end
-    ]
+def valid_score(row):
+    try:
+        value = float(row.get('score'))
+        return value if math.isfinite(value) and 1 <= value <= 5 else 0
+    except (TypeError, ValueError):
+        return 0
+
+
+def filter_reviews(reviews, date_from=None, date_to=None):
+    validate_range(date_from, date_to)
+    result = []
+    for row in reviews:
+        parsed = parse_date(row.get('date'))
+        if parsed is None:
+            continue
+        day = parsed.date().isoformat()
+        if (date_from and day < date_from) or (date_to and day > date_to):
+            continue
+        result.append(dict(row, date=day, score=valid_score(row)))
+    return result
+
+
+def compute_stats(reviews: list[dict], date_from: str = None, date_to: str = None, clock=None) -> dict:
+    now = clock or datetime.now(KST)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=KST)
+    today = now.astimezone(KST).date()
+    # In a selected range, last 7 days ends at its end (today if open-ended).
+    # With no selection, show seven complete KST days through yesterday.
+    week_end = parse_date(date_to).date() if date_to and parse_date(date_to) else (today if date_from else today - timedelta(days=1))
+    week_start = week_end - timedelta(days=6)
+    if date_from and parse_date(date_from):
+        week_start = max(week_start, parse_date(date_from).date())
+    all_reviews = filter_reviews(reviews, date_from, date_to)
+    week_reviews = [r for r in all_reviews if week_start.isoformat() <= r['date'] <= week_end.isoformat()]
 
     def avg_score(lst):
         if not lst:
@@ -159,12 +182,14 @@ def compute_stats(reviews: list[dict], date_from: str = None, date_to: str = Non
     pos_texts = [(r.get("content") or "") for r in valid_reviews if r.get("score", 0) >= 4]
     neg_texts = [(r.get("content") or "") for r in valid_reviews if r.get("score", 0) <= 3]
     pos_texts_week = [(r.get("content") or "") for r in week_reviews if r.get("score", 0) >= 4]
-    neg_texts_week = [(r.get("content") or "") for r in week_reviews if r.get("score", 0) <= 3]
+    neg_texts_week = [(r.get("content") or "") for r in week_reviews if 0 < r.get("score", 0) <= 3]
 
     total_neg = sum(1 for r in all_reviews if 0 < r.get("score", 5) <= 3)
     week_neg = sum(1 for r in week_reviews if 0 < r.get("score", 5) <= 3)
 
     return {
+        "date_from": date_from, "date_to": date_to,
+        "week_from": week_start.isoformat(), "week_to": week_end.isoformat(),
         "total_count": len(all_reviews),
         "total_negative": total_neg,
         "week_count": len(week_reviews),
@@ -189,24 +214,11 @@ def get_reviews_page(reviews: list[dict], date_from: str = None, date_to: str = 
                      page: int = 1, size: int = 20,
                      filter_type: str = "all", keyword: str = None) -> dict:
     """후기 목록 페이지네이션 전용 함수"""
-    # 날짜 필터
-    if date_from or date_to:
-        df = parse_date(date_from) if date_from else None
-        dt = parse_date(date_to) if date_to else None
-        if dt:
-            dt = dt.replace(hour=23, minute=59, second=59)
-        filtered = []
-        for r in reviews:
-            d = parse_date(r.get("date", ""))
-            if not d:
-                continue
-            if df and d < df:
-                continue
-            if dt and d > dt:
-                continue
-            filtered.append(r)
-    else:
-        filtered = [r for r in reviews if parse_date(r.get("date", ""))]
+    if not 1 <= size <= 10000 or page < 1:
+        raise ValueError("페이지는 1 이상, 페이지 크기는 1~10000이어야 합니다.")
+    if filter_type not in ('all', 'low', 'jasa', 'ss'):
+        raise ValueError("지원하지 않는 후기 필터입니다.")
+    filtered = filter_reviews(reviews, date_from, date_to)
 
     # 플랫폼/점수 필터
     if filter_type == "low":
