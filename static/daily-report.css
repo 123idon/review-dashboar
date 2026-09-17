@@ -5,3 +5,5 @@
 .daily-grid{align-items:start}.daily-reason{font-size:10px;color:#926044;margin-top:8px}.daily-quote mark.negative{background:#fff0a0;box-shadow:0 2px 0 #fff0a0}
 
 .daily-stats{flex-wrap:wrap;gap:8px 14px}
+
+.daily-analysis{background:#fff;border:1px solid #dce2d7;border-radius:12px;padding:20px;margin-bottom:18px;overflow-wrap:anywhere}.daily-analysis h3{margin:0 0 12px;color:#214f42;font-size:20px}.daily-analysis-summary{font-weight:600;line-height:1.8}.daily-analysis article{border-top:1px solid #e2e7de;padding:12px 0}.daily-analysis h4{font-size:14px;margin:4px 0 8px}.daily-analysis h4 span{font-size:11px;color:#617969}.daily-analysis p{font-size:13px;line-height:1.8;margin:6px 0}.daily-analysis-action{font-size:12px;line-height:1.8;background:#eef2eb;padding:8px 10px;border-radius:5px}.daily-analysis blockquote{font-size:12px;line-height:1.8;color:#626d63;border-left:3px solid #d3b56a;padding-left:10px;margin:9px 0 4px}.daily-analysis small{display:block;font-size:10px;line-height:1.8;color:#798276;margin-top:12px}
