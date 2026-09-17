@@ -5,16 +5,16 @@ name alone. Keep stored snapshots intact; project the current display on read.
 """
 import re
 
-VERSION = 2
+VERSION = 3
 # Bound gaps to the same clause; never cross punctuation/newlines.
 GAP = r'[^.!?。\n,;]{0,24}?'
 TAIL = r'[가-힣]*'
 
 RULES = [
-    # Low sweetness is the explicit exception to excluding positive sensory praise.
-    ('당도', r'(?:많이\s*|너무\s*|넘\s*)?(?:달지(?:도|는)?\s*않|안\s*달|덜\s*달|달지도\s*싱겁지도\s*않)' + TAIL),
+    # Sweetness praise is excluded too; retain explicit requests to reduce it.
+    ('당도 개선', r'(?:조금\s*더\s*|좀\s*더\s*)?덜\s*달(?:았으면|면|아도)\s*(?:좋|했으면)' + TAIL),
+    ('당도 개선', r'(?:당도|단맛|설탕)(?:를|을|이|가)?\s*(?:좀\s*|조금\s*)?(?:줄여\s*주|낮춰\s*주|줄였으면|낮췄으면)' + TAIL),
     ('맛·식감 불만', r'(?:너무|지나치게)\s*(?:달아|달고|달다|달았|짜|시어|셔서)' + TAIL),
-    ('당도', r'(?:팥소|앙금|팥|소)(?:가|는|도)?\s*저당' + TAIL),
     ('맛·식감 불만', r'(?:퍽퍽|퍼석|딱딱|질기|질겨|질겼|텁텁|푸석|눅눅|떫|느끼)' + TAIL),
     ('맛·식감 부족', r'(?:쫄깃|쫀득|고소|촉촉|부드럽|부드러|담백)' + r'[가-힣]{0,8}\s*(?:않|못|없)' + TAIL),
     ('맛·식감 부족', r'(?:쫄깃함|쫀득함|고소함|쑥\s*향|풍미)(?:이|가|은|는|도)?\s*(?:없|부족|약하|약해|덜하)' + TAIL),
@@ -97,5 +97,5 @@ def select_report(report):
     result.update(brands=brands, selected_count=sum(b['selected_count'] for b in brands),
                   selection_version=VERSION,
                   selection_rule='구체적인 평가 이유가 있는 후기 선정 · 본문 생략 없음 · 글자 수 많은 순',
-                  highlight_rule='달지 않다는 평가 포함 · 맛·식감·향은 구체적인 불만만 선정 · 재료·포장·배송 등 기존 기준 유지')
+                  highlight_rule='당도·맛·식감·향의 칭찬 제외 · 구체적인 불만·개선 요청 및 재료·포장·배송 등 기존 기준으로 선정')
     return result
