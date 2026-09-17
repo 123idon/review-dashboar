@@ -527,11 +527,14 @@ async def scrape_jasaol_incremental(progress_cb=None) -> list:
     print(f"  [자사몰] 신규 {len(all_new):,}건")
     return all_new
 
-async def scrape_jasaol_recent(days: int = 14, progress_cb=None) -> list:
+async def scrape_jasaol_recent(days: int = 14, progress_cb=None, audit=None, start_page=1) -> list:
     """최근 N일 자사몰 후기를 전문+사진 포함하여 수집 (날짜 기준, review_no 중복 없이).
     기존 데이터 교체용 — 날짜가 cutoff보다 오래된 페이지를 만나면 중단."""
     from datetime import timedelta
-    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    from zoneinfo import ZoneInfo
+    if audit is None: audit = {}
+    audit.update(complete=False, next_page=start_page)
+    cutoff = (datetime.now(ZoneInfo("Asia/Seoul")) - timedelta(days=days)).strftime("%Y-%m-%d")
     print(f"  [자사몰] 최근 {days}일 재수집: {cutoff} 이후 (전문+사진)")
     sem = asyncio.Semaphore(JASAOL_CONCURRENT)
     collected = []
@@ -540,13 +543,15 @@ async def scrape_jasaol_recent(days: int = 14, progress_cb=None) -> list:
         async with asyncio.timeout(JASAOL_TOTAL_TIMEOUT):
             async with httpx.AsyncClient(headers=JASAOL_HEADERS, follow_redirects=True,
                                          timeout=JASAOL_PAGE_TIMEOUT) as client:
-                page = 1
+                page = start_page
                 total_pages = None
                 while True:
+                    audit["next_page"] = page
                     _, reviews, last_page = await fetch_review_page(client, 1, page, sem, "")
                     if page == 1 and last_page:
                         total_pages = last_page
                     if not reviews:
+                        audit["reason"] = "페이지를 읽지 못해 중단"
                         break
                     stop = False
                     for rv in reviews:
@@ -561,12 +566,14 @@ async def scrape_jasaol_recent(days: int = 14, progress_cb=None) -> list:
                         progress_cb({"phase": "detail", "brand": "자사몰",
                                      "progress_msg": f"자사몰 최근{days}일 p{page} (수집 {len(collected):,}건)"})
                     if stop:
+                        audit["complete"] = True
                         break
-                    max_p = total_pages or page
-                    if page >= max_p:
+                    if total_pages and page >= total_pages:
+                        audit["complete"] = True
                         break
                     page += 1
     except asyncio.TimeoutError:
+        audit["reason"] = "수집 시간 제한"
         print(f"  [자사몰] 재수집 타임아웃 — 수집된 것만 반환")
     print(f"  [자사몰] 최근 {days}일 {len(collected):,}건 수집 (전문+사진)")
     return collected
@@ -608,10 +615,9 @@ async def collect_all(progress_cb=None, only_jasaol=False) -> dict:
 
     # 자사몰: 증분 → jasaol_new.json에 누적 (중복 제거)
     try:
-        since_before = get_jasaol_since_date()
         new_reviews = await scrape_jasaol_incremental(progress_cb)
         existing_new = load_json(JASAOL_NEW_PATH, [])
-        combined = [r for r in existing_new if r.get("date", "") >= since_before] + new_reviews
+        combined = existing_new + new_reviews  # Preserve every previously collected date.
         # 중복 제거: (author, date, content) 기준 — product 무관하게 동일 리뷰 제거
         seen = set()
         deduped = []

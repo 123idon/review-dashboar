@@ -664,7 +664,7 @@ body {
 })();
 </script>
 <link rel="stylesheet" href="/static/daily-report.css?v=3">
-<script src="/static/daily-report.js?v=7"></script>
+<script src="/static/daily-report.js?v=8"></script>
 </head>
 <body>
 
@@ -774,7 +774,7 @@ async function loadData(){
     if(res.ok){
       const data = await res.json();
       allData = data;
-      filteredData = null;  // 새 데이터 로드 시 필터 초기화
+      await refreshActiveRange();
       updateLastUpdated(data.last_updated);
       if(currentShop !== 'memo' && currentShop !== 'log') render();
       window._hideOverlay && window._hideOverlay();
@@ -949,6 +949,7 @@ function startCollectPolling(){
             const data = await res.json();
             data._last_success = st.last_success;
             allData = data;
+            await refreshActiveRange();
             logCache = null;
             updateLastUpdated(data.last_updated);
             serverPct = 100; displayPct = 100;
@@ -999,6 +1000,7 @@ function finishProgressBar(){
 // ════════════════════════════════════════
 function switchShop(shop, el){
   currentShop = shop;
+  resetReviewScope();
   // 로그 탭 나가면 폴링 정리
   if(shop !== 'log' && logPollTimer){ clearInterval(logPollTimer); logPollTimer=null; }
   document.querySelectorAll('.shop-tab').forEach(t=>t.classList.remove('active-a','active-b','active-c','active-d'));
@@ -1030,21 +1032,20 @@ let dateFilterStart = null;  // 'YYYY-MM-DD' or null
 let dateFilterEnd   = null;
 
 function renderDateFilterBar(){
-  const today = new Date();
-  const todayStr = fmtDate(today);
+  const todayStr = kstToday();
   const startVal = dateFilterStart || '';
-  const endVal   = dateFilterEnd   || todayStr;
-  const isActive = dateFilterStart !== null;
+  const endVal   = dateFilterEnd   || '';
+  const isActive = !!(dateFilterStart || dateFilterEnd);
 
   const presets = [
     {label:'3일', days:3},
     {label:'1주일', days:7},
-    {label:'1개월', days:30},
-    {label:'1년', days:365},
+    {label:'1개월(30일)', days:30},
+    {label:'1년(365일)', days:365},
   ];
   const presetBtns = presets.map(p=>{
-    const _presetFrom = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()); _presetFrom.setDate(_presetFrom.getDate()-p.days);
-    const active = isActive && dateFilterStart === fmtDate(_presetFrom) && dateFilterEnd === todayStr;
+    const _presetFrom = presetStart(p.days);
+    const active = isActive && dateFilterStart === _presetFrom && dateFilterEnd === todayStr;
     return `<button class="date-preset-btn${active?' active':''}" onclick="applyPreset(${p.days})">${p.label}</button>`;
   }).join('');
 
@@ -1060,7 +1061,7 @@ function renderDateFilterBar(){
     </div>
     <div class="date-filter-sep"></div>
     <button class="date-reset-btn" onclick="resetDateFilter()">전체 초기화</button>
-    ${isActive ? `<span class="date-filter-active-tag">📅 ${dateFilterStart} ~ ${dateFilterEnd}</span>` : ''}
+    ${isActive ? `<span class="date-filter-active-tag">📅 ${dateFilterStart||'전체 시작'} ~ ${dateFilterEnd||'오늘'}</span>` : ''}
   </div>`;
 }
 
@@ -1068,35 +1069,47 @@ function renderDateFilterBar(){
 // ════════════════════════════════════════
 // 날짜 필터 서버 조회
 // ════════════════════════════════════════
-let _filterAbort = null;  // 이전 요청 취소용
+let _filterAbort = null;
+let _filterRequestId = 0;
+let _filterLoading = false;
+let _filterError = '';
 
-async function fetchFilteredData(){
-  if(!dateFilterStart && !dateFilterEnd){ filteredData = null; render(); return; }
-
-  // 이전 진행 중 요청 취소
-  if(_filterAbort){ _filterAbort.abort(); }
-  _filterAbort = new AbortController();
-
-  // 즉시 로딩 표시 (버튼 반응 즉각적으로)
-  _showFilterLoading(true);
-
-  const params = new URLSearchParams();
-  if(dateFilterStart) params.set('date_from', dateFilterStart);
-  if(dateFilterEnd)   params.set('date_to',   dateFilterEnd);
-
+function resetReviewScope(){
+  clearTimeout(keywordDebounceTimer);
+  reviewFilter='all';reviewKeyword='';currentPage=1;revSelected.clear();
+  ++_reviewRequestId;
+}
+function kstToday(clock=new Date()){
+  return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(clock);
+}
+function presetStart(days, today=kstToday()){
+  const d=new Date(today+'T00:00:00Z');d.setUTCDate(d.getUTCDate()-(days-1));
+  return d.toISOString().slice(0,10);
+}
+async function refreshActiveRange(){
+  if(dateFilterStart||dateFilterEnd) await fetchFilteredData(dateFilterStart,dateFilterEnd);
+  else {filteredData=null;}
+}
+async function fetchFilteredData(from=dateFilterStart,to=dateFilterEnd){
+  const requestId=++_filterRequestId;
+  if(_filterAbort)_filterAbort.abort();
+  const controller=new AbortController();_filterAbort=controller;
+  _filterLoading=true;_filterError='';resetReviewScope();render();
+  const params=new URLSearchParams();
+  if(from)params.set('date_from',from);if(to)params.set('date_to',to);
   try{
-    const res = await fetch('/api/data?' + params.toString(), {
-      signal: _filterAbort.signal
-    });
-    if(res.ok){
-      filteredData = await res.json();
-      render();  // render()에서 로딩 표시 사라짐 (필터 바 새로 그림)
-    }
+    const res=await fetch('/api/data?'+params.toString(),{signal:controller.signal});
+    if(!res.ok)throw new Error('기간 조회에 실패했습니다. 다시 적용해 주세요.');
+    const data=await res.json();
+    if(requestId!==_filterRequestId)return;
+    filteredData=(from||to)?data:null;
+    if(!from&&!to)allData=data;
+    dateFilterStart=from;dateFilterEnd=to;
   }catch(e){
-    if(e.name !== 'AbortError') showToast('데이터 조회 실패');
-  } finally {
-    _showFilterLoading(false);
-    _filterAbort = null;
+    if(requestId!==_filterRequestId)return;
+    if(e.name!=='AbortError'){_filterError=e.message;showToast(e.message);}
+  }finally{
+    if(requestId===_filterRequestId){_filterLoading=false;_filterAbort=null;render();}
   }
 }
 
@@ -1125,143 +1138,24 @@ function fmtDate(d){
 }
 
 async function applyPreset(days){
-  const today = new Date();
-  const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const from = new Date(todayMid);
-  from.setDate(from.getDate() - days);
-  dateFilterStart = fmtDate(from);
-  dateFilterEnd   = fmtDate(today);
-  // 프리셋 버튼 즉각 active 표시
-  document.querySelectorAll('.date-preset-btn').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
-  await fetchFilteredData();
+  await fetchFilteredData(presetStart(days),kstToday());
 }
-
 async function applyDateRange(){
-  const from = document.getElementById('dateFrom')?.value;
-  const to   = document.getElementById('dateTo')?.value;
-  if(!from && !to){ resetDateFilter(); return; }
-  dateFilterStart = from || null;
-  dateFilterEnd   = to   || fmtDate(new Date());
-  await fetchFilteredData();
-}
-
-async function resetDateFilter(){
-  dateFilterStart = null;
-  dateFilterEnd   = null;
-  filteredData = null;
-  if(_filterAbort){ _filterAbort.abort(); _filterAbort = null; }
-  render();
-}
-
-// reviews 배열을 날짜 필터로 자르고 통계 재계산
-function computeFilteredStats(d){
-  if(!dateFilterStart) return d;  // 필터 없으면 원본 그대로
-
-  const from = dateFilterStart;
-  const to   = dateFilterEnd || fmtDate(new Date());
-
-  // reviews 필터링
-  const reviews = (d.reviews||[]).filter(r=> r.date >= from && r.date <= to);
-
-  // 통계 재계산
-  const total    = reviews.length;
-  const negative = reviews.filter(r=>r.score>0&&r.score<=3).length;
-  const scores   = reviews.filter(r=>r.score>0).map(r=>r.score);
-  const avg      = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length*10)/10 : 0;
-
-  // 별점 분포
-  const dist = {'1':0,'2':0,'3':0,'4':0,'5':0};
-  reviews.forEach(r=>{ const s=String(Math.round(r.score)); if(dist[s]!==undefined)dist[s]++; });
-
-  // 주간 트렌드
-  const weekMap = {};
-  reviews.forEach(r=>{
-    if(!r.date)return;
-    // YYYY-MM-DD 파싱 (로컬 시간대, UTC 오차 방지)
-    const parts=r.date.split('-');
-    const d2=new Date(+parts[0],+parts[1]-1,+parts[2]);
-    const dow=d2.getDay(); // 0=일
-    const mon=new Date(d2); mon.setDate(d2.getDate()-(dow===0?6:dow-1));
-    const key=fmtDate(mon);
-    if(!weekMap[key])weekMap[key]={week:key,count:0,neg:0,scoreSum:0,scoreCnt:0};
-    weekMap[key].count++;
-    if(r.score>0&&r.score<=3)weekMap[key].neg++;
-    if(r.score>0){weekMap[key].scoreSum+=r.score;weekMap[key].scoreCnt++;}
-  });
-  const trend = Object.values(weekMap).sort((a,b)=>a.week.localeCompare(b.week)).map(w=>({
-    week:w.week, count:w.count, negative:w.neg,
-    avg_score: w.scoreCnt?Math.round(w.scoreSum/w.scoreCnt*10)/10:0
-  }));
-
-  // 플랫폼별
-  const platMap = {};
-  reviews.forEach(r=>{
-    const p=r.platform||'direct';
-    if(!platMap[p])platMap[p]={count:0,negative:0,scoreSum:0,scoreCnt:0};
-    platMap[p].count++;
-    if(r.score>0&&r.score<=3)platMap[p].negative++;
-    if(r.score>0){platMap[p].scoreSum+=r.score;platMap[p].scoreCnt++;}
-  });
-  const platform_stats={};
-  Object.entries(platMap).forEach(([p,v])=>{
-    platform_stats[p]={count:v.count,negative:v.negative,avg_score:v.scoreCnt?Math.round(v.scoreSum/v.scoreCnt*10)/10:0};
-  });
-
-  // 상품별
-  const prodMap={};
-  reviews.forEach(r=>{
-    const name=r.product||'(상품명 없음)';
-    if(!prodMap[name])prodMap[name]={count:0,negative:0,scoreSum:0,scoreCnt:0};
-    prodMap[name].count++;
-    if(r.score>0&&r.score<=3)prodMap[name].negative++;
-    if(r.score>0){prodMap[name].scoreSum+=r.score;prodMap[name].scoreCnt++;}
-  });
-  const top_products_all=Object.entries(prodMap).map(([p,v])=>({
-    product:p,count:v.count,negative:v.negative,
-    avg_score:v.scoreCnt?Math.round(v.scoreSum/v.scoreCnt*10)/10:0
-  })).sort((a,b)=>b.count-a.count).slice(0,3);
-  const top_negative_products=Object.entries(prodMap).filter(([,v])=>v.negative>0).map(([p,v])=>({
-    product:p,count:v.count,negative:v.negative,
-    avg_score:v.scoreCnt?Math.round(v.scoreSum/v.scoreCnt*10)/10:0
-  })).sort((a,b)=>b.negative-a.negative).slice(0,3);
-
-  // 키워드 (간단 버전)
-  function extractKw(revs, positive){
-    const STOP=new Set(['이','가','은','는','을','를','의','도','로','에','와','과','한','그','좋은','좋아요','너무','정말','진짜','완전','아주','매우','좀','구매','주문','배송','상품','제품','포장','선물','가격','감사','합니다']);
-    const counter={};
-    revs.forEach(r=>{
-      const words=(r.content||'').match(/[가-힣]{2,6}/g)||[];
-      words.forEach(w=>{ if(!STOP.has(w)){counter[w]=(counter[w]||0)+1;} });
-    });
-    return Object.entries(counter).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([w,c])=>({word:w,count:c}));
+  for(const id of ['dateFrom','dateTo']){
+    const input=document.getElementById(id);
+    if(input&&!input.checkValidity()){input.reportValidity();return;}
   }
-  const posRevs=reviews.filter(r=>r.score>=4);
-  const negRevs=reviews.filter(r=>r.score>0&&r.score<=3);
-
-  // 주간 필터용
-  const weekAgoD=new Date(); weekAgoD.setDate(weekAgoD.getDate()-7);
-  const weekFrom=fmtDate(weekAgoD);
-  const weekRevs=reviews.filter(r=>r.date>=weekFrom);
-
-  return {
-    ...d,
-    reviews,
-    total_count: total,
-    total_negative: negative,
-    avg_score: avg,
-    week_count: weekRevs.length,
-    week_negative: weekRevs.filter(r=>r.score>0&&r.score<=3).length,
-    score_distribution: dist,
-    weekly_trend: trend,
-    platform_stats,
-    top_products_all,
-    top_negative_products,
-    positive_keywords_all: extractKw(posRevs, true),
-    negative_keywords_all: extractKw(negRevs, false),
-    positive_keywords_week: extractKw(weekRevs.filter(r=>r.score>=4), true),
-    negative_keywords_week: extractKw(weekRevs.filter(r=>r.score>0&&r.score<=3), false),
-  };
+  const from=document.getElementById('dateFrom')?.value||null;
+  const to=document.getElementById('dateTo')?.value||null;
+  if(from&&to&&from>to){showToast('시작일은 종료일보다 늦을 수 없습니다.');return;}
+  if((from&&from>kstToday())||(to&&to>kstToday())){showToast('미래 날짜는 조회할 수 없습니다.');return;}
+  if(!from&&!to){resetDateFilter();return;}
+  await fetchFilteredData(from,to);
+}
+async function resetDateFilter(){
+  ++_filterRequestId;if(_filterAbort)_filterAbort.abort();_filterAbort=null;
+  dateFilterStart=null;dateFilterEnd=null;filteredData=null;_filterLoading=false;_filterError='';
+  resetReviewScope();render();
 }
 
 // ════════════════════════════════════════
@@ -1286,6 +1180,10 @@ function render(){
         <div style="font-size:16px;font-weight:700;margin-bottom:8px">창억떡 수집 미구현</div>
         <div style="font-size:13px;color:var(--text3);line-height:1.7">자사몰(changeok.co.kr) 로그인이 필요하여 현재 수집할 수 없습니다.<br>스마트스토어(brand.naver.com/changeok) 연동을 준비 중입니다.</div>
       </div>`;
+    return;
+  }
+  if(_filterLoading||_filterError){
+    document.getElementById('mainContent').innerHTML=renderDateFilterBar()+'<div class="card">'+(_filterLoading?'선택 기간 조회 중…':esc(_filterError))+'</div>';
     return;
   }
   const src = filteredData || allData;
@@ -1314,13 +1212,16 @@ function render(){
 // 요약 카드
 // ════════════════════════════════════════
 function renderStatCards(d){
+  const scope=(dateFilterStart||dateFilterEnd)?'선택 기간':'전체';
+  const weekLabel=(dateFilterStart||dateFilterEnd)?'선택 기간 내 마지막 7일':'최근 7일(어제까지)';
+  const weekRange=d.week_from+' ~ '+d.week_to;
   const negRate  = d.total_count ? Math.round(d.total_negative/d.total_count*100) : 0;
   const wNegRate = d.week_count  ? Math.round(d.week_negative/d.week_count*100)   : 0;
   return `<div class="stat-grid section">
-    <div class="stat-card"><div class="stat-label">전체 후기</div><div class="stat-val">${d.total_count.toLocaleString()}</div><div class="stat-sub">평균 ★${d.avg_score}</div></div>
-    <div class="stat-card ${d.total_negative>0?'danger-card':''}"><div class="stat-label">전체 3점 이하</div><div class="stat-val ${d.total_negative>0?'danger':''}">${d.total_negative.toLocaleString()}</div><div class="stat-sub">${negRate}% 비율</div></div>
-    <div class="stat-card"><div class="stat-label">최근 7일 후기</div><div class="stat-val">${d.week_count.toLocaleString()}</div><div class="stat-sub">지난 7일간</div></div>
-    <div class="stat-card ${d.week_negative>0?'danger-card':''}"><div class="stat-label">최근 7일 부정</div><div class="stat-val ${d.week_negative>0?'danger':''}">${d.week_negative.toLocaleString()}</div><div class="stat-sub">${wNegRate}% 비율</div></div>
+    <div class="stat-card"><div class="stat-label">${scope} 후기</div><div class="stat-val">${d.total_count.toLocaleString()}</div><div class="stat-sub">평균 ★${d.avg_score}</div></div>
+    <div class="stat-card ${d.total_negative>0?'danger-card':''}"><div class="stat-label">${scope} 3점 이하</div><div class="stat-val ${d.total_negative>0?'danger':''}">${d.total_negative.toLocaleString()}</div><div class="stat-sub">${negRate}% 비율</div></div>
+    <div class="stat-card"><div class="stat-label">${weekLabel} 후기</div><div class="stat-val">${d.week_count.toLocaleString()}</div><div class="stat-sub">${weekRange}</div></div>
+    <div class="stat-card ${d.week_negative>0?'danger-card':''}"><div class="stat-label">${weekLabel} 3점 이하</div><div class="stat-val ${d.week_negative>0?'danger':''}">${d.week_negative.toLocaleString()}</div><div class="stat-sub">${wNegRate}% 비율 · ${weekRange}</div></div>
   </div>`;
 }
 
@@ -1402,7 +1303,7 @@ function renderTopProducts(d){
   const list=(d.top_products_all||[]);
   let rows=list.map((p,i)=>`<div class="product-item"><div class="product-rank">${i+1}</div><div class="product-name">${p.product||'(상품명 없음)'}<small>평균 ★${p.avg_score} · 전체 ${p.count}건</small></div><div class="product-count">${p.count}건</div></div>`).join('');
   if(!rows)rows='<div style="font-size:13px;color:var(--text3)">데이터 없음</div>';
-  return `<div class="card"><div class="card-title">후기 많은 상품 TOP 3 <span style="font-size:11px;color:var(--text3);font-weight:400">(전체)</span></div>${rows}</div>`;
+  return `<div class="card"><div class="card-title">후기 많은 상품 TOP 3 <span style="font-size:11px;color:var(--text3);font-weight:400">(${dateFilterStart||dateFilterEnd?'선택 기간':'전체'})</span></div>${rows}</div>`;
 }
 function renderNegativeProducts(d){
   const list=(d.top_negative_products||[]);
@@ -1419,8 +1320,8 @@ function renderKeywords(d){
   const posAll=d.positive_keywords_all||[], negAll=d.negative_keywords_all||[];
   return `<div class="card"><div class="card-title">키워드 분석</div>
     <div class="period-toggle">
-      <button class="period-btn active" id="kwPeriodAll" onclick="setKwPeriod('all')">전체</button>
-      <button class="period-btn" id="kwPeriodWeek" onclick="setKwPeriod('week')">최근 7일</button>
+      <button class="period-btn active" id="kwPeriodAll" onclick="setKwPeriod('all')">${dateFilterStart||dateFilterEnd?'선택 기간':'전체'}</button>
+      <button class="period-btn" id="kwPeriodWeek" onclick="setKwPeriod('week')">${dateFilterStart||dateFilterEnd?'기간 내 마지막 7일':'최근 7일(어제까지)'}</button>
     </div>
     <div class="keyword-section"><div class="keyword-section-title">✓ 긍정 (4~5점)</div><div class="keyword-chips" id="posChips">${_chips(posAll,'chip-pos')}</div></div>
     <div class="keyword-section" style="margin-top:12px"><div class="keyword-section-title">✗ 부정 (1~3점)</div><div class="keyword-chips" id="negChips">${_chips(negAll,'chip-neg')}</div></div>
@@ -1445,30 +1346,31 @@ function setKwPeriod(period){
 let revSelected=new Map();
 let currentPage=1, filteredReviews=[];
 let PAGE_SIZE=20;
+let _reviewRequestId=0;
 let _reviewTotal=0, _reviewTotalPages=1;  // 서버 페이지네이션용
 
 function renderReviews(d){
   filteredReviews=d.reviews||[]; currentPage=1;
-  return `<div class="card"><div class="card-title">후기 목록</div>
+  return `<div class="card"><div class="card-title">후기 목록</div><p style="font-size:12px;color:var(--text3)">위 통계는 선택 기간 전체 기준입니다. 아래 검색·점수·플랫폼 조건은 목록에만 적용됩니다.</p>
     <div class="review-search-wrap">
         <div class="review-search-box">
           <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="search" id="reviewSearchInput" class="review-search-input" placeholder="후기 내용 검색..." autocomplete="off" oninput="handleKeywordInput(this.value)" />
-          <button class="search-clear" id="searchClearBtn" onclick="clearKeyword()" style="display:none">✕</button>
+          <input type="search" id="reviewSearchInput" class="review-search-input" value="${esc2(reviewKeyword)}" placeholder="후기 내용 검색..." autocomplete="off" oninput="handleKeywordInput(this.value)" />
+          <button class="search-clear" id="searchClearBtn" onclick="clearKeyword()" style="display:${reviewKeyword?'inline':'none'}">✕</button>
         </div>
         <span class="search-result-badge" id="searchResultBadge" style="display:none"></span>
       </div>
       <div class="filter-row">
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="filter-btn active" onclick="setFilter('all',this)">전체</button>
-        <button class="filter-btn" onclick="setFilter('low',this)">3점 이하</button>
-        <button class="filter-btn" onclick="setFilter('jasa',this)">자사몰</button>
-        <button class="filter-btn" onclick="setFilter('ss',this)">스마트스토어</button>
+        <button class="filter-btn ${reviewFilter==='all'?'active':''}" onclick="setFilter('all',this)">전체</button>
+        <button class="filter-btn ${reviewFilter==='low'?'active':''}" onclick="setFilter('low',this)">3점 이하</button>
+        <button class="filter-btn ${reviewFilter==='jasa'?'active':''}" onclick="setFilter('jasa',this)">자사몰</button>
+        <button class="filter-btn ${reviewFilter==='ss'?'active':''}" onclick="setFilter('ss',this)">스마트스토어</button>
       </div>
       <div class="pagesize-tabs">
-        <button class="ps-btn \${PAGE_SIZE===20?'active':''}" onclick="setPageSize(20,this)">20개</button>
-        <button class="ps-btn \${PAGE_SIZE===50?'active':''}" onclick="setPageSize(50,this)">50개</button>
-        <button class="ps-btn \${PAGE_SIZE===100?'active':''}" onclick="setPageSize(100,this)">100개</button>
+        <button class="ps-btn ${PAGE_SIZE===20?'active':''}" onclick="setPageSize(20,this)">20개</button>
+        <button class="ps-btn ${PAGE_SIZE===50?'active':''}" onclick="setPageSize(50,this)">50개</button>
+        <button class="ps-btn ${PAGE_SIZE===100?'active':''}" onclick="setPageSize(100,this)">100개</button>
       </div>
     </div>
     <div class="rev-export-bar" id="revExportBar">
@@ -1487,17 +1389,10 @@ function setFilter(f,el){
   reviewFilter=f; currentPage=1;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
-  // 기간 필터 적용 중이면 filteredData, 아니면 allData 사용
-  const src = filteredData || allData;
-  const d=src[currentShop];
-  let reviews=d.reviews||[];
-  if(f==='low')  reviews=reviews.filter(r=>r.score<=3);
-  else if(f==='jasa') reviews=reviews.filter(r=>r.platform!=='smartstore');
-  else if(f==='ss')   reviews=reviews.filter(r=>r.platform==='smartstore');
-  filteredReviews=reviews;
   renderReviewPage();
 }
 async function renderReviewPage(){
+  const requestId=++_reviewRequestId;
   const listEl=document.getElementById('reviewList'), pagEl=document.getElementById('pagination');
   if(!listEl) return;
 
@@ -1519,7 +1414,7 @@ async function renderReviewPage(){
     const res = await fetch('/api/reviews?'+params.toString());
     if(!res.ok) throw new Error();
     const data = await res.json();
-    
+    if(requestId!==_reviewRequestId||document.getElementById('reviewList')!==listEl)return;
     _reviewTotal = data.total;
     _reviewTotalPages = data.total_pages;
     currentPage = data.page;
@@ -1548,9 +1443,10 @@ async function renderReviewPage(){
     if(ep-sp<4) sp=Math.max(1,ep-4);
     for(let i=sp;i<=ep;i++) btns+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
     btns+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${!data.has_next?'disabled':''}>▶</button>`;
-    btns+=`<span class="page-info">${_reviewTotal.toLocaleString()}건 중 ${((currentPage-1)*PAGE_SIZE+1).toLocaleString()}~${Math.min(currentPage*PAGE_SIZE,_reviewTotal).toLocaleString()}</span>`;
+    btns+=`<span class="page-info">${_reviewTotal.toLocaleString()}건 중 ${(_reviewTotal?(currentPage-1)*PAGE_SIZE+1:0).toLocaleString()}~${Math.min(currentPage*PAGE_SIZE,_reviewTotal).toLocaleString()}</span>`;
     pagEl.innerHTML=btns;
   }catch(e){
+    if(requestId!==_reviewRequestId||document.getElementById('reviewList')!==listEl)return;
     listEl.innerHTML='<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px">후기를 불러올 수 없어요</div>';
   }
 }
@@ -1583,7 +1479,7 @@ function revKey(r){
 function buildReviewCards(reviews, kw){
   if(!reviews.length)return'<div style="text-align:center;padding:32px 0;color:var(--text3);font-size:13px">해당 후기가 없어요</div>';
   return reviews.map(r=>{
-    const isLow=r.score<=3;
+    const isLow=r.score>0&&r.score<=3;
     const _k=revKey(r);
     const _checked=revSelected.has(_k);
     const stars=[1,2,3,4,5].map(i=>`<span class="star ${i<=r.score?'on':'off'}">★</span>`).join('');
@@ -1714,7 +1610,7 @@ function buildRevCaptureStage(rows){
   const today=new Date().toISOString().slice(0,10);
   const platLabel={direct:'자사몰',kakao:'카카오',naver:'네이버',smartstore:'스마트스토어'};
   const cards=rows.map(r=>{
-    const isLow=r.score<=3;
+    const isLow=r.score>0&&r.score<=3;
     const stars='★'.repeat(Math.round(r.score))+'☆'.repeat(Math.max(0,5-Math.round(r.score)));
     const c=(r.content||r.title||'').trim()||'본문 없음';
     return `<div class="rcap-card">
@@ -1750,6 +1646,7 @@ function handleKeywordInput(val){
   }, 350);
 }
 function clearKeyword(){
+  clearTimeout(keywordDebounceTimer);
   reviewKeyword = '';
   const inp = document.getElementById('reviewSearchInput');
   if(inp) inp.value = '';
@@ -1870,7 +1767,7 @@ async function importSmartstore(input){
     addLog(`[완료] 신규 ${done.added.toLocaleString()}건 · 갱신 ${done.updated.toLocaleString()}건 · 총 ${done.imported.toLocaleString()}건`, '#4ec9b0');
     showToast(`✅ 네이버 신규 ${done.added.toLocaleString()}건 반영`);
     const dataRes=await fetch('/api/data');
-    if(dataRes.ok){allData=await dataRes.json();updateLastUpdated(allData.last_updated);}
+    if(dataRes.ok){allData=await dataRes.json();await refreshActiveRange();updateLastUpdated(allData.last_updated);}
     const statusRes=await fetch('/api/smartstore-status');
     if(statusRes.ok){const st=await statusRes.json();if(!st.cookie_expired&&!st.stalled&&(!st.automation||st.automation.state==='ready')) document.getElementById('cookieExpiredBanner').style.display='none';}
   }catch(e){addLog(`[실패] ${e.message}`,'#f48771');showToast('❌ '+e.message);}
@@ -1960,7 +1857,7 @@ async function importJasaol(input){
       showToast('✅ 자사몰 임포트 완료! ' + done.imported.toLocaleString() + '건');
       // 데이터 갱신
       const dataRes = await fetch('/api/data');
-      if(dataRes.ok){ allData = await dataRes.json(); updateLastUpdated(allData.last_updated); }
+      if(dataRes.ok){ allData = await dataRes.json(); await refreshActiveRange(); updateLastUpdated(allData.last_updated); }
     } else {
       throw new Error(JSON.stringify(done));
     }

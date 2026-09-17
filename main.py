@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pydantic import BaseModel
 from scraper import collect_all, DATA_PATH
-from analyzer import compute_stats, get_reviews_page
+from analyzer import compute_stats, get_reviews_page, validate_range
 import survey_module
 import naver_automation as naver_auto
 import daily_report
@@ -49,7 +49,9 @@ def _load_reviews_cached():
         papa     = raw.get("papa", {}).get("jasa", []) + raw.get("papa", {}).get("smartstore", [])
         jasaol_base = load_json(JASAOL_BASE_PATH, [])
         jasaol_new  = load_json(JASAOL_NEW_PATH, [])
-        smartstore  = load_json(SMARTSTORE_PATH, [])
+        # Imported/public Naver rows may say "naver", which otherwise means
+        # Naver Pay on the direct shop. Classify by their source file on read.
+        smartstore = [dict(r, platform="smartstore") for r in load_json(SMARTSTORE_PATH, [])]
         # 중복 제거: (author, date, content) 기준 — jasaol+smartstore 전체 중복 제거
         seen_keys = set()
         jasaol_all = []
@@ -150,8 +152,10 @@ def write_log(success: bool, detail: str = ""):
     })
     LOG_PATH.write_text(json.dumps(logs[:50], ensure_ascii=False), encoding="utf-8")
 
+JASAOL_REPAIR_RUNNING = False
+
 async def run_collect(only_jasaol=False):
-    if collect_state["running"]:
+    if collect_state["running"] or JASAOL_REPAIR_RUNNING:
         return
     collect_state.update({
         "running": True, "last_error": None, "error_detail": None,
@@ -377,6 +381,10 @@ async def list_reports():
 
 @app.get("/api/data")
 async def get_data(date_from: str = None, date_to: str = None):
+    try:
+        validate_range(date_from, date_to)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
     if not DATA_PATH.exists():
         raise HTTPException(status_code=503, detail={
             "message": "수집 중입니다.",
@@ -485,6 +493,14 @@ async def get_reviews(
     keyword: str = None,
 ):
     """후기 목록 페이지네이션 전용 API"""
+    try:
+        validate_range(date_from, date_to)
+        if shop not in ('jasaol', 'smartstore', 'myeongga', 'papa', 'changeok'):
+            raise ValueError("지원하지 않는 브랜드입니다.")
+        if not 1 <= size <= 10000 or page < 1 or filter_type not in ('all', 'low', 'jasa', 'ss'):
+            raise ValueError("후기 목록 조회 조건이 올바르지 않습니다.")
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
     import asyncio
     cache = await asyncio.get_event_loop().run_in_executor(None, _load_reviews_cached)
     if not cache:
@@ -869,15 +885,22 @@ async def survey_status():
 
 
 @app.post("/api/refresh-jasaol-recent")
-async def refresh_jasaol_recent(days: int = 14):
+async def refresh_jasaol_recent(days: int = 14, start_page: int = 1):
     """최근 N일 자사몰 후기를 전문+사진으로 재수집하여 기존 데이터를 교체.
     같은 review_no는 전문 버전으로 덮어쓰고, 없으면 추가."""
     import asyncio
     from scraper import scrape_jasaol_recent, JASAOL_BASE_PATH, JASAOL_NEW_PATH, load_json, safe_save
+    global JASAOL_REPAIR_RUNNING
+    if not 1 <= days <= 365 or start_page < 1:
+        raise HTTPException(400, "복구 기간은 1~365일이어야 합니다.")
+    if collect_state["running"] or JASAOL_REPAIR_RUNNING:
+        raise HTTPException(409, "후기 수집이 진행 중입니다. 완료 후 다시 시도해 주세요.")
+    JASAOL_REPAIR_RUNNING = True
     try:
-        fresh = await scrape_jasaol_recent(days=days, progress_cb=progress_cb)
+        audit = {}
+        fresh = await scrape_jasaol_recent(days=days, progress_cb=progress_cb, audit=audit, start_page=start_page)
         if not fresh:
-            return {"ok": True, "updated": 0, "added": 0, "msg": "수집된 후기 없음"}
+            return {"ok": True, "updated": 0, "added": 0, "msg": "수집된 후기 없음", "audit": audit}
         fresh_by_no = {str(r.get("review_no", "")): r for r in fresh if r.get("review_no")}
 
         updated = added = 0
@@ -885,6 +908,9 @@ async def refresh_jasaol_recent(days: int = 14):
         def merge_into(path):
             nonlocal updated, added
             data = load_json(path, [])
+            backup = DATA_PATH.parent / "jasaol_backups"
+            backup.mkdir(exist_ok=True)
+            safe_save(backup / f"{path.stem}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.json", data)
             existing_nos = {str(r.get("review_no", "")) for r in data if r.get("review_no")}
             out = []
             for r in data:
@@ -912,10 +938,13 @@ async def refresh_jasaol_recent(days: int = 14):
 
         invalidate_cache()
         return {"ok": True, "fetched": len(fresh), "updated": updated, "added": added,
-                "with_images": sum(1 for r in fresh if r.get("images"))}
+                "with_images": sum(1 for r in fresh if r.get("images")), "audit": audit,
+                "oldest_fetched": min(r["date"] for r in fresh), "newest_fetched": max(r["date"] for r in fresh)}
     except Exception as e:
         import traceback
         return JSONResponse(status_code=500, content={"ok": False, "error": str(e), "detail": traceback.format_exc()[:500]})
+    finally:
+        JASAOL_REPAIR_RUNNING = False
 
 
 if __name__ == "__main__":
