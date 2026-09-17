@@ -572,38 +572,39 @@ async def scrape_jasaol_recent(days: int = 14, progress_cb=None) -> list:
     return collected
 
 # ─────────────────────────── 메인 ──────────────────────────────────────────────
-async def collect_all(progress_cb=None) -> dict:
+async def collect_all(progress_cb=None, only_jasaol=False) -> dict:
     print("=" * 50)
     print(f"수집 시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # 명가: since_date 이후 증분 + 기존 병합
-    try:
-        since = get_brand_since_date("myeongga")
-        reviews = await scrape_myeongga(progress_cb, since_date=since)
-        data = load_json(DATA_PATH, {})
-        data.setdefault("changeok", {"jasa": [], "smartstore": []})
-        data.setdefault("myeongga", {"jasa": [], "smartstore": []})
-        data.setdefault("papa", {"jasa": [], "smartstore": []})
-        data["myeongga"]["jasa"] = reviews
-        data["last_updated"] = datetime.now().isoformat()
-        safe_save(DATA_PATH, data)
-        del reviews, data
-        print("  [저장] 명가 완료")
-    except Exception as e:
-        print(f"  [명가] 실패: {e}")
+    if not only_jasaol:
+        # 명가: since_date 이후 증분 + 기존 병합
+        try:
+            since = get_brand_since_date("myeongga")
+            reviews = await scrape_myeongga(progress_cb, since_date=since)
+            data = load_json(DATA_PATH, {})
+            data.setdefault("changeok", {"jasa": [], "smartstore": []})
+            data.setdefault("myeongga", {"jasa": [], "smartstore": []})
+            data.setdefault("papa", {"jasa": [], "smartstore": []})
+            data["myeongga"]["jasa"] = reviews
+            data["last_updated"] = datetime.now().isoformat()
+            safe_save(DATA_PATH, data)
+            del reviews, data
+            print("  [저장] 명가 완료")
+        except Exception as e:
+            print(f"  [명가] 실패: {e}")
 
-    # 파파: since_date 이후 증분 + 기존 병합
-    try:
-        since = get_brand_since_date("papa")
-        reviews = await scrape_papa(progress_cb, since_date=since)
-        data = load_json(DATA_PATH, {})
-        data["papa"]["jasa"] = reviews
-        data["last_updated"] = datetime.now().isoformat()
-        safe_save(DATA_PATH, data)
-        del reviews, data
-        print("  [저장] 파파공방 완료")
-    except Exception as e:
-        print(f"  [파파공방] 실패: {e}")
+        # 파파: since_date 이후 증분 + 기존 병합
+        try:
+            since = get_brand_since_date("papa")
+            reviews = await scrape_papa(progress_cb, since_date=since)
+            data = load_json(DATA_PATH, {})
+            data["papa"]["jasa"] = reviews
+            data["last_updated"] = datetime.now().isoformat()
+            safe_save(DATA_PATH, data)
+            del reviews, data
+            print("  [저장] 파파공방 완료")
+        except Exception as e:
+            print(f"  [파파공방] 실패: {e}")
 
     # 자사몰: 증분 → jasaol_new.json에 누적 (중복 제거)
     try:

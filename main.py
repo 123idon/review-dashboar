@@ -150,7 +150,7 @@ def write_log(success: bool, detail: str = ""):
     })
     LOG_PATH.write_text(json.dumps(logs[:50], ensure_ascii=False), encoding="utf-8")
 
-async def run_collect():
+async def run_collect(only_jasaol=False):
     if collect_state["running"]:
         return
     collect_state.update({
@@ -162,7 +162,7 @@ async def run_collect():
     _append_live_log("수집 시작")
     print(f"🔄 수집 시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     try:
-        await collect_all(progress_cb=progress_cb)
+        await collect_all(progress_cb=progress_cb, only_jasaol=only_jasaol)
         collect_state["last_success"] = datetime.now().isoformat()
         invalidate_cache()  # 수집 완료 → 캐시 무효화
         write_log(True, f"수집 완료 (총 {collect_state['collected']}건)")
@@ -181,7 +181,12 @@ async def run_collect():
 @app.on_event("startup")
 async def startup():
     import asyncio
-    scheduler.add_job(run_collect, "cron", hour=0, minute=6, id="daily")
+    scheduler.add_job(run_collect, "cron", hour=0, minute=6, id="daily",
+                      coalesce=True, max_instances=1, misfire_grace_time=3600)
+    # Midnight includes competitors; remaining hours collect our own store only.
+    scheduler.add_job(run_collect, "cron", hour="1-23", minute=6, id="jasaol_hourly",
+                      kwargs={"only_jasaol": True}, coalesce=True, max_instances=1,
+                      misfire_grace_time=3600)
     scheduler.add_job(run_survey_collect, "cron", hour=0, minute=20, id="survey_daily")
     scheduler.add_job(run_naver_collect, "cron", hour=0, minute=0, id="naver_daily",
                       coalesce=True, max_instances=1, misfire_grace_time=3600)
