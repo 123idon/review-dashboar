@@ -5,6 +5,18 @@ from review_selection import highlights, select_report
 
 
 class SelectionTests(unittest.TestCase):
+    def test_low_sweetness_praise_excluded_but_requests_retained(self):
+        for text in ['많이 달지 않아서 좋았다', '너무 달지는 않아요',
+                     '달지않고너무맛있다고', '밥알도 살아있고 팥도 달지않고 맛있어요',
+                     '진한 쑥향에 덜 달달한 팥소의 조화로 즐겨 먹는 떡입니다',
+                     '팥소가 저당이어서 좋아요', '덜 달아서 부담 없어요']:
+            with self.subTest(text=text): self.assertEqual(highlights(text), [])
+        for text in ['덜 달았으면 좋겠어요', '조금 더 덜 달아도 좋을듯요',
+                     '당도를 좀 줄여주세요', '단맛을 낮춰주시면 좋겠어요', '너무 달아서 물려요']:
+            with self.subTest(text=text): self.assertTrue(highlights(text))
+        text='😀 달지 않아서 좋지만 포장이 터졌어요.'
+        self.assertEqual([text[h['start']:h['end']] for h in highlights(text)], ['포장이 터졌어요'])
+
     def test_positive_sensory_reviews_do_not_qualify(self):
         for text in ['쫄깃하다', '고소하다', '쫀득쫀득 정말 맛있어요 담에 또 구매할게요~',
                      '말랑말랑 쫀든쫀득 진짜 굳지않고 좋아요.',
@@ -25,7 +37,7 @@ class SelectionTests(unittest.TestCase):
 
     def test_mixed_review_keeps_body_but_only_useful_highlights(self):
         for text, expected in [
-            ('쫄깃하고 고소하지만 많이 달지 않아서 좋아요', ['많이 달지 않아서']),
+            ('쫄깃하고 고소하지만 많이 달지 않아서 좋아요', []),
             ('고소하고 쑥 향이 진해요. 포장이 터졌어요.', ['포장이 터졌어요']),
             ('쫄깃하지만 가운데가 딱딱했어요', ['딱딱했어요']),
         ]:
@@ -43,12 +55,10 @@ class SelectionTests(unittest.TestCase):
             with self.subTest(text=text): self.assertEqual(highlights(text), [])
 
     def test_positive_negative_mixed_and_actual_variants(self):
-        for text in ['많이 달지 않아서 좋았다', '너무 달지는 않아요', '해동해도 가운데가 딱딱했다',
+        for text in ['해동해도 가운데가 딱딱했다',
                      '포장이 터져 있었다', '떡이 서로 붙어 분리하기 어려웠다',
-                     '맛있지만 포장이 터졌어요', '달지않고너무맛있다고',
-                     '진한 쑥향에 덜 달달한 팥소의 조화로 즐겨 먹는 떡입니다',
+                     '맛있지만 포장이 터졌어요',
                      '아이스빽도없이왔는데 떡이안상했을지신경쓰이네요ㅠㅠ',
-                     '밥알도 살아있고 팥도 달지않고 맛있어요',
                      '안으로 들어갈수록 콩이 점점더 많아지는 마법의 콩떡입니다',
                      '지정날짜 다음날 초저녁쯤 도착 문자가 오더라고요',
                      '친절하게 끝까지 상담해주셔서 너무감사합니다',
@@ -58,15 +68,15 @@ class SelectionTests(unittest.TestCase):
     def test_exact_spans_unicode_negation_and_no_generic_tail(self):
         text = '😀 맛있어요. 많이 달지 않아서 좋았다. 추천해요'
         spans = highlights(text)
-        self.assertEqual([text[h['start']:h['end']] for h in spans], ['많이 달지 않아서'])
+        self.assertEqual(spans, [])
         text = '달지않고너무맛있다고'
-        self.assertEqual(text[highlights(text)[0]['start']:highlights(text)[0]['end']], '달지않고')
+        self.assertEqual(highlights(text), [])
         text = '딱딱하지 않아요.'
         self.assertEqual(highlights(text), [])
 
     def test_projection_preserves_original_stats_full_bodies_and_order(self):
         day = '2026-09-14'
-        bodies = ['맛있어요', '포장이 터졌어요', '😀 달지 않아서 좋아요. ' + '맛있어요 '*100]
+        bodies = ['맛있어요', '포장이 터졌어요', '😀 달지 않아서 좋아요. 포장이 터졌어요. ' + '맛있어요 '*100]
         rows = [dict(date=day, content=t, author=str(i), score=5) for i,t in enumerate(bodies)]
         stored = build_report({'jasaol':rows}, day)
         before = copy.deepcopy(stored)
@@ -79,7 +89,7 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(select_report(view),view)
 
     def test_all_spans_ordered_in_bounds_and_not_limited_to_two(self):
-        text='달지 않고 딱딱하고 쑥 향이 약해요. 포장이 터졌어요.'
+        text='덜 달았으면 좋겠어요. 딱딱하고 쑥 향이 약해요. 포장이 터졌어요.'
         spans=highlights(text)
         self.assertGreaterEqual(len(spans),4)
         end=0
