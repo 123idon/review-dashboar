@@ -9,5 +9,11 @@ assert(!html.includes('<script>'));
 const marks=[...html.matchAll(/<mark[^>]*>(.*?)<\/mark>/g)].map(m=>m[1]);
 assert.equal(marks.join(''),'많이 달지 않아서');
 assert(marks.every(m=>Array.from(m).length===1)); // wrapped canvas glyph bounds
-assert.equal(vm.runInContext('dailyImageSlices(8001).map(s=>s.height).join(",")',context),'4000,4000,1');
-console.log('Full body, Unicode evidence, escaped HTML, wrapped marks and image slices passed.');
+assert.equal(vm.runInContext('dailyImageScale(8001)',context),1);
+for(const height of [16000,40000,100000]){
+ context.height=height;const scale=vm.runInContext('dailyImageScale(height)',context);
+ assert(height*scale<=16000);
+ assert(Math.floor(1040*scale)*Math.floor(height*scale)<=16000000);
+ assert(scale>0);
+}
+console.log('Full body, Unicode evidence, escaped HTML, wrapped marks and single image sizing passed.');
