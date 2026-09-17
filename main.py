@@ -52,11 +52,12 @@ def _load_reviews_cached():
         # Imported/public Naver rows may say "naver", which otherwise means
         # Naver Pay on the direct shop. Classify by their source file on read.
         smartstore = [dict(r, platform="smartstore") for r in load_json(SMARTSTORE_PATH, [])]
-        # 중복 제거: (author, date, content) 기준 — jasaol+smartstore 전체 중복 제거
+        from review_identity import review_identity
+        # Distinct review IDs must survive even when masked names/text match.
         seen_keys = set()
         jasaol_all = []
         for rv in jasaol_base + jasaol_new + smartstore:
-            key = (rv.get("author",""), rv.get("date",""), rv.get("content","")[:100])
+            key = review_identity(rv)
             if key not in seen_keys:
                 seen_keys.add(key)
                 jasaol_all.append(rv)
