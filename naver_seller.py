@@ -15,6 +15,7 @@ router = APIRouter()
 AUTH = state.DATA / 'naver_private' / 'seller-state.json'
 LOCK = asyncio.Lock()
 SESSION = {}
+PROGRESS = {}
 ROW_JS = r"""() => Array.from(document.querySelectorAll('[role="row"][row-index]')).map(e=>{
  const cell=k=>e.querySelector('[col-id="'+k+'"]');const txt=k=>cell(k)?.textContent.trim()||'';
  const id=cell('reviewContent')?.querySelector('a')?.getAttribute('ng-click')?.match(/openReviewDetailModal\((\d+)/)?.[1];
@@ -38,13 +39,19 @@ async def close_session():
 
 async def read_rows(page):
     import re
+    PROGRESS['stage'] = '리뷰 화면 이동'
     await page.goto('https://sell.smartstore.naver.com/#/review/search',wait_until='domcontentloaded')
+    # The first seller landing can redirect a deep link to home after sign-in.
+    await page.locator('#seller-lnb').wait_for(timeout=30000)
+    if '/review/search' not in page.url:
+        await page.goto('https://sell.smartstore.naver.com/#/review/search',wait_until='domcontentloaded')
     await page.get_by_role('heading',name='리뷰관리',exact=True).wait_for(timeout=30000)
     if '백년화편' not in await page.locator('#seller-lnb').inner_text():
         raise ValueError('대상 판매자 확인 실패')
     guide_close=page.locator('#seller-rnb').get_by_role('button',name='닫기',exact=True)
     if await guide_close.count() and await guide_close.is_visible():
         await guide_close.click()
+    PROGRESS['stage'] = '조회 조건 설정'
     await page.get_by_role('button',name='1주일',exact=True).click()
     await page.get_by_role('button',name='검색',exact=True).click()
     await page.wait_for_timeout(1500)
@@ -54,23 +61,28 @@ async def read_rows(page):
     expected=int(match.group(1).replace(',',''))
     if expected>10000: raise ValueError('조회 한도 초과')
     found={}
+    PROGRESS['stage'] = '후기 목록 읽기'
     for _ in range(500):
         viewport=page.locator('.ag-body-viewport')
         if expected == 0: return [], {'expected':0,'source':'seller_ui'}
-        for _ in range(150):
+        await viewport.evaluate('(e)=>{e.scrollTop=0}')
+        await page.wait_for_timeout(300)
+        for _ in range(600):
             for row in await page.evaluate(ROW_JS): found[row['review_no']]=row
             if len(found)>=expected: break
             at_end=await viewport.evaluate('(e)=>e.scrollTop+e.clientHeight>=e.scrollHeight-2')
             if at_end: break
             await viewport.evaluate('(e)=>{e.scrollTop+=Math.max(100,e.clientHeight*0.8)}')
-            await page.wait_for_timeout(120)
+            await page.wait_for_timeout(250)
         if len(found)>=expected: break
         next_button=page.get_by_role('button',name='다음 페이지로 이동',exact=True)
         if await next_button.count()==0 or not await next_button.is_enabled(): break
         await next_button.click()
-        await page.wait_for_timeout(500)
+        await page.wait_for_timeout(1000)
+    PROGRESS['stage'] = f'후기 건수 대조 ({len(found)}/{expected})'
     if len(found)!=expected: raise ValueError('조회 건수와 수집 건수 불일치')
     rows=list(found.values())
+    PROGRESS['stage'] = '후기 형식 검증'
     if rows: validate_reviews(rows)
     return rows, {'expected':expected,'source':'seller_ui'}
 
@@ -149,6 +161,13 @@ async def control(request:Request):
         elif action=='scroll': await page.mouse.wheel(0,max(-900,min(900,int(command.get('y',0)))))
         elif action=='save':
             try:
+                # Approved server authentication can survive a collector fix;
+                # it does not mark collection successful until all rows validate.
+                PROGRESS['stage'] = '판매자 계정 확인'
+                if '백년화편' not in await page.locator('#seller-lnb').inner_text(timeout=5000):
+                    raise ValueError('대상 판매자 확인 실패')
+                state.private_save(AUTH,await context.storage_state())
+                state.record('unverified','서버 로그인 저장 · 후기 수집 검증 중',mode='seller',retry_at=0)
                 rows,details=await read_rows(page)
                 if not rows: raise ValueError('실제 후기 검증 필요')
                 # Only a verified UI read permits persistent authentication storage.
@@ -157,6 +176,7 @@ async def control(request:Request):
                 from scraper import safe_save
                 from main import smartstore_chunk_path, import_smartstore_done
                 sid=uuid4().hex
+                PROGRESS['stage'] = '후기 병합 저장'
                 safe_save(smartstore_chunk_path(sid),rows)
                 result=await import_smartstore_done(sid,len(rows))
                 state.private_save(AUTH,verified_auth)
@@ -165,8 +185,12 @@ async def control(request:Request):
                 await run_daily_report()
                 await close_session()
                 return {'ok':True,'received':len(rows),'added':result['added']}
-            except Exception:
+            except Exception as exc:
                 # No credentials, page text or provider payloads in errors.
-                raise HTTPException(409,'판매자 리뷰 조회 검증에 실패했습니다. 로그인·추가 인증 또는 현재 화면을 확인해 주세요.')
+                stage=PROGRESS.get('stage','연결 확인')
+                kind=type(exc).__name__
+                message=f'서버 검증 중단: {stage} ({kind}). 로그인 정보는 표시하지 않습니다.'
+                if AUTH.exists(): state.record('unverified',message,mode='seller',retry_at=0)
+                raise HTTPException(409,message)
         else: raise HTTPException(400,'지원하지 않는 명령')
         return {'ok':True}
