@@ -17,13 +17,13 @@ for(const height of [16000,40000,100000]){
  assert(scale>0);
 }
 console.log('Full body, Unicode evidence, escaped HTML, wrapped marks and single image sizing passed.');
-context.stats={basis:'전체 <후기>',total:{count:2,average:4,low_count:1,low_percent:50,unrated_count:0},brands:[{name:'<브랜드>',count:2,average:4,low_count:1,low_percent:50,unrated_count:0,scores:[{score:5,count:1},{score:3,count:1}],platforms:[{name:'<채널>',count:2}]}]};
+context.stats={types:{total:2,note:'중복 집계',brands:[{key:'jasaol',name:'백년화편'}],rows:[{name:'식감',count:1,percent:50,brands:{jasaol:1},examples:[{brand:'백년화편',text:'<script>딱딱해요</script>',phrase:'딱딱해요'}]}]}};
 const statsHtml=vm.runInContext('dailyStatistics(stats)',context);
-assert(statsHtml.includes('전일 후기 통계'));
-assert(statsHtml.includes('&lt;브랜드&gt;'));
+assert(statsHtml.includes('후기 내용 유형별 통계'));
+assert(statsHtml.includes('&lt;script&gt;'));
 assert(statsHtml.includes('50%'));
 const code=fs.readFileSync('static/daily-report.js','utf8');
 assert(!code.includes('dailyAnalysis'));
 assert(code.includes('${dailyStatistics(r.statistics)}'));
 assert(code.includes('stage.innerHTML=dailyPaper(exportReport)'));
-console.log('Full-review statistics share the screen/image renderer.');
+console.log('Topic counts and escaped evidence use the shared renderer.');
