@@ -96,7 +96,11 @@ async def control(request:Request):
     authorize(request.headers.get('X-Naver-Connect',''))
     # Reject cross-origin drive-by commands; tokens never travel in URLs or logs.
     origin=request.headers.get('origin')
-    if origin and origin.rstrip('/')!=str(request.base_url).rstrip('/'):
+    allowed_origins = {str(request.base_url).rstrip('/')}
+    public_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
+    if public_domain:
+        allowed_origins.add('https://' + public_domain)
+    if origin and origin.rstrip('/') not in allowed_origins:
         raise HTTPException(403,'다른 사이트에서 연결할 수 없습니다.')
     raw=await request.body()
     if len(raw)>12000: raise HTTPException(413,'입력이 너무 깁니다.')
