@@ -54,7 +54,7 @@ async def read_rows(page):
     PROGRESS['stage'] = '조회 조건 설정'
     await page.get_by_role('button',name='1주일',exact=True).click()
     await page.get_by_role('button',name='검색',exact=True).click()
-    await page.wait_for_timeout(1500)
+    await page.wait_for_timeout(4000)
     heading=await page.get_by_role('heading',name=re.compile('리뷰목록')).inner_text()
     match=re.search(r'총\s*([\d,]+)\s*개',heading)
     if not match: raise ValueError('조회 건수 확인 실패')
@@ -65,6 +65,8 @@ async def read_rows(page):
     for _ in range(500):
         viewport=page.locator('.ag-body-viewport')
         if expected == 0: return [], {'expected':0,'source':'seller_ui'}
+        await viewport.scroll_into_view_if_needed()
+        await page.wait_for_timeout(500)
         await viewport.evaluate('(e)=>{e.scrollTop=0}')
         await page.wait_for_timeout(300)
         for _ in range(600):
@@ -131,7 +133,7 @@ async def control(request:Request):
             from playwright.async_api import async_playwright
             pw=await async_playwright().start()
             browser=await pw.chromium.launch(headless=True,args=['--disable-dev-shm-usage'])
-            context=await browser.new_context(locale='ko-KR',timezone_id='Asia/Seoul',viewport={'width':1440,'height':1000})
+            context=await browser.new_context(storage_state=str(AUTH) if AUTH.exists() else None,locale='ko-KR',timezone_id='Asia/Seoul',viewport={'width':1440,'height':1000})
             page=await context.new_page()
             SESSION.update(pw=pw,browser=browser,context=context,page=page,expires=time.time()+900)
             async def expire():
@@ -148,6 +150,13 @@ async def control(request:Request):
         page=context.pages[-1] if context.pages else SESSION['page']
         if action=='image':
             return Response(await page.screenshot(type='jpeg',quality=75),media_type='image/jpeg',headers={'Cache-Control':'no-store'})
+        if action=='diagnostics':
+            return await page.evaluate("""() => ({
+              rowCount:document.querySelectorAll('[role="row"][row-index]').length,
+              columns:[...new Set(Array.from(document.querySelectorAll('[col-id]')).map(e=>e.getAttribute('col-id')))],
+              handlers:Array.from(document.querySelectorAll('[col-id="reviewContent"] a')).slice(0,2).map(e=>e.getAttribute('ng-click')),
+              grid:Array.from(document.querySelectorAll('.ag-body-viewport')).map(e=>({height:e.clientHeight,scrollHeight:e.scrollHeight,top:e.scrollTop}))
+            })""")
         if action=='click':
             x,y=float(command.get('x',-1)),float(command.get('y',-1))
             if not (0<=x<=1440 and 0<=y<=1000): raise HTTPException(400,'좌표 오류')
