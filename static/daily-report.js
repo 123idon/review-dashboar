@@ -12,10 +12,9 @@ function dailyHighlighted(v){
   return html+dailyEscape(chars.slice(end).join(''));
 }
 function dailyStatistics(s){
-  if(!s)return '';
-  const num=v=>v===null||v===undefined?'—':Number(v).toLocaleString('ko-KR');
-  const rows=[{name:'합계',...s.total},...s.brands];
-  return `<section class="daily-analysis daily-statistics"><h3>전일 후기 통계</h3><p>${dailyEscape(s.basis)}</p><div class="daily-table-wrap"><table><thead><tr><th>브랜드</th><th>수집 건수</th><th>평균 별점</th><th>3점 이하</th><th>3점 이하 비율</th><th>별점 미제공</th></tr></thead><tbody>${rows.map(b=>`<tr><th>${dailyEscape(b.name)}</th><td>${num(b.count)}</td><td>${b.average===null?'—':Number(b.average).toFixed(2)}</td><td>${num(b.low_count)}</td><td>${b.low_percent===null?'—':num(b.low_percent)+'%'}</td><td>${num(b.unrated_count)}</td></tr>`).join('')}</tbody></table></div>${s.brands.map(b=>`<article><h4>${dailyEscape(b.name)}</h4><p><b>별점 분포</b> · ${b.scores.length?b.scores.map(x=>num(x.score)+'점 '+num(x.count)+'건').join(' / '):'별점 자료 없음'}</p><p><b>수집 채널</b> · ${b.platforms.length?b.platforms.map(x=>dailyEscape(x.name)+' '+num(x.count)+'건').join(' / '):'수집 자료 없음'}</p></article>`).join('')}<small>선정 표시 여부와 관계없이 저장된 원본 후기를 집계합니다. 미수집 자료는 포함되지 않습니다. AI 해석·외부 API 호출 없이 계산합니다.</small></section>`;
+  if(!s?.types)return '';
+  const t=s.types,num=v=>v===null||v===undefined?'—':Number(v).toLocaleString('ko-KR');
+  return `<section class="daily-analysis daily-statistics"><h3>후기 내용 유형별 통계</h3><p>전체 수집 후기 <b>${num(t.total)}건</b> 기준 · 선정에서 제외된 후기도 포함</p><div class="daily-table-wrap"><table><thead><tr><th>내용 유형</th><th>전체</th><th>비율</th>${t.brands.map(b=>`<th>${dailyEscape(b.name)}</th>`).join('')}</tr></thead><tbody>${t.rows.map(r=>`<tr><th>${dailyEscape(r.name)}</th><td>${num(r.count)}건</td><td>${r.percent===null?'—':num(r.percent)+'%'}</td>${t.brands.map(b=>`<td>${num(r.brands[b.key])}</td>`).join('')}</tr>`).join('')}</tbody></table></div><small>${dailyEscape(t.note)}<br>일반 칭찬·만족은 다른 내용 유형이 없는 후기입니다. 쫄깃하다·고소하다·달지 않다도 유형 통계에는 집계하지만 선정 후기 목록의 기준은 유지합니다. AI API를 호출하지 않습니다.</small><details class="daily-type-evidence"><summary>유형별 분류 근거 보기 (각 유형 최대 3건)</summary>${t.rows.filter(r=>r.count).map(r=>`<article><h4>${dailyEscape(r.name)} · ${num(r.count)}건</h4>${r.examples.map(e=>`<p><b>${dailyEscape(e.brand)}</b>${e.phrase?' · 분류 문구: '+dailyEscape(e.phrase):''}</p><blockquote>${dailyEscape(e.text||'본문 없음')}</blockquote>`).join('')}</article>`).join('')}</details></section>`;
 }
 function dailyPaper(r){
   r={...r,brands:r.brands.map(b=>({...b,reviews:[...b.reviews].sort((a,b)=>Array.from(b.excerpt||'').length-Array.from(a.excerpt||'').length)}))};

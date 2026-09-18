@@ -121,7 +121,7 @@ def statistics(report):
                 'scores':[{'score':v,'count':n} for v,n in sorted(Counter(values).items(),reverse=True)],
                 'platforms':[{'name':name,'count':n} for name,n in sorted(platforms.items())]}
     brands = [b for b in report['brands'] if b['key'] in ('jasaol','myeongga')]
-    return {'basis':'해당 날짜에 수집된 전체 후기 기준 · 평균과 3점 이하 비율은 유효 별점 후기 기준',
+    from review_types import type_statistics
+    return {'types':type_statistics(report),'basis':'해당 날짜에 수집된 전체 후기 기준 · 평균과 3점 이하 비율은 유효 별점 후기 기준',
             'total':aggregate([r for b in brands for r in b['reviews']], any(b.get('available',True) for b in brands)),
             'brands':[dict(key=b['key'],name=b['name'],**aggregate(b['reviews'], b.get('available',True))) for b in brands]}
-
