@@ -5,6 +5,12 @@ from unittest.mock import patch
 from fastapi import HTTPException
 from naver_seller import authorize, ROW_JS
 class SellerTests(unittest.TestCase):
+ def test_single_page_completeness_rejects_missing_duplicate_or_fractional_slots(self):
+  from naver_seller import complete_single_page
+  self.assertTrue(complete_single_page([{'row_index':i} for i in range(131)],12445,95))
+  self.assertFalse(complete_single_page([{'row_index':i} for i in range(130)],12445,95))
+  self.assertFalse(complete_single_page([{'row_index':0}]*131,12445,95))
+  self.assertFalse(complete_single_page([{'row_index':i} for i in range(131)],12446,95))
  def test_railway_https_origin_allowed_but_foreign_origin_rejected(self):
   from fastapi import FastAPI
   from fastapi.testclient import TestClient
