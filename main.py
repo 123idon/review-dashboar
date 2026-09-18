@@ -552,25 +552,16 @@ async def smartstore_status():
     result["import_mode"] = "merge"
     result["last_import"] = load_json(DATA_PATH.parent / "smartstore_import_status.json", None)
     try:
-        SMARTSTORE_PATH = DATA_PATH.parent / "smartstore.json"
-        reviews = load_json(SMARTSTORE_PATH, [])
-        dates = [r["date"] for r in reviews if r.get("date")]
-        if dates:
-            last = max(dates)
-            result["last_review_date"] = last
-            from datetime import date as _date
-            y, m, d = map(int, last.split("-"))
-            gap = (_date.today() - _date(y, m, d)).days
-            result["days_since"] = gap
-            # 7일 이상 신규 후기가 없으면 수집 중단으로 판단
-            result["stalled"] = gap >= 7
-        else:
-            result["last_review_date"] = None
-            result["days_since"] = None
-            result["stalled"] = True
-    except Exception as e:
-        result["stalled"] = False
-        result["error"] = str(e)
+        reviews = load_json(DATA_PATH.parent / "smartstore.json", [])
+        last = max((r.get('date','') for r in reviews), default='') or None
+        result.update(naver_auto.collection_health(result['automation'], last))
+    except Exception:
+        result.update(stalled=True, collection_verified=False, data_freshness='unknown',
+                      error='저장된 네이버 후기 상태를 확인하지 못했습니다.')
+    if result.get('manual_action_required'):
+        result['automation']['next_scheduled_check'] = result['automation'].get('next_run')
+        result['automation']['next_run'] = None
+        result['automation']['auto_resume'] = False
     return result
 
 @app.post("/api/smartstore-cookie-ok")
