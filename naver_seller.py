@@ -79,8 +79,15 @@ async def read_rows(page):
         if len(found)>=expected: break
         next_button=page.get_by_role('button',name='다음 페이지로 이동',exact=True)
         if await next_button.count()==0 or not await next_button.is_enabled(): break
+        previous_ids = list(found)
+        PROGRESS['stage'] = f'다음 페이지 갱신 대기 ({len(found)}/{expected})'
         await next_button.click()
-        await page.wait_for_timeout(1000)
+        await viewport.evaluate('(e)=>{e.scrollTop=0}')
+        for attempt in range(60):
+            await page.wait_for_timeout(500)
+            incoming = await page.evaluate(ROW_JS)
+            if any(row['review_no'] not in found for row in incoming): break
+        else: raise ValueError('다음 페이지에 새 후기가 표시되지 않음')
     PROGRESS['stage'] = f'후기 건수 대조 ({len(found)}/{expected})'
     if len(found)!=expected: raise ValueError('조회 건수와 수집 건수 불일치')
     rows=list(found.values())
