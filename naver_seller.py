@@ -4,7 +4,7 @@ import hashlib
 import hmac
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, Response
@@ -52,7 +52,16 @@ async def read_rows(page):
     if await guide_close.count() and await guide_close.is_visible():
         await guide_close.click()
     PROGRESS['stage'] = '조회 조건 설정'
-    await page.get_by_role('button',name='1주일',exact=True).click()
+    await page.get_by_role('button',name='오늘',exact=True).click()
+    yesterday = datetime.now(state.KST).date() - timedelta(days=1)
+    start_input = page.locator('input[title="날짜 입력"]').nth(0)
+    # Enable the displayed date input for normal input/change events.
+    # No framework state or private API access is used.
+    await start_input.evaluate('(e)=>e.removeAttribute("readonly")')
+    await start_input.fill(yesterday.strftime('%Y.%m.%d.'))
+    await start_input.press('Tab')
+    if await start_input.input_value() != yesterday.strftime('%Y.%m.%d.'):
+        raise ValueError('전일 날짜 설정 확인 실패')
     await page.get_by_role('button',name='검색',exact=True).click()
     await page.wait_for_timeout(4000)
     heading=await page.get_by_role('heading',name=re.compile('리뷰목록')).inner_text()
@@ -94,7 +103,9 @@ async def read_rows(page):
     rows=list(found.values())
     PROGRESS['stage'] = '후기 형식 검증'
     if rows: validate_reviews(rows)
-    return rows, {'expected':expected,'source':'seller_ui'}
+    if any(row['date'] < yesterday.isoformat() for row in rows):
+        raise ValueError('조회 날짜 범위 불일치')
+    return rows, {'expected':expected,'source':'seller_ui','date_from':yesterday.isoformat()}
 
 async def collect():
     if not AUTH.exists(): raise ValueError('서버 판매자 인증 없음')
