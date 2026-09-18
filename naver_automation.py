@@ -97,3 +97,24 @@ def parse_export(path):
         return validate_reviews(out)
     finally:
         workbook.close()
+
+
+def collection_health(automation, last_review_date=None, clock=None):
+    """Collection success and data freshness are independent signals."""
+    clock = clock or datetime.now(KST)
+    if clock.tzinfo is None:
+        clock = clock.replace(tzinfo=KST)
+    today = clock.astimezone(KST).date()
+    gap = None
+    if last_review_date:
+        try:
+            gap = (today - datetime.fromisoformat(last_review_date).date()).days
+        except (ValueError, TypeError):
+            pass
+    state = automation.get('state', 'pending')
+    healthy = state == 'ready' and bool(automation.get('last_success'))
+    return {'stalled':not healthy, 'collection_verified':healthy,
+            'last_review_date':last_review_date, 'days_since':gap,
+            'data_freshness':'unknown' if gap is None else ('stale' if gap > 1 else 'recent'),
+            'manual_action_required':state in ('not_allowed','layout_changed','unverified','partial'),
+            'collection_message':automation.get('message','자동 수집 성공 여부 미확인')}

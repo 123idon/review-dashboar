@@ -794,7 +794,7 @@ async function loadData(){
             banner.style.display = showWarn ? 'flex' : 'none';
             if(msgEl){
               if(autoProblem){
-                msgEl.textContent = "⚠️ 네이버 자정 자동 갱신 · " + s.automation.message;
+                msgEl.textContent = "⚠️ 네이버 자동 수집 미완료 · " + s.automation.message + " · 최신 저장 후기 " + (s.last_review_date || "없음");
               } else if(s.cookie_expired){
                 msgEl.textContent = '⚠️ 네이버 로그인이 만료됐어요. 수집용 브라우저에서 다시 로그인하거나 판매자센터 엑셀을 가져와주세요.';
               } else if(s.stalled){

@@ -50,3 +50,19 @@ class AutomationTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class HealthTests(unittest.TestCase):
+    def test_failed_collection_is_not_healthy_just_because_import_is_recent(self):
+        from datetime import datetime, timezone
+        for state in ('not_allowed','blocked','error','pending','cooldown'):
+            health=worker.collection_health({'state':state},'2026-09-17',datetime(2026,9,17,16,tzinfo=timezone.utc))
+            self.assertTrue(health['stalled'])
+            self.assertFalse(health['collection_verified'])
+            self.assertEqual(health['days_since'],1)
+            self.assertEqual(health['data_freshness'],'recent')
+    def test_success_with_no_new_reviews_is_distinct_from_stale_data(self):
+        from datetime import datetime
+        health=worker.collection_health({'state':'ready','last_success':'2026-09-18'},'2026-09-10',datetime(2026,9,18))
+        self.assertFalse(health['stalled'])
+        self.assertEqual(health['data_freshness'],'stale')
