@@ -42,6 +42,9 @@ async def read_rows(page):
     await page.get_by_role('heading',name='리뷰관리',exact=True).wait_for(timeout=30000)
     if '백년화편' not in await page.locator('#seller-lnb').inner_text():
         raise ValueError('대상 판매자 확인 실패')
+    guide_close=page.locator('#seller-rnb').get_by_role('button',name='닫기',exact=True)
+    if await guide_close.count() and await guide_close.is_visible():
+        await guide_close.click()
     await page.get_by_role('button',name='1주일',exact=True).click()
     await page.get_by_role('button',name='검색',exact=True).click()
     await page.wait_for_timeout(1500)
