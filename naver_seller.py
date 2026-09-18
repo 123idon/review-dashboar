@@ -19,7 +19,7 @@ PROGRESS = {}
 ROW_JS = r"""() => Array.from(document.querySelectorAll('[role="row"][row-index]')).map(e=>{
  const cell=k=>e.querySelector('[col-id="'+k+'"]');const txt=k=>cell(k)?.textContent.trim()||'';
  const id=cell('reviewContent')?.querySelector('a')?.getAttribute('ng-click')?.match(/openReviewDetailModal\((\d+)/)?.[1];
- return id?{review_no:id,product_no:txt('productNo'),product:txt('productName'),score:Number(txt('reviewScore')),
+ return id?{row_index:Number(e.getAttribute('row-index')),review_no:id,product_no:txt('productNo'),product:txt('productName'),score:Number(txt('reviewScore')),
  content:txt('reviewContent'),author:txt('writerId'),date:txt('createDate').slice(0,10).replaceAll('.','-'),
  review_type:txt('reviewType'),platform:'naver',title:''}:null}).filter(Boolean)"""
 
@@ -29,6 +29,12 @@ def authorize(token):
     except ValueError: expires=0
     if not expected or time.time()>=expires or not hmac.compare_digest(hashlib.sha256(token.encode()).hexdigest(),expected):
         raise HTTPException(403,'연결 화면이 비활성화됐거나 연결 시간이 만료됐습니다.')
+
+def complete_single_page(rows, height, row_height):
+    if row_height <= 0 or height <= 0 or abs(height / row_height - round(height / row_height)) > 0.001:
+        return False
+    count = round(height / row_height)
+    return len(rows) == count and {r.get('row_index') for r in rows} == set(range(count))
 
 async def close_session():
     browser=SESSION.pop('browser',None)
@@ -102,6 +108,17 @@ async def read_rows(page):
     final_match = re.search(r'총\s*([\d,]+)\s*개',final_heading)
     if final_match:
         expected = int(final_match.group(1).replace(',',''))
+    reported_total = expected
+    if len(found) != expected:
+        # Seller's heading can retain the previous query total. Only accept a
+        # single-page grid when every geometric row slot has a unique review.
+        geometry = await page.locator('.ag-body-viewport').evaluate('''e=>({
+          height:e.scrollHeight,
+          rowHeight:e.querySelector('[role="row"][row-index]')?.offsetHeight || 0
+        })''')
+        pages = page.locator('.pagination._pc_pagination li._page:not(.ag-paging-button)')
+        if await pages.count() == 1 and complete_single_page(list(found.values()), geometry['height'], geometry['rowHeight']):
+            expected = len(found)
     PROGRESS['stage'] = f'후기 건수 대조 ({len(found)}/{expected})'
     if len(found)!=expected: raise ValueError('조회 건수와 수집 건수 불일치')
     rows=list(found.values())
@@ -109,7 +126,8 @@ async def read_rows(page):
     if rows: validate_reviews(rows)
     if any(row['date'] < yesterday.isoformat() for row in rows):
         raise ValueError('조회 날짜 범위 불일치')
-    return rows, {'expected':expected,'source':'seller_ui','date_from':yesterday.isoformat()}
+    for row in rows: row.pop('row_index',None)
+    return rows, {'expected':expected,'reported_total':reported_total,'source':'seller_ui','date_from':yesterday.isoformat()}
 
 async def collect():
     if not AUTH.exists(): raise ValueError('서버 판매자 인증 없음')
