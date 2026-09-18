@@ -48,7 +48,10 @@ def merge_reviews(existing, incoming):
         rid, key = review_id(row), legacy_key(row)
         index = ids.get(rid) if rid else None
         if index is None:
-            index = keys.get(key)
+            candidate = keys.get(key)
+            # A legacy fallback must never collapse two known, different IDs.
+            if candidate is not None and (not rid or not review_id(merged[candidate])):
+                index = candidate
         if index is None:
             index = len(merged)
             merged.append(dict(row))

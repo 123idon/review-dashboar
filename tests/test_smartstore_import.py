@@ -37,6 +37,14 @@ class MergeTests(unittest.TestCase):
         self.assertEqual(merged[0]["review_no"], "123")
         self.assertEqual(summary["updated"], 1)
 
+    def test_different_ids_with_identical_masked_text_survive(self):
+        merged, result = merge_reviews([review(review_no='1')], [review(review_no='2'),review(review_no='3')])
+        self.assertEqual(len(merged),3)
+        self.assertEqual(result['added'],2)
+        again, result = merge_reviews(merged,[review(review_no='2'),review(review_no='3')])
+        self.assertEqual(len(again),3)
+        self.assertEqual(result['added'],0)
+
     def test_review_id_updates_changed_content(self):
         merged, summary = merge_reviews([review()], [review(content="수정 후기")])
         self.assertEqual(summary["added"], 0)
