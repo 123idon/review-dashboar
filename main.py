@@ -83,6 +83,8 @@ def invalidate_cache():
     _cache_mtime = {}
 
 app = FastAPI()
+from naver_seller import router as naver_seller_router
+app.include_router(naver_seller_router)
 Path("static").mkdir(exist_ok=True)
 Path("data").mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -648,6 +650,9 @@ async def run_naver_collect():
     from uuid import uuid4
     from scraper import safe_save, load_json
     from naver_public import collect, CollectionStopped
+    import naver_seller
+    if naver_seller.SESSION:
+        return {"ok": False, "state": "connecting"}
     if naver_auto.LOCK.locked():
         return {"ok": False, "state": "running"}
     state = naver_auto.status()
@@ -662,14 +667,14 @@ async def run_naver_collect():
             existing = load_json(DATA_PATH.parent / "smartstore.json", [])
             latest = max((r.get("date", "") for r in existing), default="")
             since = (datetime.fromisoformat(latest) - timedelta(days=7)).date().isoformat() if latest else "2000-01-01"
-            rows, details = await asyncio.wait_for(collect(since), timeout=1800)
+            rows, details = await asyncio.wait_for(naver_seller.collect() if state.get('mode') == 'seller' else collect(since), timeout=1800)
             if rows:
                 sid = uuid4().hex
                 safe_save(smartstore_chunk_path(sid), rows)
                 result = await import_smartstore_done(sid, len(rows))
             else:
                 result = {"added": 0}
-            naver_auto.record("ready", "공개 후기 자동 수집 정상 · 매일 한국시간 00:00",
+            naver_auto.record("ready", ("판매자 화면" if state.get('mode') == 'seller' else "공개 후기") + " 자동 수집 정상 · 매일 한국시간 00:00",
                               last_success=naver_auto.now(), received=len(rows), added=result["added"],
                               retry_at=0, **details)
             write_log(True, f"네이버 공개 후기: {len(rows)}건 확인, {result['added']}건 추가")
@@ -679,7 +684,7 @@ async def run_naver_collect():
             write_log(False, str(exc))
             return {"ok": False, "state": exc.state}
         except Exception as exc:
-            message = "공개 후기 수집 실패. 기존 후기를 유지하며 계정 로그인은 시도하지 않습니다."
+            message = "판매자 화면 수집 실패 · 인증 만료 또는 화면 변경 확인 필요. 기존 후기는 유지합니다." if state.get('mode') == 'seller' else "공개 후기 수집 실패. 기존 후기를 유지하며 계정 로그인은 시도하지 않습니다."
             naver_auto.record("error", message, error_type=type(exc).__name__, retry_at=time.time()+86400)
             write_log(False, message)
             return {"ok": False, "state": "error"}

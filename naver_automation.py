@@ -35,16 +35,17 @@ def private_save(path, value):
 
 
 def status():
+    mode = 'seller' if (DATA / 'naver_private' / 'seller-state.json').exists() else 'public'
     try:
         result = json.loads(STATUS.read_text(encoding='utf-8'))
-        if result.get('mode') != 'public':
+        if result.get('mode') != mode:
             result = {}
     except (OSError, ValueError):
         result = {}
     result.setdefault('state', 'pending')
     result.setdefault('message', '공개 후기 수집기 준비 · 실제 수집은 아직 검증되지 않았습니다.')
-    result.update(mode='public', account_required=False, schedule='매일 00:00',
-                  timezone='Asia/Seoul', gpt_tokens=0, session_configured=False,
+    result.update(mode=mode, account_required=mode == 'seller', schedule='매일 00:00',
+                  timezone='Asia/Seoul', gpt_tokens=0, session_configured=mode == 'seller',
                   running=LOCK.locked())
     retry_at = max(float(os.environ.get('NAVER_PUBLIC_NOT_BEFORE', '0')),
                    float(result.get('retry_at') or 0))
