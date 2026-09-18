@@ -77,7 +77,8 @@ async def read_rows(page):
             await viewport.evaluate('(e)=>{e.scrollTop+=Math.max(100,e.clientHeight*0.8)}')
             await page.wait_for_timeout(250)
         if len(found)>=expected: break
-        next_button=page.locator('[aria-label="다음 페이지로 이동"]')
+        PROGRESS['stage'] = f'페이지 이동 요소 확인 ({len(found)}/{expected})'
+        next_button=page.locator('[aria-label="다음 페이지로 이동"]').filter(visible=True)
         if await next_button.count()==0 or not await next_button.is_enabled(): break
         PROGRESS['stage'] = f'다음 페이지 갱신 대기 ({len(found)}/{expected})'
         await next_button.click()
