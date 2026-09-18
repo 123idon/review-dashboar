@@ -162,6 +162,7 @@ async def control(request:Request):
               rowCount:document.querySelectorAll('[role="row"][row-index]').length,
               columns:[...new Set(Array.from(document.querySelectorAll('[col-id]')).map(e=>e.getAttribute('col-id')))],
               handlers:Array.from(document.querySelectorAll('[col-id="reviewContent"] a')).slice(0,2).map(e=>e.getAttribute('ng-click')),
+              pagination:Array.from(document.querySelectorAll('.pagination, [role="navigation"]')).map(e=>e.outerHTML).filter(s=>s.length<15000),
               grid:Array.from(document.querySelectorAll('.ag-body-viewport')).map(e=>({height:e.clientHeight,scrollHeight:e.scrollHeight,top:e.scrollTop}))
             })""")
         if action=='click':
