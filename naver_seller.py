@@ -175,6 +175,8 @@ async def control(request:Request):
             return Response(await page.screenshot(type='jpeg',quality=75),media_type='image/jpeg',headers={'Cache-Control':'no-store'})
         if action=='diagnostics':
             return await page.evaluate("""() => ({
+              headings:Array.from(document.querySelectorAll('h3')).map(e=>e.textContent),
+              dates:Array.from(document.querySelectorAll('input[title="날짜 입력"]')).map(e=>e.value),
               rowCount:document.querySelectorAll('[role="row"][row-index]').length,
               columns:[...new Set(Array.from(document.querySelectorAll('[col-id]')).map(e=>e.getAttribute('col-id')))],
               handlers:Array.from(document.querySelectorAll('[col-id="reviewContent"] a')).slice(0,2).map(e=>e.getAttribute('ng-click')),
