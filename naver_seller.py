@@ -82,6 +82,7 @@ async def read_rows(page):
         if await next_button.count()==0 or not await next_button.is_enabled(): break
         PROGRESS['stage'] = f'다음 페이지 갱신 대기 ({len(found)}/{expected})'
         await next_button.click()
+        await viewport.scroll_into_view_if_needed()
         await viewport.evaluate('(e)=>{e.scrollTop=0}')
         for attempt in range(60):
             await page.wait_for_timeout(500)
