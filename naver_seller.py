@@ -98,6 +98,10 @@ async def read_rows(page):
             incoming = await page.evaluate(ROW_JS)
             if any(row['review_no'] not in found for row in incoming): break
         else: raise ValueError('다음 페이지에 새 후기가 표시되지 않음')
+    final_heading = await page.get_by_role('heading',name=re.compile('리뷰목록')).inner_text()
+    final_match = re.search(r'총\s*([\d,]+)\s*개',final_heading)
+    if final_match:
+        expected = int(final_match.group(1).replace(',',''))
     PROGRESS['stage'] = f'후기 건수 대조 ({len(found)}/{expected})'
     if len(found)!=expected: raise ValueError('조회 건수와 수집 건수 불일치')
     rows=list(found.values())
