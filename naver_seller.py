@@ -98,6 +98,10 @@ async def read_rows(page):
             incoming = await page.evaluate(ROW_JS)
             if any(row['review_no'] not in found for row in incoming): break
         else: raise ValueError('다음 페이지에 새 후기가 표시되지 않음')
+    final_heading = await page.get_by_role('heading',name=re.compile('리뷰목록')).inner_text()
+    final_match = re.search(r'총\s*([\d,]+)\s*개',final_heading)
+    if final_match:
+        expected = int(final_match.group(1).replace(',',''))
     PROGRESS['stage'] = f'후기 건수 대조 ({len(found)}/{expected})'
     if len(found)!=expected: raise ValueError('조회 건수와 수집 건수 불일치')
     rows=list(found.values())
@@ -171,6 +175,8 @@ async def control(request:Request):
             return Response(await page.screenshot(type='jpeg',quality=75),media_type='image/jpeg',headers={'Cache-Control':'no-store'})
         if action=='diagnostics':
             return await page.evaluate("""() => ({
+              headings:Array.from(document.querySelectorAll('h3')).map(e=>e.textContent),
+              dates:Array.from(document.querySelectorAll('input[title="날짜 입력"]')).map(e=>e.value),
               rowCount:document.querySelectorAll('[role="row"][row-index]').length,
               columns:[...new Set(Array.from(document.querySelectorAll('[col-id]')).map(e=>e.getAttribute('col-id')))],
               handlers:Array.from(document.querySelectorAll('[col-id="reviewContent"] a')).slice(0,2).map(e=>e.getAttribute('ng-click')),
