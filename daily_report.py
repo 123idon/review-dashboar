@@ -17,6 +17,15 @@ def yesterday(clock=None):
     return (clock.astimezone(KST).date() - timedelta(days=1)).isoformat()
 
 
+def report_period(target):
+    """The Sunday anchor is the Friday-Sunday digest viewed on Monday (KST)."""
+    valid_report_date(target)
+    end = datetime.strptime(target, '%Y-%m-%d').date()
+    start = end - timedelta(days=2) if end.weekday() == 6 else end
+    return {'date_from': start.isoformat(), 'date_to': target,
+            'period_days': (end - start).days + 1}
+
+
 def score(row):
     try:
         value = float(row.get('score'))
@@ -30,12 +39,13 @@ def build_report(cache, target, naver_state=None, clock=None):
     if datetime.strptime(target, '%Y-%m-%d').strftime('%Y-%m-%d') != target:
         raise ValueError('날짜 형식은 YYYY-MM-DD입니다.')
     clock = clock or datetime.now(KST)
+    period = report_period(target)
     cards = []
     for key, name, role in BRANDS:
         source = cache.get(key, [])
         seen, rows = set(), []
         for row in source:
-            if row.get('date') != target:
+            if not period['date_from'] <= str(row.get('date') or '') <= target:
                 continue
             ident = review_identity(row)
             if ident in seen:
@@ -51,7 +61,7 @@ def build_report(cache, target, naver_state=None, clock=None):
             text = str(row.get('content') or '')
             selected.append({'score': score(row), 'product': str(row.get('product') or '상품명 미제공'),
                              'platform': str(row.get('platform') or '미분류'), 'excerpt': text,
-                             'highlights': [], 'date':target})
+                             'highlights': [], 'date':row['date']})
         # All rows are retained; longest review bodies appear first.
         selected.sort(key=lambda r: len(r['excerpt']), reverse=True)
         if unavailable:
@@ -68,7 +78,7 @@ def build_report(cache, target, naver_state=None, clock=None):
                       'rated_count':len(values), 'low_count':len(low) if not unavailable else None,
                       'latest_review_date':latest or None, 'coverage':coverage, 'reviews':selected})
     total = sum(c['count'] or 0 for c in cards)
-    return {'schema_version':2, 'date': target, 'generated_at': clock.astimezone(KST).isoformat(), 'timezone':'Asia/Seoul',
+    return {'schema_version':3, 'date': target, **period, 'generated_at': clock.astimezone(KST).isoformat(), 'timezone':'Asia/Seoul',
             'total':total, 'low_count':sum(c['low_count'] or 0 for c in cards), 'brands':cards,
             'notice':'수집된 후기만 집계합니다. 미수집·지연 채널은 전체 수치에서 누락될 수 있습니다.',
             'selection_rule':'백년화편·명가삼대떡집의 저장된 전일 후기 전체 · 본문 생략 없음 · 글자 수 많은 순',
@@ -122,6 +132,6 @@ def statistics(report):
                 'platforms':[{'name':name,'count':n} for name,n in sorted(platforms.items())]}
     brands = [b for b in report['brands'] if b['key'] in ('jasaol','myeongga')]
     from review_types import type_statistics
-    return {'types':type_statistics(report),'basis':'해당 날짜에 수집된 전체 후기 기준 · 평균과 3점 이하 비율은 유효 별점 후기 기준',
+    return {'types':type_statistics(report),'basis':'해당 기간에 수집된 전체 후기 기준 · 평균과 3점 이하 비율은 유효 별점 후기 기준',
             'total':aggregate([r for b in brands for r in b['reviews']], any(b.get('available',True) for b in brands)),
             'brands':[dict(key=b['key'],name=b['name'],**aggregate(b['reviews'], b.get('available',True))) for b in brands]}

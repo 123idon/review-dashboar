@@ -3,9 +3,21 @@ from datetime import datetime, timezone
 import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from daily_report import yesterday, build_report
+from daily_report import yesterday, build_report, report_period, statistics
 
 class DailyReportTests(unittest.TestCase):
+    def test_monday_weekend_and_tuesday_single_day(self):
+        anchor=yesterday(datetime(2026,9,20,15,0,tzinfo=timezone.utc))
+        self.assertEqual(report_period(anchor),dict(date_from='2026-09-18',date_to='2026-09-20',period_days=3))
+        rows=[dict(date=f'2026-09-{d}',score=2,content='complaint',author=str(d)) for d in range(17,22)]
+        report=build_report({'jasaol':rows},anchor)
+        self.assertEqual(report['total'],3)
+        self.assertEqual(report['low_count'],3)
+        self.assertEqual({r['date'] for r in report['brands'][0]['reviews']},{'2026-09-18','2026-09-19','2026-09-20'})
+        self.assertEqual(statistics(report)['total']['count'],3)
+        self.assertEqual(build_report({'jasaol':rows},'2026-09-21')['total'],1)
+        self.assertEqual(report_period('2026-03-01')['date_from'],'2026-02-27')
+        self.assertEqual(report_period('2023-01-01')['date_from'],'2022-12-30')
     def test_korea_midnight_boundary(self):
         self.assertEqual(yesterday(datetime(2026,9,16,15,0,tzinfo=timezone.utc)), '2026-09-16')
         self.assertEqual(yesterday(datetime(2026,9,16,14,59,tzinfo=timezone.utc)), '2026-09-15')
