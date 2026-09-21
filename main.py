@@ -299,7 +299,7 @@ async def ensure_daily_report():
             generated = datetime.fromisoformat(report["generated_at"])
             clock = datetime.now(daily_report.KST)
             morning = clock.replace(hour=9, minute=0, second=0, microsecond=0)
-            if report.get("schema_version", 1) >= 2 and (clock < morning or generated >= morning):
+            if report.get("schema_version", 1) >= 3 and (clock < morning or generated >= morning):
                 return report
         return await run_daily_report()
     except Exception as exc:
@@ -347,7 +347,10 @@ async def get_daily_report(date: str = None):
             raise HTTPException(404, "선택한 날짜에 저장된 보고서가 없습니다.")
         except (ValueError, OSError):
             raise HTTPException(503, "저장된 보고서를 읽지 못했습니다.")
-    if report.get("schema_version", 1) < 2:
+    if report.get("schema_version", 1) < 2 or (
+        daily_report.report_period(target)['period_days'] == 3
+        and report.get('date_from') != daily_report.report_period(target)['date_from']
+    ):
         # Legacy snapshots contain only excerpts. Preserve the stored original and
         # explicitly label the full-date view reconstructed from current stored rows.
         original_generated = report.get("generated_at")
@@ -358,6 +361,7 @@ async def get_daily_report(date: str = None):
         report["reconstructed"] = True
         report["original_generated_at"] = original_generated
     job = scheduler.get_job("daily_report")
+    report.update(daily_report.report_period(target))
     result = daily_report.select_report(report)
     result.pop('analysis', None)
     result['statistics'] = daily_report.statistics(report)
