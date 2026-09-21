@@ -5,7 +5,7 @@ name alone. Keep stored snapshots intact; project the current display on read.
 """
 import re
 
-VERSION = 3
+VERSION = 4
 # Bound gaps to the same clause; never cross punctuation/newlines.
 GAP = r'[^.!?。\n,;]{0,24}?'
 TAIL = r'[가-힣]*'
@@ -44,6 +44,42 @@ RULES = [
 # remain independent, so a mixed review retains only its qualifying evidence.
 RULES = [(reason, re.compile(pattern)) for reason, pattern in RULES]
 
+# Complaints do not need a detailed operational reason. Ratings are handled
+# separately so a low score never invents a negative phrase in positive text.
+COMPLAINTS = [re.compile(p) for p in [
+    r'(?:실망|불만족|불만|불편|불친절|불쾌|아쉽|아쉬|속상|섭섭|최악|별로|비추|후회|짜증|화가\s*나|화나|황당|어이없)[가-힣]*',
+    r'(?:맛\s*없|맛\s*이\s*없|맛이\s*이상|맛이\s*변했|맛이\s*달라|맛없|비싸|비싼|비쌉|비쌌|아깝|아까워|부실|불량|파손|누락|오배송|변질|상했|쉰내)[가-힣]*',
+    r'(?:마음에|맘에)\s*안\s*들[가-힣]*|(?:좋지|괜찮지|만족스럽지)\s*않[가-힣]*',
+    r'(?:다시는|다신)\s*(?:안|못)\s*(?:사|살|먹|주문|구매)[가-힣]*|(?:재구매|재주문)\s*(?:안|없|못)[가-힣]*',
+    r'(?:환불|반품|교환)(?:을|를)?\s*(?:요청|원해|해\s*주|해주세요|부탁|했|합|할|받|신청)[가-힣]*',
+    r'(?:주문|예약|결제|연락|통화|배송|해동|분리|씹기|먹기)[^.!?。\n,;]{0,18}?(?:안\s*되|안돼|안\s*돼|못\s*하|못해|어렵|어려|힘들|불가)[가-힣]*',
+    r'(?:크기|사이즈|양|수량|개수|갯수|구성)[^.!?。\n,;]{0,18}?(?:줄었|줄고|줄어|줄어서|작아졌|작아|적어|적었|부족)[가-힣]*',
+    r'(?:배송|도착|답변|응답)[^.!?。\n,;]{0,18}?(?:느리|느려|늦|지연|안\s*왔|없)[가-힣]*',
+    r'(?:떡|제품|상품|포장|박스)[^.!?。\n,;]{0,18}?(?:깨져|깨졌|터져|터졌|찢어|새어|새고|잘못|빠졌|빠져)[가-힣]*',
+]]
+COMPLAINT_NEGATION = re.compile(r'(?:지|진)\s*않|(?:은|는|이|가)?\s*없|아니')
+
+def complaint_highlights(text):
+    hits = []
+    for pattern in COMPLAINTS:
+        for match in pattern.finditer(text):
+            # Suppress "불만 없어요", "비싸지 않아요", "별로 안 달아요".
+            if COMPLAINT_NEGATION.match(text[match.end():].lstrip()):
+                continue
+            phrase = match.group()
+            if re.search(r'(?:지|진)\s*않|(?:불만|불편|아쉬움)(?:이|은|는)?없', phrase + text[match.end():match.end()+8]):
+                continue
+            if phrase.startswith('별로') and re.match(r'\s*(?:안|없|않)',text[match.end():]):
+                continue
+            hits.append({'start':match.start(),'end':match.end(),'kind':'reason','reason':'고객 불만'})
+    return hits
+
+def low_rating(value):
+    try:
+        return 1 <= float(value) <= 3
+    except (ValueError, TypeError):
+        return False
+
 PROBLEM_NEGATION = re.compile(
     r'(?:딱딱|질기|질겨|퍽퍽|퍼석|푸석|텁텁|느끼|눅눅|떫|달|짜|굳|상하|상해|붙|녹)'
     r'[가-힣]{0,3}(?:지\s*않|진\s*않)|'
@@ -51,7 +87,7 @@ PROBLEM_NEGATION = re.compile(
 
 
 def highlights(text):
-    hits = []
+    hits = complaint_highlights(text)
     for reason, pattern in RULES:
         for match in pattern.finditer(text):
             phrase = match.group()
@@ -90,12 +126,12 @@ def select_report(report):
         reviews = []
         for review in brand['reviews']:
             spans = highlights(review.get('excerpt') or '')
-            if spans:
+            if spans or low_rating(review.get('score')):
                 reviews.append(dict(review, highlights=spans))
         reviews.sort(key=lambda r: len(r['excerpt']), reverse=True)
         brands.append(dict(brand, reviews=reviews, selected_count=len(reviews)))
     result.update(brands=brands, selected_count=sum(b['selected_count'] for b in brands),
                   selection_version=VERSION,
-                  selection_rule='구체적인 평가 이유가 있는 후기 선정 · 본문 생략 없음 · 글자 수 많은 순',
-                  highlight_rule='당도·맛·식감·향의 칭찬 제외 · 구체적인 불만·개선 요청 및 재료·포장·배송 등 기존 기준으로 선정')
+                  selection_rule='3점 이하 후기 전부 포함 · 평점과 관계없이 부정·고객 불만 표현 포함 · 본문 전체 · 글자 수 많은 순',
+                  highlight_rule='불만은 짧아도 포함 · 실제 평가 문구만 강조 · 단순 당도·맛·식감·향 칭찬 제외 · 기존 구체적 이유 선정 유지')
     return result

@@ -5,6 +5,33 @@ from review_selection import highlights, select_report
 
 
 class SelectionTests(unittest.TestCase):
+    def test_all_low_ratings_even_positive_or_empty_text_are_retained(self):
+        rows=[dict(date='2026-09-20',score=s,content=t,author=str(i)) for i,(s,t) in enumerate([
+            (1,''),(2,'좋아요'),(3,'쑥향이진하고,낱개포장되어 더욱 좋았습니다'),
+            (5,'맛있어요'),(5,'별로예요'),(4,'불친절해요')])]
+        stored=build_report({'jasaol':rows},'2026-09-20')
+        before=copy.deepcopy(stored)
+        view=select_report(stored)
+        self.assertEqual(view['selected_count'],5)
+        self.assertEqual(view['total'],6)
+        self.assertEqual(stored,before)
+        empty=next(r for r in view['brands'][0]['reviews'] if r['score']==1)
+        self.assertEqual(empty['highlights'],[])
+
+    def test_short_and_high_rating_actual_complaints(self):
+        for text in ['별로예요','실망','맛없어요','불친절해요','환불해주세요',
+                     '명절 시즌에는 주문이 안되는 점이 좀 아쉽습니다.',
+                     '예전보다 크기가 줄고 가격은 비싸졌지만 맛있긴해요',
+                     '너무 비싸서 다시 한번 확인 부탁드립니다',
+                     '할인이 할인이 아니네요. 좀 실망스럽고 섭섭하고 그러네요.']:
+            with self.subTest(text=text):
+                view=select_report(build_report({'jasaol':[dict(date='2026-09-20',score=5,content=text)]},'2026-09-20'))
+                self.assertEqual(view['selected_count'],1)
+                for h in view['brands'][0]['reviews'][0]['highlights']:
+                    self.assertTrue(text[h['start']:h['end']])
+        for text in ['불만 없어요','비싸지 않아요','별로 안 달아요','불편하지 않아요']:
+            with self.subTest(text=text): self.assertEqual(highlights(text),[])
+
     def test_low_sweetness_praise_excluded_but_requests_retained(self):
         for text in ['많이 달지 않아서 좋았다', '너무 달지는 않아요',
                      '달지않고너무맛있다고', '밥알도 살아있고 팥도 달지않고 맛있어요',
@@ -45,7 +72,7 @@ class SelectionTests(unittest.TestCase):
                 self.assertEqual([text[h['start']:h['end']] for h in highlights(text)], expected)
 
     def test_actual_generic_reviews_excluded(self):
-        for text in ['맛있어요', '추천해요', '좋아요', '별로예요',
+        for text in ['맛있어요', '추천해요', '좋아요',
                      '선물로 보냈는데 너무 맛있다고 하네요',
                      '빠른배송 감사합니다..', '배송빠르게 잘 받았습니다 다음에도 구매할게요',
                      '맛도 굿~ 배송도 굿입니다. ^^', '기대를 많이 했었나봐요.',
