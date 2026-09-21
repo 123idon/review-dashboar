@@ -671,7 +671,7 @@ async def run_naver_collect():
             existing = load_json(DATA_PATH.parent / "smartstore.json", [])
             latest = max((r.get("date", "") for r in existing), default="")
             since = (datetime.fromisoformat(latest) - timedelta(days=7)).date().isoformat() if latest else "2000-01-01"
-            rows, details = await asyncio.wait_for(naver_seller.collect() if state.get('mode') == 'seller' else collect(since), timeout=1800)
+            rows, details = await asyncio.wait_for(naver_seller.collect(since) if state.get('mode') == 'seller' else collect(since), timeout=1800)
             if rows:
                 sid = uuid4().hex
                 safe_save(smartstore_chunk_path(sid), rows)
