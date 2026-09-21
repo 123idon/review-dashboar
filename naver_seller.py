@@ -43,7 +43,7 @@ async def close_session():
     if browser: await browser.close()
     if pw: await pw.stop()
 
-async def read_rows(page):
+async def read_rows(page, since=None):
     import re
     PROGRESS['stage'] = '리뷰 화면 이동'
     await page.goto('https://sell.smartstore.naver.com/#/review/search',wait_until='domcontentloaded')
@@ -60,6 +60,8 @@ async def read_rows(page):
     PROGRESS['stage'] = '조회 조건 설정'
     await page.get_by_role('button',name='오늘',exact=True).click()
     yesterday = datetime.now(state.KST).date() - timedelta(days=1)
+    if since:
+        yesterday = datetime.fromisoformat(since).date()   # 조회 시작일(변수명은 호환 유지)
     start_input = page.locator('input[title="날짜 입력"]').nth(0)
     # Enable the displayed date input for normal input/change events.
     # No framework state or private API access is used.
@@ -129,18 +131,120 @@ async def read_rows(page):
     for row in rows: row.pop('row_index',None)
     return rows, {'expected':expected,'reported_total':reported_total,'source':'seller_ui','date_from':yesterday.isoformat()}
 
-async def collect():
+async def read_rows_excel(page, since):
+    """폴백: 리뷰관리 화면의 '엑셀 다운로드' → openpyxl 파싱. 버튼 문구·팝업은 화면 변경 시 조정."""
+    import re
+    from openpyxl import load_workbook
+    start = datetime.fromisoformat(since).date() if since else datetime.now(state.KST).date() - timedelta(days=1)
+    PROGRESS['stage'] = '엑셀 폴백: 화면 이동'
+    await page.goto('https://sell.smartstore.naver.com/#/review/search',wait_until='domcontentloaded')
+    await page.locator('#seller-lnb').wait_for(timeout=30000)
+    if '/review/search' not in page.url:
+        await page.goto('https://sell.smartstore.naver.com/#/review/search',wait_until='domcontentloaded')
+    await page.get_by_role('heading',name='리뷰관리',exact=True).wait_for(timeout=30000)
+    await page.get_by_role('button',name='오늘',exact=True).click()
+    start_input = page.locator('input[title="날짜 입력"]').nth(0)
+    await start_input.evaluate('(e)=>e.removeAttribute("readonly")')
+    await start_input.fill(start.strftime('%Y.%m.%d.'))
+    await start_input.press('Tab')
+    await page.get_by_role('button',name='검색',exact=True).click()
+    await page.wait_for_timeout(4000)
+    btn = page.get_by_role('button', name=re.compile(r'엑셀\s*다운')).filter(visible=True)
+    if await btn.count() == 0: raise ValueError('엑셀 다운로드 버튼 없음')
+    PROGRESS['stage'] = '엑셀 폴백: 다운로드'
+    async with page.expect_download(timeout=120000) as dl_info:
+        await btn.first.click()
+        for name in ('확인','다운로드'):
+            ok = page.get_by_role('button', name=name, exact=True).filter(visible=True)
+            try:
+                if await ok.count(): await ok.first.click(timeout=3000)
+            except Exception: pass
+    dl = await dl_info.value
+    path = state.DATA / 'naver_private' / 'seller_export.xlsx'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    await dl.save_as(str(path))
+    wb = load_workbook(path, read_only=True, data_only=True)
+    try:
+        ws = wb.active; ws.reset_dimensions()
+        it = iter(ws.iter_rows(values_only=True)); headers = next(it)
+        idx = {str(v).strip(): i for i, v in enumerate(headers) if v is not None}
+        need = ['리뷰등록일','구매자평점','상품명','리뷰상세내용','등록자','리뷰글번호']
+        if not all(k in idx for k in need): raise ValueError('엑셀 열 구성 변경')
+        out = []
+        for row in it:
+            if not any(v is not None for v in row): continue
+            c = lambda k: row[idx[k]] if k in idx and idx[k] < len(row) else None
+            raw = c('리뷰등록일')
+            if isinstance(raw, datetime): d = raw.strftime('%Y-%m-%d')
+            else:
+                m = re.match(r'\s*(\d{4})[.\-/](\d{2})[.\-/](\d{2})', str(raw))
+                if not m: raise ValueError('엑셀 날짜 형식 확인 불가')
+                d = '-'.join(m.groups())
+            if d < start.isoformat(): continue
+            out.append(dict(date=d, score=float(c('구매자평점') or 0), product=str(c('상품명') or ''),
+                            content=str(c('리뷰상세내용') or ''), author=str(c('등록자') or ''),
+                            review_no=str(c('리뷰글번호') or ''), review_type=str(c('리뷰구분') or ''),
+                            platform='naver', title=''))
+    finally:
+        wb.close()
+        try: path.unlink()
+        except OSError: pass
+    if out: validate_reviews(out)
+    return out, {'expected':len(out),'source':'seller_excel','date_from':start.isoformat()}
+
+async def collect(since=None):
     if not AUTH.exists(): raise ValueError('서버 판매자 인증 없음')
     from playwright.async_api import async_playwright
     async with async_playwright() as pw:
         browser=await pw.chromium.launch(headless=True,args=['--disable-dev-shm-usage'])
         try:
-            context=await browser.new_context(storage_state=str(AUTH),locale='ko-KR',timezone_id='Asia/Seoul',viewport={'width':1440,'height':1000})
+            context=await browser.new_context(storage_state=str(AUTH),locale='ko-KR',timezone_id='Asia/Seoul',viewport={'width':1440,'height':1000},accept_downloads=True)
             page=await context.new_page()
-            rows,details=await read_rows(page)
+            try:
+                rows,details=await read_rows(page, since)
+            except Exception as first:
+                # 로그인 자체가 풀린 경우는 폴백 의미 없음
+                if 'nid.naver.com' in page.url: raise
+                PROGRESS['stage'] = f'화면 읽기 실패({type(first).__name__}) → 엑셀 폴백'
+                rows,details=await read_rows_excel(page, since)
+                details['ui_error']=type(first).__name__
+            # 매 실행마다 갱신된 쿠키를 다시 저장해 세션을 이어간다
             state.private_save(AUTH,await context.storage_state())
             return rows,details
         finally: await browser.close()
+
+@router.post('/api/naver-seller/session')
+async def upload_session(request:Request):
+    """로컬 PC에서 로그인한 브라우저의 storage_state 를 서버에 이전. 토큰 env로만 잠깐 열린다."""
+    authorize(request.headers.get('X-Naver-Connect',''))
+    raw=await request.body()
+    if len(raw)>2_000_000: raise HTTPException(413,'세션 파일이 너무 큽니다.')
+    try:
+        import json
+        storage=json.loads(raw)
+        assert isinstance(storage,dict) and isinstance(storage.get('cookies'),list)
+    except Exception: raise HTTPException(400,'storage_state 형식 오류')
+    if state.LOCK.locked(): raise HTTPException(409,'수집 중입니다. 잠시 후 다시 시도하세요.')
+    from playwright.async_api import async_playwright
+    async with LOCK:
+        async with async_playwright() as pw:
+            browser=await pw.chromium.launch(headless=True,args=['--disable-dev-shm-usage'])
+            try:
+                context=await browser.new_context(storage_state=storage,locale='ko-KR',timezone_id='Asia/Seoul',viewport={'width':1440,'height':1000})
+                page=await context.new_page()
+                await page.goto('https://sell.smartstore.naver.com/',wait_until='domcontentloaded')
+                try:
+                    await page.locator('#seller-lnb').wait_for(timeout=30000)
+                    ok='백년화편' in await page.locator('#seller-lnb').inner_text()
+                except Exception: ok=False
+                if not ok or 'nid.naver.com' in page.url:
+                    raise HTTPException(409,'서버에서 세션 검증 실패 — 로그인이 유지되지 않습니다.')
+                state.private_save(AUTH,await context.storage_state())
+            finally: await browser.close()
+    state.record('unverified','판매자 세션 이전 완료 · 첫 수집 대기',mode='seller',retry_at=0)
+    from main import run_naver_collect
+    asyncio.create_task(run_naver_collect())
+    return {'ok':True,'message':'세션 저장 완료. 첫 수집을 시작합니다.'}
 
 @router.get('/naver-seller-connect',response_class=HTMLResponse)
 async def portal():
