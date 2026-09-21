@@ -10,7 +10,10 @@
   pip install playwright openpyxl
   python -m playwright install chromium
 
-로그인 (최초 1회 / 세션 만료 시)
+로그인 후 서버로 세션 이전 (권장 — 이후 PC가 꺼져 있어도 서버가 매일 수집)
+  set NAVER_CONNECT_TOKEN=<토큰>  →  python naver_seller_local.py --login --push
+
+로그인만 (PC에서 직접 수집할 때)
   python naver_seller_local.py --login
 
 매일 실행 (작업 스케줄러)
@@ -284,8 +287,25 @@ async def read_rows_excel(page, since):
 
 
 # ───────────────────────── 실행 모드 ─────────────────────────
-async def do_login():
+def push_session(storage, token):
+    """로그인된 브라우저 세션(storage_state)을 서버로 이전. 서버가 검증 후 저장하고 첫 수집을 시작한다."""
+    payload = json.dumps(storage).encode()
+    req = Request(BASE_URL + "/api/naver-seller/session", data=payload,
+                  headers={"Content-Type": "application/json", "X-Naver-Connect": token}, method="POST")
+    try:
+        with urlopen(req, timeout=180) as r:
+            return json.load(r)
+    except HTTPError as e:
+        raise RuntimeError(f"서버 응답 {e.code}: {e.read().decode('utf-8', 'ignore')[:300]}")
+
+
+async def do_login(push=False):
     from playwright.async_api import async_playwright
+    token = None
+    if push:
+        token = os.environ.get("NAVER_CONNECT_TOKEN") or input("서버 연결 토큰(NAVER_CONNECT_TOKEN): ").strip()
+        if not token:
+            print("토큰이 없어 --push 를 건너뜁니다."); push = False
     async with async_playwright() as pw:
         ctx = await open_browser(pw, headless=False)
         page = ctx.pages[0] if ctx.pages else await ctx.new_page()
@@ -298,6 +318,11 @@ async def do_login():
                 await ensure_logged_in(page, wait_ms=3000)
                 log("로그인 확인 — 세션이 프로필에 저장되었습니다.")
                 await page.wait_for_timeout(1500)
+                if push:
+                    storage = await ctx.storage_state()
+                    log("서버로 세션 이전 중 (서버가 검증까지 하므로 1분 정도 걸릴 수 있음)...")
+                    r = push_session(storage, token)
+                    log(f"서버 응답: {r.get('message', r)}")
                 await ctx.close()
                 try:
                     api("/api/smartstore-cookie-ok", {})
@@ -368,13 +393,14 @@ async def do_collect(args):
 def main():
     p = argparse.ArgumentParser(description="백년화편 네이버 판매자센터 후기 수집기 (회사 PC용)")
     p.add_argument("--login", action="store_true", help="브라우저를 띄워 수동 로그인 후 세션 저장")
+    p.add_argument("--push", action="store_true", help="--login 과 함께: 로그인 세션을 서버로 이전 (이후 서버가 매일 수집)")
     p.add_argument("--since", help="수집 시작일 YYYY-MM-DD (기본: 서버 마지막 후기일 - overlap)")
     p.add_argument("--overlap-days", type=int, default=7, help="서버 마지막 후기일에서 며칠 전부터 다시 읽을지 (기본 7)")
     p.add_argument("--headless", action="store_true", help="창 없이 실행 (세션 안정성은 창 있는 쪽이 더 낫다)")
     a = p.parse_args()
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-    code = asyncio.run(do_login() if a.login else do_collect(a))
+    code = asyncio.run(do_login(push=a.push) if a.login else do_collect(a))
     sys.exit(code)
 
 
