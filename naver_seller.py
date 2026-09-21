@@ -325,8 +325,9 @@ async def control(request:Request):
                     raise ValueError('대상 판매자 확인 실패')
                 state.private_save(AUTH,await context.storage_state())
                 state.record('unverified','서버 로그인 저장 · 후기 수집 검증 중',mode='seller',retry_at=0)
-                rows,details=await read_rows(page)
-                if not rows: raise ValueError('실제 후기 검증 필요')
+                # 최근 30일 범위로 검증 (어제 후기가 0건이어도 로그인 저장은 가능해야 함)
+                since=(datetime.now(state.KST).date()-timedelta(days=30)).isoformat()
+                rows,details=await read_rows(page, since)
                 # Only a verified UI read permits persistent authentication storage.
                 verified_auth = await context.storage_state()
                 from uuid import uuid4
@@ -334,8 +335,11 @@ async def control(request:Request):
                 from main import smartstore_chunk_path, import_smartstore_done
                 sid=uuid4().hex
                 PROGRESS['stage'] = '후기 병합 저장'
-                safe_save(smartstore_chunk_path(sid),rows)
-                result=await import_smartstore_done(sid,len(rows))
+                if rows:
+                    safe_save(smartstore_chunk_path(sid),rows)
+                    result=await import_smartstore_done(sid,len(rows))
+                else:
+                    result={'added':0}
                 state.private_save(AUTH,verified_auth)
                 state.record('ready','판매자 화면 수집 정상 · 매일 한국시간 00:00',mode='seller',last_success=state.now(),received=len(rows),retry_at=0,**details)
                 from main import run_daily_report
