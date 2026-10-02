@@ -186,6 +186,16 @@ def _concern_allowed(sentence, match, guard):
     if guard != 'request' and (_negated(sentence, match) or _hypothetical(sentence, match)):
         return False
     if guard == 'generic':
+        # "맛있어요 사라지는게 아쉬울뿐" regrets finishing enjoyable food,
+        # not a product problem. Keep this local to the current praise clause;
+        # separate quantity, packaging, delivery and discontinuation issues stay.
+        clause = re.split(r'[,，]|그런데|하지만|그러나|(?:지만|는데)',
+                          sentence[:match.start()])[-1]
+        if (phrase.startswith(('아쉽', '아쉬'))
+                and re.search(r'맛\s*있|맛나|잘\s*먹', clause)
+                and re.search(r'(?:사라지는|없어지는)\s*(?:게|것이|것만)\s*$', clause)
+                and not re.search(r'포장|배송|택배|수량|양이|크기|품절|단종|판매|메뉴', clause)):
+            return False
         if re.search(r'(?:실망|후회).*?(?:법이|(?:은|는)\s*안).*?(?:없|되)', sentence):
             return False
         if re.search(r'(?:더\s*살걸|더\s*시킬|시킬껄|시킬걸|주문할껄|늦게\s*시킨|한\s*봉지|10개짜리).*?(?:후회|아쉬)', sentence):

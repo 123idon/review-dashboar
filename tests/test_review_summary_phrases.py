@@ -122,6 +122,22 @@ class SummaryPhraseTests(unittest.TestCase):
         self.assertIn('포장 파손·내용물 누출', {x['theme'] for x in result['concerns']})
         self.assertEqual(classify_summary_text('냉동떡이라 질길 줄 알았는데 쫀득했어요. 하지만 가운데는 딱딱했어요.')['concerns'][0]['theme'], '해동·식감 아쉬움')
 
+    def test_enjoyed_food_disappearing_is_not_a_concern(self):
+        for text in ['맛있어요 사라지는게 아쉬울뿐 ㅠㅠ',
+                     '맛있어서 금방 사라지는 것이 아쉬워요']:
+            with self.subTest(text=text):
+                result = classify_summary_text(text)
+                self.assertEqual(result['concerns'], [])
+                self.assertIn('맛·향 만족', {x['label'] for x in result['positive']})
+        for text in ['맛있어요. 포장이 아쉬워요',
+                     '맛있어요, 배송이 아쉬워요',
+                     '맛있어요 그런데 양이 작아요 아쉬워요',
+                     '맛있어요 단종으로 사라지는게 아쉬워요']:
+            with self.subTest(text=text):
+                self.assertTrue(classify_summary_text(text)['concerns'])
+        mixed = classify_summary_text('맛있어요 사라지는게 아쉬울뿐 ㅠㅠ. 하지만 포장이 터졌어요')
+        self.assertIn('포장 파손·내용물 누출', {x['theme'] for x in mixed['concerns']})
+
     def test_each_theme_once_excerpts_are_source_substrings(self):
         text = '😀 쫀득하고 부드럽고 정말 쫀득해요! 포장이 터졌어요. 또 포장이 터져서 왔어요.\n(2026-09-30 14:35:00 에 등록된 네이버 페이 구매평)'
         result = classify_summary_text(text)
