@@ -664,7 +664,9 @@ body {
 })();
 </script>
 <link rel="stylesheet" href="/static/daily-report.css?v=5">
-<script src="/static/daily-report.js?v=14"></script>
+<link rel="stylesheet" href="/static/review-copy-summary.css?v=1">
+<script src="/static/review-copy-summary.js?v=1"></script>
+<script src="/static/daily-report.js?v=15"></script>
 </head>
 <body>
 
@@ -999,6 +1001,7 @@ function finishProgressBar(){
 // 탭 전환
 // ════════════════════════════════════════
 function switchShop(shop, el){
+  if(window.reviewCopySummary) window.reviewCopySummary.suspend();
   currentShop = shop;
   resetReviewScope();
   // 로그 탭 나가면 폴링 정리

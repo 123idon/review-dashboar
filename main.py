@@ -388,6 +388,25 @@ async def list_reports():
     return JSONResponse({"reports": files})
 
 
+@app.get("/api/review-copy-summary")
+async def get_review_copy_summary(date_from: str = None, date_to: str = None, brand: str = 'all'):
+    """Read-only copy draft from full source rows, never the 500-row preview."""
+    from review_copy_summary import build_copy_summary
+    try:
+        validate_range(date_from, date_to)
+        if not date_from or not date_to:
+            raise ValueError("요약할 시작일과 종료일을 선택해 주세요.")
+        if brand not in ('all', 'jasaol', 'myeongga'):
+            raise ValueError("지원하지 않는 브랜드입니다.")
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    cache = await asyncio.to_thread(_load_reviews_cached)
+    if not cache:
+        raise HTTPException(503, "전체 후기 자료를 읽지 못했습니다.")
+    result = await asyncio.to_thread(build_copy_summary, cache, date_from, date_to, brand)
+    return JSONResponse(result, headers={"Cache-Control": "no-store"})
+
+
 @app.get("/api/data")
 async def get_data(date_from: str = None, date_to: str = None):
     try:
