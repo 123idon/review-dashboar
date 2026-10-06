@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>백년화편 2026 Q4 분기 전략 리포트</title>
+<style>
+  :root{
+    --primary:#8e44ad;
+    --primary-light:#f3e9f8;
+    --primary-dark:#6c3483;
+    --text:#222;
+    --muted:#666;
+    --border:#e3d9ea;
+    --bg:#faf8fb;
+    --ok:#2e8b57;
+    --warn:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+  }
+  .report-header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:var(--primary);
+    color:#fff;
+    padding:14px 24px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  }
+  .report-header h1{font-size:17px; margin:0; font-weight:700;}
+  .report-header .sub{font-size:12px; opacity:0.85; margin-top:2px;}
+  .nav-bar{
+    position:fixed; top:62px; left:0; right:0; z-index:99;
+    background:#fff;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    gap:4px;
+    padding:0 24px;
+    overflow-x:auto;
+  }
+  .nav-bar a{
+    display:block;
+    padding:12px 14px;
+    font-size:13px;
+    color:var(--muted);
+    text-decoration:none;
+    white-space:nowrap;
+    border-bottom:2px solid transparent;
+  }
+  .nav-bar a:hover{color:var(--primary); border-bottom-color:var(--primary-light);}
+  .container{
+    margin-top:108px;
+    max-width:1040px;
+    margin-left:auto;
+    margin-right:auto;
+    padding:28px 24px 80px;
+  }
+  section{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:28px;
+    margin-bottom:24px;
+  }
+  section h2{
+    font-size:19px;
+    color:var(--primary-dark);
+    margin:0 0 16px;
+    padding-bottom:10px;
+    border-bottom:2px solid var(--primary-light);
+  }
+  section h3{font-size:15px; margin:20px 0 10px; color:var(--text);}
+  p{margin:8px 0;}
+  .label{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    padding:2px 7px;
+    border-radius:4px;
+    margin-right:6px;
+  }
+  .label.fact{background:#e8f4ec; color:var(--ok);}
+  .label.estimate{background:#fdf3e3; color:#b7791f;}
+  .label.unknown{background:#f1f1f1; color:#777;}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+    margin:12px 0;
+    table-layout:fixed;
+  }
+  caption{text-align:left; font-size:12px; color:var(--muted); margin-bottom:6px;}
+  th,td{
+    border:1px solid var(--border);
+    padding:9px 8px;
+    text-align:center;
+    word-break:keep-all;
+  }
+  th{background:var(--primary-light); color:var(--primary-dark); font-weight:700;}
+  td.left, th.left{text-align:left;}
+  tr:nth-child(even) td{background:#fcfaFD;}
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin:16px 0;
+  }
+  .kpi-card{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px;
+    background:var(--primary-light);
+  }
+  .kpi-card .v{font-size:20px; font-weight:800; color:var(--primary-dark);}
+  .kpi-card .l{font-size:12px; color:var(--muted); margin-top:4px;}
+  .progress{
+    background:#eee;
+    border-radius:6px;
+    overflow:hidden;
+    height:10px;
+    margin-top:6px;
+  }
+  .progress > div{
+    height:100%;
+    background:var(--primary);
+  }
+  .timeline{list-style:none; padding:0; margin:0;}
+  .timeline li{
+    display:flex;
+    gap:14px;
+    padding:12px 0;
+    border-bottom:1px dashed var(--border);
+  }
+  .timeline li:last-child{border-bottom:none;}
+  .timeline .month{
+    flex:0 0 70px;
+    font-weight:700;
+    color:var(--primary-dark);
+  }
+  .swot-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .swot-box{
+    border-radius:10px;
+    padding:16px;
+    font-size:13px;
+  }
+  .swot-box h4{margin:0 0 8px; font-size:14px;}
+  .swot-s{background:#eef7f0; border:1px solid #bfe3c6;}
+  .swot-w{background:#fdeeee; border:1px solid #f0c2c2;}
+  .swot-o{background:#eef2fb; border:1px solid #c3d2f0;}
+  .swot-t{background:#fff6e6; border:1px solid #f0dca2;}
+  .action-box{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px;
+    margin-bottom:12px;
+  }
+  .action-box .tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    color:#fff;
+    background:var(--primary);
+    border-radius:4px;
+    padding:2px 8px;
+    margin-bottom:8px;
+  }
+  .note{
+    font-size:12px;
+    color:var(--muted);
+    background:#f7f4f9;
+    border-left:3px solid var(--primary);
+    padding:10px 14px;
+    margin-top:10px;
+    border-radius:4px;
+  }
+  .src{font-size:11px; color:#999;}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div>
+    <h1>백년화편 분기 전략 리포트</h1>
+    <div class="sub">2026 Q3 마감 분석 · 2026 Q4 전략 · 작성일 2026-10-06</div>
+  </div>
+  <div class="sub">리서치 애널리스트 자동 생성</div>
+</div>
+
+<div class="nav-bar">
+  <a href="#summary">1. SUMMARY</a>
+  <a href="#timeline">2. 분기 타임라인</a>
+  <a href="#market">3. 시장 분석</a>
+  <a href="#competitor">4. 경쟁사 동향</a>
+  <a href="#self">5. 자사 현황</a>
+  <a href="#swot">6. SWOT</a>
+  <a href="#strategy">7. Q4 전략</a>
+</div>
+
+<div class="container">
+
+<section id="summary">
+  <h2>1. 분기 SUMMARY</h2>
+  <p><span class="label fact">결론</span> 2026년 3분기(7~9월) 동안 백년화편은 누적 리뷰 기준 평균 ★4.9를 유지했으며, 3점 이하 비율은 1%로 안정적이다. 다만 <b>최근 7일(9/29~10/5) 신규 리뷰 건수는 백년화편 535건으로 명가삼대떡집 751건보다 적어</b>, 경쟁사 대비 온라인 구매·리뷰 모멘텀에서 격차가 발생하고 있다. 네이버 공개 후기 자동 수집이 9월 18일 이후 중단된 상태로, 네이버 채널 최신 동향 파악에 공백이 있다.</p>
+  <p class="src">데이터 기준: Railway 대시보드(web-production-ce7ca1.up.railway.app/dashboard) 2026-10-06 조회 시점 누적치. 대시보드는 분기 단위 필터를 제공하지 않아, 7~9월만 분리한 수치는 <span class="label unknown">확인 불가</span>이며 아래는 조회 시점 누적/최근7일 스냅샷이다.</p>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="v">201,326</div>
+      <div class="l">백년화편 누적 리뷰 (★4.9)</div>
+      <div class="progress"><div style="width:57%"></div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="v">142,406</div>
+      <div class="l">명가삼대떡집 누적 리뷰 (★4.9)</div>
+      <div class="progress"><div style="width:40%; background:#999"></div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="v">7,291</div>
+      <div class="l">파파공방 누적 리뷰 (★4.9)</div>
+      <div class="progress"><div style="width:2%; background:#c9a2d8"></div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="v">확인 불가</div>
+      <div class="l">창억떡 (자동수집 미구현 · 로그인 필요)</div>
+      <div class="progress"><div style="width:0%"></div></div>
+    </div>
+  </div>
+  <p class="note">진행률 바는 3사 합산 리뷰 수(백년화편+명가삼대떡집+파파공방=351,023건) 대비 비중이며, 매출·판매량 지표가 아닌 <b>리뷰 노출량 기준 참고 지표</b>다. 창억떡은 자사몰 로그인 제약으로 집계에서 제외되어 실제 3사 비교에는 한계가 있다.</p>
+
+  <table>
+    <caption>핵심 KPI 스냅샷 (조회일 2026-10-06 기준)</caption>
+    <thead><tr><th class="left">지표</th><th>백년화편</th><th>명가삼대떡집</th><th>파파공방</th><th>창억떡</th></tr></thead>
+    <tbody>
+      <tr><td class="left">3점 이하 비율(건수)</td><td>1% (2,004)</td><td>1% (1,425)</td><td>3% (195)</td><td>확인 불가</td></tr>
+      <tr><td class="left">최근 7일 신규 리뷰</td><td>535</td><td>751</td><td>0</td><td>확인 불가</td></tr>
+      <tr><td class="left">최근 7일 3점 이하</td><td>2 (0%)</td><td>11 (1%)</td><td>0 (0%)</td><td>확인 불가</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="timeline">
+  <h2>2. 분기 타임라인 (7~9월 주요 이벤트)</h2>
+  <ul class="timeline">
+    <li><div class="month">7월</div><div><span class="label fact">사실</span> Q2 마감. 떡 업종 전통적 비수기로 평시 운영 지속.</div></li>
+    <li><div class="month">8월</div><div><span class="label fact">사실</span> 추석(9/25) 사전예약 주기에 대응한 시즌 마케팅 집행 시작. 프로젝트 기록상 추석 2026 광고 소재는 8월 말까지 대부분 집행 완료.</div></li>
+    <li><div class="month">9월 초</div><div><span class="label fact">사실</span> 주간 경쟁 리서치 보고서(2026-W36) 발행 — 백화점·대형마트·편의점·온라인 선물 플랫폼의 추석 선물세트 광고 현황 분석.</div></li>
+    <li><div class="month">9/18</div><div><span class="label fact">사실</span> 대시보드 네이버 공개 후기 자동 수집 마지막 성공(10:35:42) 이후 중단. 사유: 네이버 공개 페이지 접근 제한. <span class="label unknown">확인 필요</span> — 기술적 복구 여부.</div></li>
+    <li><div class="month">9/24~27</div><div><span class="label fact">사실</span> 추석 연휴(당일 9/25, 금요일). 전국 선물세트 성수기.</div></li>
+    <li><div class="month">9월 전체</div><div><span class="label estimate">추정</span> 이마트 계열 추석 사전예약 매출: 이마트 +10.3%, 트레이더스 +25.6%, 이마트에브리데이 +5.5%, 대량구매(100개 이상) +17%(YoY) — 과일·소고기 선호 1·2위, 떡 카테고리 개별 수치는 보도자료에 없어 <span class="label unknown">확인 불가</span>.</div></li>
+    <li><div class="month">10월</div><div><span class="label fact">사실</span> Q3 마감 및 Q4 전략 수립 시점. 설 2027(음력 1/1, 양력 환산일은 <span class="label unknown">확인 불가</span>) 준비를 11월 초까지 착수해야 추석 2026때 지적된 "광고 집행 지연" 재발을 방지할 수 있다.</div></li>
+  </ul>
+</section>
+
+<section id="market">
+  <h2>3. 시장 분석</h2>
+  <h3>국내 떡 시장</h3>
+  <p><span class="label estimate">보도 인용</span> 떡 판매액은 최근 7년간 약 2배로 성장해 2025년 약 9,600억 원 규모로 보도됨(네이트뉴스, 2026-09-17 "2030 홀린 간식 '떡의 재발견'"). 명절 전통 간식에서 2030세대의 일상 디저트로 소비층이 확장되고 있다는 것이 해당 보도의 핵심 주장이나, <b>1차 통계 출처(예: 통계청·식품산업통계정보)는 확인되지 않아 수치의 정확한 산출 방식은 확인 불가</b>로 표기한다.</p>
+  <p><span class="label unknown">확인 불가</span> 일부 검색 결과에 "2026년까지 연평균 25% 성장" 수치가 노출되었으나, 출처가 떡 시장이 아닌 무관한 간식 카테고리(견과류·캔디) 리포트로 확인되어 본 리포트에는 반영하지 않는다.</p>
+  <h3>선물세트 시장 (추석 2026 기준)</h3>
+  <p><span class="label estimate">보도 인용</span> 이마트 계열 추석 사전예약 매출 증가(이마트 +10.3%, 트레이더스 +25.6%), 대량구매(100개 이상) +17%(YoY). 선호 품목은 과일(사과 25.2%)·소고기(16.2%)·혼합과일(12.8%) 순으로, 떡은 상위권 선호 품목 통계에 포함되지 않음 — 선물세트 카테고리 내 떡의 상대적 위상은 <span class="label unknown">확인 불가</span>.</p>
+  <h3>온라인 식품 소비 트렌드</h3>
+  <p><span class="label estimate">보도 인용</span> 오픈서베이 트렌드 리포트에 따르면 식품 주구입처로 "온라인 쇼핑몰"을 꼽은 비중이 4.1%(2023)→9.7%(2024)로 확대. 가격 민감도가 전반적으로 상승했고, 쿠팡 이탈 소비자의 41%는 네이버쇼핑으로, 20%는 컬리로 이동하는 경향이 보고됨. 백년화편의 판매 채널 순위(자사몰&gt;네이버스토어&gt;쿠팡)를 고려할 때 네이버쇼핑으로의 수요 이동은 기회 요인으로 해석 가능(추정).</p>
+  <p><span class="label fact">사실</span> 네이버쇼핑은 2026년 4월 20~24일 식품·가구·패션 카테고리 체계를 개편했다. 떡 카테고리에 대한 개편의 구체적 영향은 <span class="label unknown">확인 불가</span>.</p>
+</section>
+
+<section id="competitor">
+  <h2>4. 경쟁사 분기 동향 (3사 심층 비교)</h2>
+  <table>
+    <caption>리뷰 기준 경쟁사 비교 (대시보드, 2026-10-06 조회 누적치)</caption>
+    <thead><tr><th class="left">구분</th><th>백년화편</th><th>명가삼대떡집</th><th>파파공방</th></tr></thead>
+    <tbody>
+      <tr><td class="left">누적 리뷰 / 평점</td><td>201,326 / ★4.9</td><td>142,406 / ★4.9</td><td>7,291 / ★4.9</td></tr>
+      <tr><td class="left">3점 이하 비율</td><td>1% (2,004)</td><td>1% (1,425)</td><td>3% (195, 3사 중 최고)</td></tr>
+      <tr><td class="left">최근 7일 신규</td><td>535</td><td><b>751 (최다)</b></td><td>0 (정체)</td></tr>
+      <tr><td class="left">베스트 상품 TOP</td><td>밥알찹쌀떡(74,594건)<br>밥알흑임자(15,681건)</td><td>쑥인절미(19,820건)<br>콩달떡(14,778건)<br>쑥설기(11,197건)</td><td>무염·무설탕 현미밥알쑥떡(2,841건)</td></tr>
+      <tr><td class="left">부정 리뷰 최다 상품</td><td>밥알찹쌀떡 469건(비중 0.6%)</td><td>쑥설기 181건(비중 1.6%)</td><td>현미밥알쑥떡 82건(비중 2.9%)</td></tr>
+      <tr><td class="left">채널</td><td>자사몰/카카오/네이버/스마트스토어 분산</td><td>자사몰 단일 집중</td><td>자사몰·스마트스토어</td></tr>
+    </tbody>
+  </table>
+  <p><span class="label fact">사실</span> 명가삼대떡집은 최근 7일 신규 리뷰(751건)가 백년화편(535건)보다 많아, 조회 시점 기준 온라인 구매 활동이 더 활발한 것으로 관측된다. 다만 명가삼대떡집의 부정 키워드 상위에 "맛있어요"(160건)가 포함되어 있어 — 저평점 리뷰에도 형식적 긍정 표현이 섞여 있을 가능성이 있으며, 실제 불만 사유는 개별 리뷰 확인이 필요하다(<span class="label unknown">확인 필요</span>).</p>
+  <p><span class="label fact">사실</span> 파파공방은 "밥알" 네이밍을 사용한 현미 쑥떡·찹쌀떡 제품을 판매 중이며, 백년화편의 특허 제품명과 유사한 포지셔닝을 취하고 있다. 최근 7일 신규 리뷰가 0건으로 활동이 정체된 상태이나, 3점 이하 비율(3%)이 3사 중 가장 높아 품질 이슈 가능성이 있다.</p>
+
+  <h3>창억떡 (자사 대시보드 자동 수집 미구현)</h3>
+  <p><span class="label unknown">확인 불가</span> 창억떡은 자사몰(changeok.co.kr) 로그인 제약으로 대시보드 자동 수집이 되지 않아 리뷰·평점 데이터는 확인 불가. 아래는 웹 검색 기반 보조 정보이며 1차 재무제표로 검증되지 않았다.</p>
+  <p><span class="label estimate">추정(2차 출처)</span> 2025년 매출 457.5억 원(전년 대비 +14%), 당기순이익 64.3억 원(전년 대비 +96%)으로 보도됨(출처: 나무위키 인용, 1차 공시자료 미확인). 광주광역시 기반 60년 전통 브랜드로 전국 23개 고속버스터미널 유통망을 보유했으며, 대표 메뉴 호박인절미가 SNS發 "떡지순례" 트렌드를 촉발한 사례로 언론(여성신문)에 보도됨.</p>
+</section>
+
+<section id="self">
+  <h2>5. 자사 현황</h2>
+  <h3>채널별 리뷰 분포</h3>
+  <table>
+    <caption>백년화편 채널별 누적 리뷰 (합산 201,326건)</caption>
+    <thead><tr><th class="left">채널</th><th>리뷰 수</th><th>평점</th><th>비중</th></tr></thead>
+    <tbody>
+      <tr><td class="left">자사몰</td><td>123,398</td><td>★5</td><td>61%</td></tr>
+      <tr><td class="left">자사몰(카카오)</td><td>45,631</td><td>★5</td><td>23%</td></tr>
+      <tr><td class="left">스마트스토어(네이버)</td><td>28,274</td><td>★4.9</td><td>14%</td></tr>
+      <tr><td class="left">자사몰(네이버)</td><td>4,023</td><td>★5</td><td>2%</td></tr>
+    </tbody>
+  </table>
+  <p><span class="label fact">사실</span> 리뷰 기준 매출 구조와 동일하게 자사몰 의존도가 61%로 가장 높고, 네이버 계열(스마트스토어+자사몰네이버) 합산 비중은 16% 수준이다. 네이버 채널은 자동 수집 중단(9/18) 이후 최신 데이터 반영이 지연되고 있어, 실제 네이버 채널 비중은 보고된 수치보다 더 클 가능성이 있다(<span class="label unknown">확인 필요</span>).</p>
+
+  <h3>네이버 스마트스토어 상세</h3>
+  <p><span class="label fact">사실</span> 스마트스토어 단독 집계 28,909건, 평균 ★4.9, 3점 이하 2%(698건). 베스트 상품은 밥알찹쌀떡 1박스(10,241건), 쑥떡 답례떡(3,853건), 밥알흑임자(1,296건) 순이며, 30주년 특별 패키지(999건, 부정 37건·비중 3.7%)는 신제품 대비 리뷰 축적이 더딘 편이다.</p>
+
+  <h3>리뷰 키워드</h3>
+  <p><span class="label fact">사실</span> 긍정 키워드 상위: "맛있어요"(30,240), "선물로"(11,036) — 선물 목적 구매 언급이 상위권에 올라 기존 브랜드 포지셔닝(선물용·전통)과 일치한다. 부정 키워드는 "떡이"(237), "맛이"(146) 등 빈도 자체가 낮고 특정 불만 패턴으로 수렴되지 않는다.</p>
+
+  <h3>운영 이슈</h3>
+  <p><span class="label fact">사실</span> 자사몰 리뷰는 시간 단위로 정상 수집 중(10/6 06:06 기준 직전 1시간 13건 신규, 최근 24시간 약 150건 내외). 반면 네이버 공개 후기 자동 병합은 9/18 10:35 성공 이후 "공개 페이지 접근 제한으로 보류" 상태가 지속되고 있어, 네이버 채널 품질 모니터링에 약 3주 이상 공백이 발생했다 — <span class="label unknown">확인 필요</span>(수집 로그 기술적 원인 점검 필요).</p>
+</section>
+
+<section id="swot">
+  <h2>6. SWOT 분석</h2>
+  <div class="swot-grid">
+    <div class="swot-box swot-s">
+      <h4>강점 (Strengths)</h4>
+      <p>대한명인 인증 + 한국·일본 특허 보유. 생산 가능 물량의 10% 미만만 사용 중인 유휴 생산여력. 전 채널 평균 ★4.9, 3점 이하 1% 수준의 안정적 품질 평판. "선물로" 키워드가 긍정 리뷰 상위권에 위치 — 선물 포지셔닝 실증.</p>
+    </div>
+    <div class="swot-box swot-w">
+      <h4>약점 (Weaknesses)</h4>
+      <p>네이버 채널 자동 모니터링 9/18 이후 공백. 최근 7일 신규 리뷰 증가세가 명가삼대떡집보다 낮음(535 vs 751). B2B 영업 인력 부재, HACCP 미완료로 조달·홈쇼핑·대기업 포털 채널 접근 제한.</p>
+    </div>
+    <div class="swot-box swot-o">
+      <h4>기회 (Opportunities)</h4>
+      <p>떡 시장 자체 성장 및 2030세대 디저트화·프리미엄화(보도 기준). 온라인 식품 소비 비중 확대 및 쿠팡 이탈 수요의 네이버쇼핑 유입 트렌드(백년화편 2순위 채널과 부합). HACCP 완료 시 다수 채널 동시 개방 예정.</p>
+    </div>
+    <div class="swot-box swot-t">
+      <h4>위협 (Threats)</h4>
+      <p>명가삼대떡집의 온라인 모멘텀 우위 지속 가능성. 파파공방 등 "밥알" 유사 네이밍 상품의 저변 확대. 창억떡의 "떡지순례" 트렌드 주도로 화제성 경쟁에서 밀릴 가능성(단, 창억떡 정량 데이터는 확인 불가로 추세 지속 여부는 다음 분기 재확인 필요).</p>
+    </div>
+  </div>
+</section>
+
+<section id="strategy">
+  <h2>7. Q4(10~12월) 전략 제안</h2>
+
+  <h3>단기 — 이번 분기 내 즉시 실행</h3>
+  <div class="action-box">
+    <span class="tag">단기 1</span>
+    <p><b>네이버 공개 후기 자동 수집 복구</b> — 9/18 이후 "공개 페이지 접근 제한"으로 중단된 네이버 채널 모니터링의 기술적 원인(접근 차단/구조 변경 여부)을 점검하고 복구한다. 복구 전까지는 네이버 채널 리뷰 지표를 수동 샘플링으로 보완할 것을 권고.</p>
+  </div>
+  <div class="action-box">
+    <span class="tag">단기 2</span>
+    <p><b>설 2027 사전예약 광고 조기 착수</b> — 추석 2026에서 지적된 "약 70% 사전예약 물량 대비 광고 집행 지연" 문제 재발을 막기 위해 11월 초까지 설 선물세트 소재·사전예약 페이지 준비를 완료한다.</p>
+  </div>
+  <div class="action-box">
+    <span class="tag">단기 3</span>
+    <p><b>30주년 에디션 등 신제품 리뷰 축적 점검</b> — 네이버 스마트스토어 30주년 특별 패키지(999건, 부정비중 3.7%로 전체 평균보다 높음)의 부정 리뷰 내용을 확인해 포장·배송 등 신제품 특유의 초기 이슈 여부를 파악한다.</p>
+  </div>
+
+  <h3>중기 — Q4~2027 Q1</h3>
+  <div class="action-box">
+    <span class="tag">중기 1</span>
+    <p><b>경쟁사 온라인 모멘티엄 격차 추적</b> — 명가삼대떡집의 최근 7일 신규 리뷰 우위(751 vs 535)가 일시적 현상인지 추세인지 11월·12월 동일 지표로 재확인하고, 지속될 경우 광고·콘텐츠 투입 여부를 결정한다.</p>
+  </div>
+  <div class="action-box">
+    <span class="tag">중기 2</span>
+    <p><b>HACCP 완료 연동 채널 준비</b> — 기존 마스터 현황 문서(Ⅶ 항목)에 따라 HACCP 완료 시 열리는 조달청 우수제품·홈쇼핑 재진입·대기업 구매포털 벤더 등록을 위한 서류·MD 접촉을 지금부터 준비한다.</p>
+  </div>
+  <div class="action-box">
+    <span class="tag">중기 3</span>
+    <p><b>공개입찰 채널 등록 진행 상황 점검</b> — 나라장터·SMPP·학교장터 S2B·동반성장몰 등 1개월 내 목표로 설정된 등록 작업의 완료 여부를 확인하고, 미완료 항목은 Q4 내 마감한다.</p>
+  </div>
+
+  <p class="note">본 리포트의 수치는 2026-10-06 Railway 대시보드 조회 시점 및 명시된 웹 검색 결과를 기준으로 한다. 분기(7~9월) 단위로 정확히 필터링된 리뷰·매출 통계는 대시보드 기능상 제공되지 않아 "확인 불가"로 표기했으며, 보도 인용 수치는 1차 출처 미확인 시 "추정/보도 인용"으로 구분했다.</p>
+</section>
+
+</div>
+</body>
+</html>
